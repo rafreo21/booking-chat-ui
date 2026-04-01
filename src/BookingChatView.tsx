@@ -24,13 +24,50 @@ type ChatMessage = {
   text: string
 }
 
-const TIME_SLOTS = [
-  '09:00',
-  '10:30',
-  '13:00',
-  '15:30',
-  '17:00',
-] as const
+/** Every 15 minutes from 14:00 through 22:00 (2pm–10pm). */
+function buildSlots14Through22(): string[] {
+  const out: string[] = []
+  for (let mins = 14 * 60; mins <= 22 * 60; mins += 15) {
+    const h = Math.floor(mins / 60)
+    const m = mins % 60
+    out.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`)
+  }
+  return out
+}
+
+/** Deterministic PRNG for stable “random” 20 picks across reloads. */
+function mulberry32(seed: number) {
+  return function () {
+    let t = (seed += 0x6d2b79f5)
+    t = Math.imul(t ^ (t >>> 15), t | 1)
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+function pickRandomSubset<T>(arr: readonly T[], count: number, seed: number): T[] {
+  const rng = mulberry32(seed)
+  const idx = arr.map((_, i) => i)
+  for (let i = idx.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1))
+    ;[idx[i], idx[j]] = [idx[j], idx[i]]
+  }
+  return idx.slice(0, count).map((i) => arr[i])
+}
+
+const TIME_SLOTS_24 = pickRandomSubset(buildSlots14Through22(), 20, 0x9e3779b9).sort(
+  (a, b) => a.localeCompare(b),
+)
+
+function formatTimeSlot12h(hhmm: string): string {
+  const [h, m] = hhmm.split(':').map(Number)
+  const d = new Date(2000, 0, 1, h, m)
+  return d.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  })
+}
 
 const GUEST_CHIPS = ['1', '2', '3', '4', '5', '6+'] as const
 
@@ -237,13 +274,8 @@ export function BookingChatView({ onBack }: Props) {
 
   const days = nextWeekdays(5)
 
-  const timeSlotsFirstRow = TIME_SLOTS.slice(
-    0,
-    Math.ceil(TIME_SLOTS.length / 2),
-  )
-  const timeSlotsSecondRow = TIME_SLOTS.slice(
-    Math.ceil(TIME_SLOTS.length / 2),
-  )
+  const timeSlotsFirstRow = TIME_SLOTS_24.slice(0, 10)
+  const timeSlotsSecondRow = TIME_SLOTS_24.slice(10, 20)
 
   const resetChat = () => {
     setBooking({ guestCount: 0, date: null, time: '' })
@@ -357,31 +389,40 @@ export function BookingChatView({ onBack }: Props) {
                 )}
 
                 {step === 'time' && (
-                  <div className="w-full overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  <div
+                    className="w-full overflow-x-auto overflow-y-visible pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                    dir="ltr"
+                  >
                     <div className="inline-flex min-w-min flex-col items-start gap-2">
-                      <div className="flex w-max gap-2.5">
-                        {timeSlotsFirstRow.map((t) => (
-                          <button
-                            key={t}
-                            type="button"
-                            onClick={() => pickTime(t)}
-                            className={`${chipPill} min-w-[3.25rem] px-3 tabular-nums`}
-                          >
-                            {t}
-                          </button>
-                        ))}
+                      <div className="flex w-max flex-nowrap items-center justify-start gap-2.5">
+                        {timeSlotsFirstRow.map((t24) => {
+                          const label = formatTimeSlot12h(t24)
+                          return (
+                            <button
+                              key={t24}
+                              type="button"
+                              onClick={() => pickTime(label)}
+                              className={`${chipPill} min-w-[4.5rem] shrink-0 px-3.5 tabular-nums`}
+                            >
+                              {label}
+                            </button>
+                          )
+                        })}
                       </div>
-                      <div className="flex w-max gap-2.5">
-                        {timeSlotsSecondRow.map((t) => (
-                          <button
-                            key={t}
-                            type="button"
-                            onClick={() => pickTime(t)}
-                            className={`${chipPill} min-w-[3.25rem] px-3 tabular-nums`}
-                          >
-                            {t}
-                          </button>
-                        ))}
+                      <div className="flex w-max flex-nowrap items-center justify-start gap-2.5">
+                        {timeSlotsSecondRow.map((t24) => {
+                          const label = formatTimeSlot12h(t24)
+                          return (
+                            <button
+                              key={t24}
+                              type="button"
+                              onClick={() => pickTime(label)}
+                              className={`${chipPill} min-w-[4.5rem] shrink-0 px-3.5 tabular-nums`}
+                            >
+                              {label}
+                            </button>
+                          )
+                        })}
                       </div>
                     </div>
                   </div>
