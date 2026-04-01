@@ -1,6 +1,7 @@
 export type SavedBooking = {
   id: string
   createdAt: string
+  guests: number
   service: string
   dateIso: string
   time: string
@@ -14,7 +15,7 @@ function isRecord(x: unknown): x is Record<string, unknown> {
   return typeof x === 'object' && x !== null
 }
 
-function isValidBooking(x: unknown): x is SavedBooking {
+function isLegacyBooking(x: unknown): x is Record<string, unknown> {
   if (!isRecord(x)) return false
   return (
     typeof x.id === 'string' &&
@@ -27,13 +28,29 @@ function isValidBooking(x: unknown): x is SavedBooking {
   )
 }
 
+function normalizeBooking(x: Record<string, unknown>): SavedBooking {
+  const g = x.guests
+  const guests =
+    typeof g === 'number' && !Number.isNaN(g) ? Math.max(0, Math.floor(g)) : 0
+  return {
+    id: x.id as string,
+    createdAt: x.createdAt as string,
+    guests,
+    service: x.service as string,
+    dateIso: x.dateIso as string,
+    time: x.time as string,
+    name: x.name as string,
+    email: x.email as string,
+  }
+}
+
 export function loadBookings(): SavedBooking[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return []
     const parsed = JSON.parse(raw) as unknown
     if (!Array.isArray(parsed)) return []
-    return parsed.filter(isValidBooking)
+    return parsed.filter(isLegacyBooking).map(normalizeBooking)
   } catch {
     return []
   }
@@ -68,6 +85,10 @@ export function exportBookingsJson(): string {
   return JSON.stringify(loadBookings(), null, 2)
 }
 
+function isValidImportedRow(x: unknown): x is Record<string, unknown> {
+  return isLegacyBooking(x)
+}
+
 export function importBookingsFromJson(
   json: string,
   mode: 'replace' | 'merge',
@@ -77,7 +98,7 @@ export function importBookingsFromJson(
     if (!Array.isArray(parsed)) {
       return { ok: false, error: 'JSON must be an array of bookings.' }
     }
-    const rows = parsed.filter(isValidBooking)
+    const rows = parsed.filter(isValidImportedRow).map(normalizeBooking)
     if (rows.length === 0 && parsed.length > 0) {
       return { ok: false, error: 'No valid booking objects found.' }
     }
@@ -109,7 +130,7 @@ export async function hydrateFromPublicFile(): Promise<void> {
     if (!res.ok) return
     const data = (await res.json()) as unknown
     if (!Array.isArray(data) || data.length === 0) return
-    const rows = data.filter(isValidBooking)
+    const rows = data.filter(isValidImportedRow).map(normalizeBooking)
     if (rows.length === 0) return
     saveBookings(rows)
   } catch {
