@@ -87,6 +87,7 @@ export function BookingsLog({
                       <p className="truncate text-neutral-500">
                         {b.name}
                         {b.email ? ` · ${b.email}` : ''}
+                        {b.phone ? ` · ${b.phone}` : ''}
                       </p>
                     </div>
                     <button

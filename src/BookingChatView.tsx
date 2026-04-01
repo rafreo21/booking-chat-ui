@@ -1,11 +1,4 @@
-import {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useId,
-  useRef,
-  useState,
-} from 'react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import {
   addBooking,
   clearBookings,
@@ -28,12 +21,6 @@ type ChatMessage = {
   text: string
 }
 
-const SERVICES = [
-  { id: 'consult', label: 'Consultation', detail: '30 min · intro call' },
-  { id: 'workshop', label: 'Workshop', detail: 'Group session' },
-  { id: 'oneone', label: '1:1 Session', detail: '60 min · deep dive' },
-] as const
-
 const TIME_SLOTS = [
   '09:00',
   '10:30',
@@ -43,6 +30,8 @@ const TIME_SLOTS = [
 ] as const
 
 const GUEST_CHIPS = ['1', '2', '3', '4', '5', '6+'] as const
+
+const RESTAURANT_SERVICE = 'Restaurant'
 
 function nextWeekdays(count: number): Date[] {
   const out: Date[] = []
@@ -68,13 +57,23 @@ function uid(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
 }
 
-type Step = 'guests' | 'service' | 'date' | 'time' | 'contact' | 'done'
+type Step =
+  | 'guests'
+  | 'date'
+  | 'time'
+  | 'details'
+  | 'confirm'
+  | 'submitting'
+  | 'success'
 
 const chipBase =
   'rounded-full border border-neutral-300 bg-white px-4 py-2 text-left text-sm font-medium text-neutral-800 shadow-sm transition will-change-transform hover:border-[#303030]/30 hover:bg-neutral-50 active:scale-[0.98] active:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900'
 
 const chipTime =
   'rounded-full bg-[#303030] px-4 py-2 text-sm font-semibold text-white shadow-sm transition will-change-transform hover:bg-[#3d3d3d] active:scale-[0.98] active:bg-[#252525] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2'
+
+const backBtn =
+  'fixed left-4 top-[max(1rem,env(safe-area-inset-top))] z-50 flex size-11 items-center justify-center rounded-full border border-white/50 bg-white shadow-md transition hover:bg-neutral-50 active:scale-95 active:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 md:left-8'
 
 type Props = {
   onBack: () => void
@@ -83,7 +82,6 @@ type Props = {
 export function BookingChatView({ onBack }: Props) {
   const titleId = useId()
   const listRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
 
   const [step, setStep] = useState<Step>('guests')
   const [messages, setMessages] = useState<ChatMessage[]>(() => [
@@ -96,12 +94,20 @@ export function BookingChatView({ onBack }: Props) {
 
   const [booking, setBooking] = useState({
     guestCount: 0,
-    serviceLabel: '',
     date: null as Date | null,
     time: '',
+  })
+
+  const [details, setDetails] = useState({
     name: '',
     email: '',
+    phone: '',
   })
+  const [detailErrors, setDetailErrors] = useState<{
+    name?: string
+    email?: string
+    phone?: string
+  }>({})
 
   const [savedBookings, setSavedBookings] = useState<SavedBooking[]>([])
   const [logOpen, setLogOpen] = useState(false)
@@ -147,19 +153,11 @@ export function BookingChatView({ onBack }: Props) {
   const pickGuest = (label: string) => {
     if (step !== 'guests') return
     pushUser(
-      label === '6+' ? 'I need a table for 6+' : `I need a table for ${label}`,
+      label === '6+' ? 'Table for 6 or more' : `Table for ${label} guest${label === '1' ? '' : 's'}`,
     )
     const gc = guestCountFromLabel(label)
     setBooking((b) => ({ ...b, guestCount: gc }))
-    pushAssistant('What would you like to schedule?')
-    setStep('service')
-  }
-
-  const pickService = (label: string) => {
-    if (step !== 'service') return
-    pushUser(label)
-    setBooking((b) => ({ ...b, serviceLabel: label }))
-    pushAssistant(`Great — ${label} it is. Pick a day that works for you.`)
+    pushAssistant('Which **date** would you like to book?')
     setStep('date')
   }
 
@@ -167,7 +165,7 @@ export function BookingChatView({ onBack }: Props) {
     if (step !== 'date') return
     pushUser(formatDay(d))
     setBooking((b) => ({ ...b, date: d }))
-    pushAssistant('Here are open times that day. Tap one.')
+    pushAssistant('Here are the available times. Pick one that suits you.')
     setStep('time')
   }
 
@@ -176,61 +174,64 @@ export function BookingChatView({ onBack }: Props) {
     pushUser(t)
     setBooking((b) => ({ ...b, time: t }))
     pushAssistant(
-      'Almost there. Send your name and email in one line, like: **Alex Rivera, alex@email.com** — or use the field below.',
+      'Almost there. Enter your **full name**, **email**, and **phone number** below, then continue.',
     )
-    setStep('contact')
-    setTimeout(() => inputRef.current?.focus(), 100)
+    setStep('details')
   }
 
-  const submitContact = (raw: string) => {
-    if (step !== 'contact') return
-    const trimmed = raw.trim()
-    if (trimmed.length < 3) return
+  const validateDetails = (): boolean => {
+    const err: typeof detailErrors = {}
+    const name = details.name.trim()
+    const email = details.email.trim()
+    const phone = details.phone.replace(/\s/g, '')
 
-    const emailMatch = trimmed.match(/[^\s@]+@[^\s@]+\.[^\s@]+/)
-    const email = emailMatch ? emailMatch[0] : ''
-    const namePart = email
-      ? trimmed.replace(email, '').replace(/,/g, ' ').trim()
-      : trimmed
+    if (name.length < 2) err.name = 'Enter your full name'
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) err.email = 'Enter a valid email'
+    const digits = phone.replace(/\D/g, '')
+    if (digits.length < 8) {
+      err.phone = 'Enter a valid phone number'
+    }
+    setDetailErrors(err)
+    return Object.keys(err).length === 0
+  }
 
-    pushUser(trimmed)
-    setBooking((b) => ({ ...b, name: namePart || 'Guest', email: email || '' }))
-
-    addBooking({
-      guests: booking.guestCount,
-      service: booking.serviceLabel,
-      dateIso: booking.date ? booking.date.toISOString() : '',
-      time: booking.time,
-      name: namePart || 'Guest',
-      email: email || '',
-    })
-    refreshSaved()
-
-    const when = booking.date
-      ? `${formatDay(booking.date)} · ${booking.time}`
-      : `${booking.time}`
-
-    pushAssistant(
-      `You're booked for **${booking.serviceLabel}** on ${when}.` +
-        (email
-          ? ` I'll send details to ${email}.`
-          : ' Add an email next time if you want a confirmation message.') +
-        ' This booking is saved in your browser (see **Bookings**).',
+  const submitDetails = () => {
+    if (step !== 'details') return
+    if (!validateDetails()) return
+    pushUser(
+      `${details.name.trim()} · ${details.email.trim()} · ${details.phone.trim()}`,
     )
-    setStep('done')
+    pushAssistant('Review your booking below, then tap **Confirm booking**.')
+    setStep('confirm')
+  }
+
+  const confirmBooking = () => {
+    if (step !== 'confirm') return
+    setStep('submitting')
+    window.setTimeout(() => {
+      addBooking({
+        guests: booking.guestCount,
+        service: RESTAURANT_SERVICE,
+        dateIso: booking.date ? booking.date.toISOString() : '',
+        time: booking.time,
+        name: details.name.trim(),
+        email: details.email.trim(),
+        phone: details.phone.trim(),
+      })
+      refreshSaved()
+      pushAssistant(
+        '**Booking confirmed!** Your table is reserved. We look forward to welcoming you.',
+      )
+      setStep('success')
+    }, 1600)
   }
 
   const days = nextWeekdays(5)
 
   const resetChat = () => {
-    setBooking({
-      guestCount: 0,
-      serviceLabel: '',
-      date: null,
-      time: '',
-      name: '',
-      email: '',
-    })
+    setBooking({ guestCount: 0, date: null, time: '' })
+    setDetails({ name: '', email: '', phone: '' })
+    setDetailErrors({})
     setStep('guests')
     setMessages([
       {
@@ -241,36 +242,39 @@ export function BookingChatView({ onBack }: Props) {
     ])
   }
 
+  const showFooter = step !== 'submitting'
+
   return (
     <div className="relative min-h-dvh bg-[#ececec]">
-      <div className="mx-auto flex min-h-dvh w-full max-w-[340px] flex-col px-4 pb-28 pt-6 md:py-10">
-        <div className="relative w-full max-w-[308px] self-center">
-          <button
-            type="button"
-            onClick={onBack}
-            className="absolute -left-1 -top-2 z-20 flex size-9 items-center justify-center rounded-full border border-white/50 bg-white shadow-md transition hover:bg-neutral-50 active:scale-95 active:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 md:-left-12"
-            aria-label="Back to restaurant"
-          >
-            <img
-              src={ASSETS.backChevron}
-              alt=""
-              className="size-3.5 opacity-70"
-            />
-          </button>
+      <button
+        type="button"
+        onClick={onBack}
+        className={backBtn}
+        aria-label="Back to restaurant"
+      >
+        <img src={ASSETS.backChevron} alt="" className="size-3.5 opacity-70" />
+      </button>
 
+      <div className="flex min-h-dvh w-full items-center justify-center px-4 pb-28 pt-20">
+        <div className="w-full max-w-[308px] shrink-0">
           <div
-            className="flex max-h-[min(560px,calc(100dvh-7rem))] flex-col rounded-2xl border border-white/30 bg-[#f3f3f3]/95 p-3 shadow-sm backdrop-blur-[14px]"
+            className="flex max-h-[min(580px,calc(100dvh-7rem))] w-full flex-col rounded-2xl border border-white/30 bg-[#f3f3f3]/95 p-3 shadow-sm backdrop-blur-[14px]"
             role="region"
             aria-labelledby={titleId}
           >
             <div className="shrink-0 rounded-xl border border-white/30 bg-[#272727] p-4 shadow-inner">
-              <img
-                src={ASSETS.aiLogo}
-                alt=""
-                className="mb-2 size-6"
-                width={24}
-                height={24}
-              />
+              <div
+                className="mb-3 flex size-12 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400/25 to-transparent ring-2 ring-emerald-400/40"
+                aria-hidden
+              >
+                <img
+                  src={ASSETS.aiLogo}
+                  alt=""
+                  className="size-8 object-contain"
+                  width={32}
+                  height={32}
+                />
+              </div>
               <p
                 id={titleId}
                 className="text-[14px] font-semibold text-white [text-shadow:0_9px_54px_rgba(0,0,0,0.5)]"
@@ -282,127 +286,146 @@ export function BookingChatView({ onBack }: Props) {
               </p>
             </div>
 
-            <div
-              ref={listRef}
-              className="mt-3 min-h-0 flex-1 space-y-3 overflow-y-auto px-1 py-1"
-              role="log"
-              aria-relevant="additions"
-              aria-live="polite"
-            >
-              {messages.map((msg) => (
-                <FigmaMessage key={msg.id} role={msg.role} text={msg.text} />
-              ))}
-
-              {step === 'guests' && (
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {GUEST_CHIPS.map((g) => (
-                    <button
-                      key={g}
-                      type="button"
-                      onClick={() => pickGuest(g)}
-                      className={chipBase}
-                    >
-                      {g}
-                    </button>
+            {step === 'submitting' ? (
+              <div className="flex min-h-[200px] flex-col items-center justify-center gap-3 px-4 py-8">
+                <div
+                  className="size-10 animate-spin rounded-full border-2 border-neutral-300 border-t-[#303030]"
+                  aria-hidden
+                />
+                <p className="text-center text-[14px] font-medium text-[#303030]">
+                  Booking in progress…
+                </p>
+                <p className="text-center text-xs text-neutral-500">
+                  Please wait a moment
+                </p>
+              </div>
+            ) : (
+              <>
+                <div
+                  ref={listRef}
+                  className="mt-3 min-h-0 flex-1 space-y-3 overflow-y-auto px-1 py-1"
+                  role="log"
+                  aria-relevant="additions"
+                  aria-live="polite"
+                >
+                  {messages.map((msg) => (
+                    <FigmaMessage key={msg.id} role={msg.role} text={msg.text} />
                   ))}
-                </div>
-              )}
 
-              {step === 'service' && (
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {SERVICES.map((s) => (
-                    <button
-                      key={s.id}
-                      type="button"
-                      onClick={() => pickService(s.label)}
-                      className={chipBase}
-                    >
-                      <span className="block">{s.label}</span>
-                      <span className="block text-xs font-normal text-neutral-500">
-                        {s.detail}
+                  {step === 'guests' && (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {GUEST_CHIPS.map((g) => (
+                        <button
+                          key={g}
+                          type="button"
+                          onClick={() => pickGuest(g)}
+                          className={chipBase}
+                        >
+                          {g}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {step === 'date' && (
+                    <div className="flex gap-2 overflow-x-auto pb-1 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                      {days.map((d) => (
+                        <button
+                          key={d.toISOString()}
+                          type="button"
+                          onClick={() => pickDate(d)}
+                          className={`${chipBase} shrink-0`}
+                        >
+                          {formatDay(d)}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {step === 'time' && (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {TIME_SLOTS.map((t) => (
+                        <button
+                          key={t}
+                          type="button"
+                          onClick={() => pickTime(t)}
+                          className={chipTime}
+                        >
+                          {t}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {step === 'details' && (
+                    <DetailsForm
+                      details={details}
+                      errors={detailErrors}
+                      onChange={(patch) => {
+                        setDetails((d) => ({ ...d, ...patch }))
+                        setDetailErrors({})
+                      }}
+                      onSubmit={submitDetails}
+                    />
+                  )}
+
+                  {step === 'confirm' && booking.date && (
+                    <ConfirmPanel
+                      booking={booking}
+                      details={details}
+                      onConfirm={confirmBooking}
+                    />
+                  )}
+                </div>
+
+                {step === 'success' && (
+                  <div className="mt-3 shrink-0 space-y-3 border-t border-white/30 pt-3">
+                    <div className="flex items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/90 px-3 py-3 text-center">
+                      <span
+                        className="flex size-8 items-center justify-center rounded-full bg-emerald-600 text-sm font-bold text-white"
+                        aria-hidden
+                      >
+                        ✓
                       </span>
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {step === 'date' && (
-                <div className="flex gap-2 overflow-x-auto pb-1 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                  {days.map((d) => (
+                      <p className="text-left text-[13px] font-medium text-emerald-900">
+                        You&apos;re all set. Ready for another reservation?
+                      </p>
+                    </div>
                     <button
-                      key={d.toISOString()}
                       type="button"
-                      onClick={() => pickDate(d)}
-                      className={`${chipBase} shrink-0`}
+                      onClick={resetChat}
+                      className="mx-auto flex h-11 w-[200px] items-center justify-center rounded-lg bg-[#303030] text-sm font-semibold text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)] transition hover:bg-[#3d3d3d] active:scale-[0.99] active:bg-[#252525] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
                     >
-                      {formatDay(d)}
+                      Book Now
                     </button>
-                  ))}
-                </div>
-              )}
-
-              {step === 'time' && (
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {TIME_SLOTS.map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => pickTime(t)}
-                      className={chipTime}
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {step !== 'done' && (
-              <Composer
-                ref={inputRef}
-                disabled={step !== 'contact'}
-                placeholder={
-                  step === 'contact'
-                    ? 'Name and email…'
-                    : 'Use the suggestions above'
-                }
-                onSend={submitContact}
-              />
+                  </div>
+                )}
+              </>
             )}
 
-            {step === 'done' && (
-              <div className="mt-2 shrink-0 border-t border-white/30 pt-3">
+            {showFooter && (
+              <div className="mt-3 flex items-center justify-between gap-2 border-t border-white/20 pt-2">
+                <p className="truncate text-xs text-neutral-500">
+                  Gilgamesh · booking assistant
+                </p>
                 <button
                   type="button"
-                  onClick={resetChat}
-                  className="w-full rounded-lg bg-[#303030] py-3 text-sm font-semibold text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)] transition hover:bg-[#3d3d3d] active:scale-[0.99] active:bg-[#252525] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
+                  onClick={() => {
+                    setLogOpen(true)
+                    setImportMsg(null)
+                    refreshSaved()
+                  }}
+                  className="relative shrink-0 rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-800 shadow-sm transition hover:bg-neutral-50 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
                 >
-                  Book another
+                  Bookings
+                  {savedBookings.length > 0 && (
+                    <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#303030] px-0.5 text-[10px] font-semibold text-white">
+                      {savedBookings.length > 99 ? '99+' : savedBookings.length}
+                    </span>
+                  )}
                 </button>
               </div>
             )}
-
-            <div className="mt-3 flex items-center justify-between gap-2 border-t border-white/20 pt-2">
-              <p className="truncate text-xs text-neutral-500">
-                Gilgamesh · booking assistant
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  setLogOpen(true)
-                  setImportMsg(null)
-                  refreshSaved()
-                }}
-                className="relative shrink-0 rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-800 shadow-sm transition hover:bg-neutral-50 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
-              >
-                Bookings
-                {savedBookings.length > 0 && (
-                  <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#303030] px-0.5 text-[10px] font-semibold text-white">
-                    {savedBookings.length > 99 ? '99+' : savedBookings.length}
-                  </span>
-                )}
-              </button>
-            </div>
           </div>
         </div>
       </div>
@@ -473,6 +496,132 @@ export function BookingChatView({ onBack }: Props) {
   )
 }
 
+function DetailsForm({
+  details,
+  errors,
+  onChange,
+  onSubmit,
+}: {
+  details: { name: string; email: string; phone: string }
+  errors: { name?: string; email?: string; phone?: string }
+  onChange: (patch: Partial<{ name: string; email: string; phone: string }>) => void
+  onSubmit: () => void
+}) {
+  const input =
+    'w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-[13px] text-[#303030] placeholder:text-neutral-400 focus:border-[#303030] focus:outline-none focus:ring-2 focus:ring-neutral-900/20'
+
+  return (
+    <div className="space-y-3 rounded-xl border border-white/40 bg-white/80 p-3 pt-2">
+      <p className="text-[13px] font-medium text-[#303030]">Your details</p>
+      <div>
+        <label className="mb-1 block text-[11px] font-medium text-neutral-500">
+          Full name
+        </label>
+        <input
+          type="text"
+          autoComplete="name"
+          value={details.name}
+          onChange={(e) => onChange({ name: e.target.value })}
+          placeholder="Alex Rivera"
+          className={input}
+        />
+        {errors.name && (
+          <p className="mt-1 text-[11px] text-red-600">{errors.name}</p>
+        )}
+      </div>
+      <div>
+        <label className="mb-1 block text-[11px] font-medium text-neutral-500">
+          Email
+        </label>
+        <input
+          type="email"
+          autoComplete="email"
+          value={details.email}
+          onChange={(e) => onChange({ email: e.target.value })}
+          placeholder="alex@example.com"
+          className={input}
+        />
+        {errors.email && (
+          <p className="mt-1 text-[11px] text-red-600">{errors.email}</p>
+        )}
+      </div>
+      <div>
+        <label className="mb-1 block text-[11px] font-medium text-neutral-500">
+          Phone
+        </label>
+        <input
+          type="tel"
+          autoComplete="tel"
+          value={details.phone}
+          onChange={(e) => onChange({ phone: e.target.value })}
+          placeholder="+44 20 1234 5678"
+          className={input}
+        />
+        {errors.phone && (
+          <p className="mt-1 text-[11px] text-red-600">{errors.phone}</p>
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={onSubmit}
+        className="w-full rounded-lg bg-[#303030] py-2.5 text-[13px] font-semibold text-white transition hover:bg-[#3d3d3d] active:scale-[0.99] active:bg-[#252525] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
+      >
+        Continue
+      </button>
+    </div>
+  )
+}
+
+function ConfirmPanel({
+  booking,
+  details,
+  onConfirm,
+}: {
+  booking: {
+    guestCount: number
+    date: Date | null
+    time: string
+  }
+  details: { name: string; email: string; phone: string }
+  onConfirm: () => void
+}) {
+  const d = booking.date
+  return (
+    <div className="space-y-3 rounded-xl border border-[#303030]/20 bg-white/90 p-3">
+      <p className="text-[13px] font-semibold text-[#303030]">Confirm your booking</p>
+      <ul className="space-y-1.5 text-[13px] text-neutral-700">
+        <li>
+          <span className="text-neutral-500">Guests:</span>{' '}
+          {booking.guestCount === 6 ? '6+' : booking.guestCount}
+        </li>
+        <li>
+          <span className="text-neutral-500">Date:</span>{' '}
+          {d ? formatDay(d) : '—'}
+        </li>
+        <li>
+          <span className="text-neutral-500">Time:</span> {booking.time}
+        </li>
+        <li>
+          <span className="text-neutral-500">Name:</span> {details.name.trim()}
+        </li>
+        <li>
+          <span className="text-neutral-500">Email:</span> {details.email.trim()}
+        </li>
+        <li>
+          <span className="text-neutral-500">Phone:</span> {details.phone.trim()}
+        </li>
+      </ul>
+      <button
+        type="button"
+        onClick={onConfirm}
+        className="w-full rounded-lg bg-[#303030] py-2.5 text-[13px] font-semibold text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)] transition hover:bg-[#3d3d3d] active:scale-[0.99] active:bg-[#252525] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
+      >
+        Confirm booking
+      </button>
+    </div>
+  )
+}
+
 function FigmaMessage({ role, text }: { role: Role; text: string }) {
   const isUser = role === 'user'
   if (isUser) {
@@ -522,53 +671,3 @@ function RichText({ text, isUser }: { text: string; isUser: boolean }) {
     </p>
   )
 }
-
-type ComposerProps = {
-  disabled: boolean
-  placeholder: string
-  onSend: (value: string) => void
-}
-
-const Composer = forwardRef<HTMLInputElement, ComposerProps>(
-  function Composer({ disabled, placeholder, onSend }, ref) {
-    const [value, setValue] = useState('')
-
-    const send = () => {
-      if (!value.trim() || disabled) return
-      onSend(value)
-      setValue('')
-    }
-
-    return (
-      <div className="mt-2 shrink-0 border-t border-white/30 pt-3">
-        <div className="flex items-center gap-1 rounded-lg border border-[#8a8a8a] bg-[#fdfdfd] px-3 py-1.5 shadow-sm">
-          <input
-            ref={ref}
-            type="text"
-            value={value}
-            disabled={disabled}
-            onChange={(e) => setValue(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault()
-                send()
-              }
-            }}
-            placeholder={placeholder}
-            className="min-h-9 flex-1 bg-transparent text-[13px] font-medium leading-5 text-[#303030] placeholder:text-neutral-400 focus:outline-none disabled:cursor-not-allowed disabled:opacity-45"
-            aria-label="Message"
-          />
-          <button
-            type="button"
-            disabled={disabled || !value.trim()}
-            onClick={send}
-            className="relative flex size-8 shrink-0 items-center justify-center rounded-full bg-[#3f3f3f] text-white transition hover:bg-[#303030] active:scale-95 active:bg-[#252525] disabled:cursor-not-allowed disabled:opacity-35 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
-            aria-label="Send"
-          >
-            <img src={ASSETS.sendIcon} alt="" className="size-3.5 opacity-90" />
-          </button>
-        </div>
-      </div>
-    )
-  },
-)

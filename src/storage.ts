@@ -2,11 +2,13 @@ export type SavedBooking = {
   id: string
   createdAt: string
   guests: number
+  /** Legacy field; new restaurant bookings use "Restaurant". */
   service: string
   dateIso: string
   time: string
   name: string
   email: string
+  phone: string
 }
 
 const STORAGE_KEY = 'booking-chat-bookings'
@@ -24,7 +26,9 @@ function isLegacyBooking(x: unknown): x is Record<string, unknown> {
     typeof x.dateIso === 'string' &&
     typeof x.time === 'string' &&
     typeof x.name === 'string' &&
-    typeof x.email === 'string'
+    typeof x.email === 'string' &&
+    (typeof (x as Record<string, unknown>).phone === 'string' ||
+      (x as Record<string, unknown>).phone === undefined)
   )
 }
 
@@ -32,6 +36,8 @@ function normalizeBooking(x: Record<string, unknown>): SavedBooking {
   const g = x.guests
   const guests =
     typeof g === 'number' && !Number.isNaN(g) ? Math.max(0, Math.floor(g)) : 0
+  const phone =
+    typeof x.phone === 'string' ? x.phone : ''
   return {
     id: x.id as string,
     createdAt: x.createdAt as string,
@@ -41,6 +47,7 @@ function normalizeBooking(x: Record<string, unknown>): SavedBooking {
     time: x.time as string,
     name: x.name as string,
     email: x.email as string,
+    phone,
   }
 }
 
