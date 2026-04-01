@@ -14,6 +14,7 @@ import { AiChatbotLogo } from './components/AiChatbotLogo'
 import { BackChevronIcon } from './components/BackChevronIcon'
 import { GetDirectionsFab } from './components/GetDirectionsFab'
 import { BookingsLog } from './components/BookingsLog'
+import { WIDGET_MAX_W } from './widgetLayout'
 
 type Role = 'assistant' | 'user'
 
@@ -47,7 +48,7 @@ const backAboveCard =
   'flex size-11 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-800 shadow-[0_1px_3px_rgba(0,0,0,0.1)] transition hover:border-neutral-300 hover:bg-neutral-50 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-500'
 
 const btnPrimary =
-  'w-full min-h-[48px] rounded-xl bg-neutral-950 px-4 text-[15px] font-semibold text-white shadow-sm transition hover:bg-neutral-800 active:scale-[0.99] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2'
+  'w-full min-h-[48px] rounded-full bg-neutral-950 px-4 text-[15px] font-semibold text-white shadow-sm transition hover:bg-neutral-800 active:scale-[0.99] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2'
 
 function nextWeekdays(count: number): Date[] {
   const out: Date[] = []
@@ -255,7 +256,7 @@ export function BookingChatView({ onBack }: Props) {
   return (
     <div className="relative min-h-dvh bg-[var(--color-chat-bg)]">
       <div className="flex min-h-dvh w-full items-center justify-center px-4 pb-[max(5.5rem,env(safe-area-inset-bottom)+4.5rem)] pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-5 sm:pb-28 sm:pt-6">
-        <div className="flex w-full max-w-md flex-col items-stretch gap-2 sm:max-w-lg">
+        <div className={`flex w-full ${WIDGET_MAX_W} flex-col items-stretch gap-2`}>
           <div className="sticky top-[max(0.5rem,env(safe-area-inset-top))] z-50 self-start">
             <button
               type="button"

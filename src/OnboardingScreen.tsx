@@ -1,5 +1,6 @@
 import { ASSETS } from './figma/assets'
 import { GetDirectionsIconLink } from './components/GetDirectionsFab'
+import { WIDGET_MAX_W } from './widgetLayout'
 
 function StarRow({ filled }: { filled: number }) {
   return (
@@ -23,7 +24,7 @@ function StarRow({ filled }: { filled: number }) {
 
 /** ~80% width via grid 1fr + auto; same 44px height as map; ~8px gap. */
 const bookBtn =
-  'inline-flex h-11 min-h-11 w-full min-w-0 items-center justify-center rounded-lg bg-[#2c2c2c] px-3 text-[15px] font-bold text-white shadow-[0_1px_2px_rgba(0,0,0,0.18)] transition hover:bg-[#3d3d3d] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2'
+  'inline-flex h-11 min-h-11 w-full min-w-0 items-center justify-center rounded-full bg-[#2c2c2c] px-4 text-[15px] font-bold text-white shadow-[0_1px_2px_rgba(0,0,0,0.18)] transition hover:bg-[#3d3d3d] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2'
 
 type Props = {
   onBookNow: () => void
@@ -32,7 +33,9 @@ type Props = {
 export function OnboardingScreen({ onBookNow }: Props) {
   return (
     <div className="min-h-dvh bg-[var(--color-chat-bg)]">
-      <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-4 py-6 sm:px-5 sm:py-8">
+      <div
+        className={`mx-auto flex min-h-dvh w-full ${WIDGET_MAX_W} flex-col justify-center px-4 py-6 sm:px-5 sm:py-8`}
+      >
         <article className="w-full overflow-hidden rounded-2xl border border-neutral-300/80 bg-[var(--color-chat-surface)] shadow-md">
           <div className="relative border-b border-neutral-200">
             <img

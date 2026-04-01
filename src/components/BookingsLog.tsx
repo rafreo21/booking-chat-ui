@@ -54,7 +54,7 @@ export function BookingsLog({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg px-3 py-2 text-[14px] font-semibold text-neutral-700 hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-500"
+            className="rounded-full px-4 py-2 text-[14px] font-semibold text-neutral-700 hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-500"
           >
             Close
           </button>
@@ -118,28 +118,28 @@ export function BookingsLog({
             <button
               type="button"
               onClick={onExport}
-              className="min-h-[44px] rounded-xl bg-neutral-950 px-4 text-[14px] font-semibold text-white transition hover:bg-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950"
+              className="min-h-[44px] rounded-full bg-neutral-950 px-4 text-[14px] font-semibold text-white transition hover:bg-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950"
             >
               Download JSON
             </button>
             <button
               type="button"
               onClick={() => onPickImportFile('merge')}
-              className="min-h-[44px] rounded-xl border-2 border-neutral-300 bg-white px-4 text-[14px] font-semibold text-neutral-950 transition hover:bg-neutral-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400"
+              className="min-h-[44px] rounded-full border-2 border-neutral-300 bg-white px-4 text-[14px] font-semibold text-neutral-950 transition hover:bg-neutral-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400"
             >
               Import (merge)
             </button>
             <button
               type="button"
               onClick={() => onPickImportFile('replace')}
-              className="min-h-[44px] rounded-xl border-2 border-neutral-300 bg-white px-4 text-[14px] font-semibold text-neutral-950 transition hover:bg-neutral-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400"
+              className="min-h-[44px] rounded-full border-2 border-neutral-300 bg-white px-4 text-[14px] font-semibold text-neutral-950 transition hover:bg-neutral-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400"
             >
               Replace from file
             </button>
             <button
               type="button"
               onClick={onClear}
-              className="min-h-[44px] rounded-xl border-2 border-red-200 bg-white px-4 text-[14px] font-semibold text-red-800 transition hover:bg-red-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+              className="min-h-[44px] rounded-full border-2 border-red-200 bg-white px-4 text-[14px] font-semibold text-red-800 transition hover:bg-red-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
             >
               Clear all
             </button>
