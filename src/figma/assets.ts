@@ -3,9 +3,14 @@ export const ASSETS = {
   hero: '/figma/hero.jpg',
   logo: '/figma/logo.png',
   maps: '/figma/maps.svg',
-  aiLogo: '/figma/ai-logo-main.png',
+  /** Mask + fill pair from Figma node 83:3097 (AI logo). */
+  aiLogoMask: '/figma/ai-logo-mask.png',
+  aiLogoFill: '/figma/ai-logo-fill.png',
+  /** Fallback single asset if mask rendering fails in a browser. */
+  aiLogoFallback: '/figma/ai-logo-main.png',
   sendIcon: '/figma/send-icon.png',
-  backChevron: '/figma/back-chevron.png',
+  /** Back chevron from Figma node 83:3123. */
+  backChevron: '/figma/back-chevron-figma.png',
 } as const
 
 export const MAPS_URL =

@@ -10,6 +10,7 @@ import {
   type SavedBooking,
 } from './storage'
 import { ASSETS } from './figma/assets'
+import { AiChatbotLogo } from './components/AiChatbotLogo'
 import { GetDirectionsFab } from './components/GetDirectionsFab'
 import { BookingsLog } from './components/BookingsLog'
 
@@ -72,8 +73,9 @@ const chipBase =
 const chipTime =
   'rounded-full bg-[#303030] px-4 py-2 text-sm font-semibold text-white shadow-sm transition will-change-transform hover:bg-[#3d3d3d] active:scale-[0.98] active:bg-[#252525] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2'
 
-const backBtn =
-  'fixed left-4 top-[max(1rem,env(safe-area-inset-top))] z-50 flex size-11 items-center justify-center rounded-full border border-white/50 bg-white shadow-md transition hover:bg-neutral-50 active:scale-95 active:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 md:left-8'
+/** Figma 83:3123 — above the card, aligned with its left edge (see 78:1998). */
+const backAboveCard =
+  'flex size-10 shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/95 p-2 shadow-[0_2px_16px_rgba(0,0,0,0.12)] backdrop-blur-[13px] transition hover:bg-white hover:shadow-[0_4px_20px_rgba(0,0,0,0.14)] active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400'
 
 type Props = {
   onBack: () => void
@@ -246,34 +248,33 @@ export function BookingChatView({ onBack }: Props) {
 
   return (
     <div className="relative min-h-dvh bg-[#ececec]">
-      <button
-        type="button"
-        onClick={onBack}
-        className={backBtn}
-        aria-label="Back to restaurant"
-      >
-        <img src={ASSETS.backChevron} alt="" className="size-3.5 opacity-70" />
-      </button>
+      <div className="flex min-h-dvh w-full items-center justify-center px-4 pb-28 pt-8">
+        <div className="flex w-full max-w-[308px] flex-col items-stretch">
+          <div className="sticky top-[max(0.75rem,env(safe-area-inset-top))] z-40 mb-2 self-start">
+            <button
+              type="button"
+              onClick={onBack}
+              className={backAboveCard}
+              aria-label="Back to restaurant"
+            >
+              <img
+                src={ASSETS.backChevron}
+                alt=""
+                width={14}
+                height={14}
+                className="size-[14px] object-contain"
+              />
+            </button>
+          </div>
 
-      <div className="flex min-h-dvh w-full items-center justify-center px-4 pb-28 pt-20">
-        <div className="w-full max-w-[308px] shrink-0">
           <div
-            className="flex max-h-[min(580px,calc(100dvh-7rem))] w-full flex-col rounded-2xl border border-white/30 bg-[#f3f3f3]/95 p-3 shadow-sm backdrop-blur-[14px]"
+            className="flex max-h-[min(580px,calc(100dvh-5.5rem))] w-full flex-col rounded-2xl border border-white/30 bg-[#f3f3f3]/95 p-3 shadow-sm backdrop-blur-[14px]"
             role="region"
             aria-labelledby={titleId}
           >
             <div className="shrink-0 rounded-xl border border-white/30 bg-[#272727] p-4 shadow-inner">
-              <div
-                className="mb-3 flex size-12 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400/25 to-transparent ring-2 ring-emerald-400/40"
-                aria-hidden
-              >
-                <img
-                  src={ASSETS.aiLogo}
-                  alt=""
-                  className="size-8 object-contain"
-                  width={32}
-                  height={32}
-                />
+              <div className="mb-3">
+                <AiChatbotLogo sizePx={24} />
               </div>
               <p
                 id={titleId}
