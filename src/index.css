@@ -22,5 +22,6 @@
   }
   #root {
     @apply min-h-dvh;
+    -webkit-tap-highlight-color: transparent;
   }
 }

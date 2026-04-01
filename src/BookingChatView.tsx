@@ -69,11 +69,11 @@ type Step =
   | 'success'
 
 const chipBase =
-  'rounded-full border border-neutral-300 bg-white px-4 py-2 text-left text-sm font-medium text-neutral-800 shadow-sm transition will-change-transform hover:border-[#303030]/30 hover:bg-neutral-50 active:scale-[0.98] active:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900'
+  'min-h-10 rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-left text-xs font-medium text-neutral-800 shadow-sm transition will-change-transform hover:border-[#303030]/30 hover:bg-neutral-50 active:scale-[0.98] active:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 sm:px-3.5 sm:text-sm'
 
 /** Figma 83:3123 — above the card, aligned with its left edge (see 78:1998). */
 const backAboveCard =
-  'flex size-10 shrink-0 items-center justify-center rounded-full border border-neutral-200/80 bg-white p-2 text-neutral-700 shadow-[0_2px_16px_rgba(0,0,0,0.14)] backdrop-blur-[13px] transition hover:bg-neutral-50 hover:text-neutral-900 hover:shadow-[0_4px_20px_rgba(0,0,0,0.16)] active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-500'
+  'flex size-9 shrink-0 items-center justify-center rounded-full border border-neutral-200/80 bg-white p-1.5 text-neutral-700 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[13px] transition hover:bg-neutral-50 hover:text-neutral-900 hover:shadow-[0_3px_16px_rgba(0,0,0,0.14)] active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-500 sm:size-10 sm:p-2 sm:shadow-[0_2px_16px_rgba(0,0,0,0.14)]'
 
 type Props = {
   onBack: () => void
@@ -247,9 +247,9 @@ export function BookingChatView({ onBack }: Props) {
 
   return (
     <div className="relative min-h-dvh bg-[#ececec]">
-      <div className="flex min-h-dvh w-full items-center justify-center px-4 pb-28 pt-8">
-        <div className="flex w-full max-w-[308px] flex-col items-stretch">
-          <div className="sticky top-[max(0.75rem,env(safe-area-inset-top))] z-50 mb-2 self-start">
+      <div className="flex min-h-dvh w-full items-center justify-center px-2.5 pb-[max(5rem,calc(env(safe-area-inset-bottom)+4.5rem))] pt-3 sm:px-4 sm:pb-24 sm:pt-6">
+        <div className="flex w-full max-w-[min(360px,calc(100vw-1.25rem))] flex-col items-stretch">
+          <div className="sticky top-[max(0.5rem,env(safe-area-inset-top))] z-50 mb-1.5 self-start sm:mb-2">
             <button
               type="button"
               onClick={onBack}
@@ -261,35 +261,35 @@ export function BookingChatView({ onBack }: Props) {
           </div>
 
           <div
-            className="flex max-h-[min(580px,calc(100dvh-5.5rem))] w-full flex-col rounded-2xl border border-white/30 bg-[#f3f3f3]/95 p-3 shadow-sm backdrop-blur-[14px]"
+            className="flex max-h-[min(640px,calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-4.25rem))] w-full flex-col rounded-xl border border-white/30 bg-[#f3f3f3]/95 p-2 shadow-sm backdrop-blur-[14px] sm:max-h-[min(580px,calc(100dvh-5.5rem))] sm:rounded-2xl sm:p-2.5"
             role="region"
             aria-labelledby={titleId}
           >
-            <div className="shrink-0 rounded-xl border border-white/30 bg-[#272727] p-4 shadow-inner">
-              <div className="mb-3">
-                <AiChatbotLogo sizePx={24} />
+            <div className="shrink-0 rounded-lg border border-white/30 bg-[#272727] p-3 shadow-inner sm:rounded-xl sm:p-3.5">
+              <div className="mb-2 sm:mb-2.5">
+                <AiChatbotLogo sizePx={22} />
               </div>
               <p
                 id={titleId}
-                className="text-[14px] font-semibold text-white [text-shadow:0_9px_54px_rgba(0,0,0,0.5)]"
+                className="text-[13px] font-semibold text-white [text-shadow:0_9px_54px_rgba(0,0,0,0.5)] sm:text-[14px]"
               >
                 Hey !
               </p>
-              <p className="mt-1 text-[13px] leading-snug text-white/80 [text-shadow:0_9px_54px_rgba(0,0,0,0.5)]">
+              <p className="mt-0.5 text-xs leading-snug text-white/80 [text-shadow:0_9px_54px_rgba(0,0,0,0.5)] sm:mt-1 sm:text-[13px]">
                 I&apos;m here to help you make your reservation
               </p>
             </div>
 
             {step === 'submitting' ? (
-              <div className="flex min-h-[200px] flex-col items-center justify-center gap-3 px-4 py-8">
+              <div className="flex min-h-[min(200px,32dvh)] flex-col items-center justify-center gap-2 px-3 py-6 sm:min-h-[200px] sm:gap-3 sm:px-4 sm:py-8">
                 <div
-                  className="size-10 animate-spin rounded-full border-2 border-neutral-300 border-t-[#303030]"
+                  className="size-9 animate-spin rounded-full border-2 border-neutral-300 border-t-[#303030] sm:size-10"
                   aria-hidden
                 />
-                <p className="text-center text-[14px] font-medium text-[#303030]">
+                <p className="text-center text-[13px] font-medium text-[#303030] sm:text-[14px]">
                   Booking in progress…
                 </p>
-                <p className="text-center text-xs text-neutral-500">
+                <p className="text-center text-[11px] text-neutral-500 sm:text-xs">
                   Please wait a moment
                 </p>
               </div>
@@ -297,7 +297,7 @@ export function BookingChatView({ onBack }: Props) {
               <>
                 <div
                   ref={listRef}
-                  className="mt-3 min-h-0 flex-1 space-y-3 overflow-y-auto px-1 py-1"
+                  className="mt-2 min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain px-0.5 py-0.5 sm:mt-2.5 sm:space-y-2.5 sm:px-1 sm:py-1"
                   role="log"
                   aria-relevant="additions"
                   aria-live="polite"
@@ -307,7 +307,7 @@ export function BookingChatView({ onBack }: Props) {
                   ))}
 
                   {step === 'guests' && (
-                    <div className="flex flex-wrap gap-2 pt-1">
+                    <div className="flex flex-wrap gap-1.5 pt-0.5 sm:gap-2 sm:pt-1">
                       {GUEST_CHIPS.map((g) => (
                         <button
                           key={g}
@@ -322,7 +322,7 @@ export function BookingChatView({ onBack }: Props) {
                   )}
 
                   {step === 'date' && (
-                    <div className="flex gap-2 overflow-x-auto pb-1 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    <div className="flex gap-1.5 overflow-x-auto pb-0.5 pt-0.5 [-ms-overflow-style:none] [scrollbar-width:none] sm:gap-2 sm:pb-1 sm:pt-1 [&::-webkit-scrollbar]:hidden">
                       {days.map((d) => (
                         <button
                           key={d.toISOString()}
@@ -337,7 +337,7 @@ export function BookingChatView({ onBack }: Props) {
                   )}
 
                   {step === 'time' && (
-                    <div className="flex flex-wrap gap-2 pt-1">
+                    <div className="flex flex-wrap gap-1.5 pt-0.5 sm:gap-2 sm:pt-1">
                       {TIME_SLOTS.map((t) => (
                         <button
                           key={t}
@@ -373,22 +373,22 @@ export function BookingChatView({ onBack }: Props) {
                 </div>
 
                 {step === 'success' && (
-                  <div className="mt-3 shrink-0 space-y-3 border-t border-white/30 pt-3">
-                    <div className="flex items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/90 px-3 py-3 text-center">
+                  <div className="mt-2 shrink-0 space-y-2 border-t border-white/30 pt-2 sm:mt-3 sm:space-y-2.5 sm:pt-3">
+                    <div className="flex items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/90 px-2.5 py-2 text-center sm:rounded-xl sm:px-3 sm:py-2.5">
                       <span
-                        className="flex size-8 items-center justify-center rounded-full bg-emerald-600 text-sm font-bold text-white"
+                        className="flex size-7 items-center justify-center rounded-full bg-emerald-600 text-xs font-bold text-white sm:size-8 sm:text-sm"
                         aria-hidden
                       >
                         ✓
                       </span>
-                      <p className="text-left text-[13px] font-medium text-emerald-900">
+                      <p className="text-left text-xs font-medium text-emerald-900 sm:text-[13px]">
                         You&apos;re all set. Ready for another reservation?
                       </p>
                     </div>
                     <button
                       type="button"
                       onClick={resetChat}
-                      className="mx-auto flex h-11 w-[200px] items-center justify-center rounded-lg bg-[#303030] text-sm font-semibold text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)] transition hover:bg-[#3d3d3d] active:scale-[0.99] active:bg-[#252525] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
+                      className="mx-auto flex h-10 w-full max-w-[200px] items-center justify-center rounded-lg bg-[#303030] text-[13px] font-semibold text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)] transition hover:bg-[#3d3d3d] active:scale-[0.99] active:bg-[#252525] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 sm:h-11"
                     >
                       Book Now
                     </button>
@@ -398,8 +398,8 @@ export function BookingChatView({ onBack }: Props) {
             )}
 
             {showFooter && (
-              <div className="mt-3 flex items-center justify-between gap-2 border-t border-white/20 pt-2">
-                <p className="truncate text-xs text-neutral-500">
+              <div className="mt-2 flex items-center justify-between gap-1.5 border-t border-white/20 pt-1.5 sm:mt-2.5 sm:gap-2 sm:pt-2">
+                <p className="min-w-0 truncate text-[10px] text-neutral-500 sm:text-xs">
                   Gilgamesh · booking assistant
                 </p>
                 <button
@@ -409,7 +409,7 @@ export function BookingChatView({ onBack }: Props) {
                     setImportMsg(null)
                     refreshSaved()
                   }}
-                  className="relative shrink-0 rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-800 shadow-sm transition hover:bg-neutral-50 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
+                  className="relative shrink-0 rounded-full border border-neutral-300 bg-white px-2.5 py-1 text-[11px] font-medium text-neutral-800 shadow-sm transition hover:bg-neutral-50 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 sm:px-3 sm:py-1.5 sm:text-xs"
                 >
                   Bookings
                   {savedBookings.length > 0 && (
@@ -502,11 +502,11 @@ function DetailsForm({
   onSubmit: () => void
 }) {
   const input =
-    'w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-[13px] text-[#303030] placeholder:text-neutral-400 focus:border-[#303030] focus:outline-none focus:ring-2 focus:ring-neutral-900/20'
+    'w-full rounded-lg border border-neutral-300 bg-white px-2.5 py-1.5 text-[13px] text-[#303030] placeholder:text-neutral-400 focus:border-[#303030] focus:outline-none focus:ring-2 focus:ring-neutral-900/20 sm:px-3 sm:py-2'
 
   return (
-    <div className="space-y-3 rounded-xl border border-white/40 bg-white/80 p-3 pt-2">
-      <p className="text-[13px] font-medium text-[#303030]">Your details</p>
+    <div className="space-y-2 rounded-lg border border-white/40 bg-white/80 p-2.5 pt-1.5 sm:space-y-2.5 sm:rounded-xl sm:p-3 sm:pt-2">
+      <p className="text-xs font-medium text-[#303030] sm:text-[13px]">Your details</p>
       <div>
         <label className="mb-1 block text-[11px] font-medium text-neutral-500">
           Full name
@@ -558,7 +558,7 @@ function DetailsForm({
       <button
         type="button"
         onClick={onSubmit}
-        className="w-full rounded-lg bg-[#303030] py-2.5 text-[13px] font-semibold text-white transition hover:bg-[#3d3d3d] active:scale-[0.99] active:bg-[#252525] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
+        className="min-h-10 w-full rounded-lg bg-[#303030] py-2 text-[13px] font-semibold text-white transition hover:bg-[#3d3d3d] active:scale-[0.99] active:bg-[#252525] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 sm:min-h-11 sm:py-2.5"
       >
         Continue
       </button>
@@ -581,9 +581,9 @@ function ConfirmPanel({
 }) {
   const d = booking.date
   return (
-    <div className="space-y-3 rounded-xl border border-[#303030]/20 bg-white/90 p-3">
-      <p className="text-[13px] font-semibold text-[#303030]">Confirm your booking</p>
-      <ul className="space-y-1.5 text-[13px] text-neutral-700">
+    <div className="space-y-2 rounded-lg border border-[#303030]/20 bg-white/90 p-2.5 sm:space-y-2.5 sm:rounded-xl sm:p-3">
+      <p className="text-xs font-semibold text-[#303030] sm:text-[13px]">Confirm your booking</p>
+      <ul className="space-y-1 text-xs text-neutral-700 sm:space-y-1.5 sm:text-[13px]">
         <li>
           <span className="text-neutral-500">Guests:</span>{' '}
           {booking.guestCount === 6 ? '6+' : booking.guestCount}
@@ -608,7 +608,7 @@ function ConfirmPanel({
       <button
         type="button"
         onClick={onConfirm}
-        className="w-full rounded-lg bg-[#303030] py-2.5 text-[13px] font-semibold text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)] transition hover:bg-[#3d3d3d] active:scale-[0.99] active:bg-[#252525] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
+        className="min-h-10 w-full rounded-lg bg-[#303030] py-2 text-[13px] font-semibold text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)] transition hover:bg-[#3d3d3d] active:scale-[0.99] active:bg-[#252525] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 sm:min-h-11 sm:py-2.5"
       >
         Confirm booking
       </button>
@@ -621,12 +621,12 @@ function FigmaMessage({ role, text }: { role: Role; text: string }) {
   if (isUser) {
     return (
       <div className="flex justify-end">
-        <div className="relative max-w-[90%]">
-          <div className="rounded-xl bg-[#303030] px-4 py-3 text-[14px] leading-snug text-white">
+        <div className="relative max-w-[min(92%,280px)] sm:max-w-[90%]">
+          <div className="rounded-lg bg-[#303030] px-3 py-2 text-[13px] leading-snug text-white sm:rounded-xl sm:px-3.5 sm:py-2.5 sm:text-[14px]">
             <RichText text={text} isUser />
           </div>
           <div
-            className="absolute -right-1 bottom-3 size-2.5 rotate-45 bg-[#303030]"
+            className="absolute -right-1 bottom-2.5 size-2 rotate-45 bg-[#303030] sm:bottom-3 sm:size-2.5"
             aria-hidden
           />
         </div>
@@ -635,7 +635,7 @@ function FigmaMessage({ role, text }: { role: Role; text: string }) {
   }
   return (
     <div className="flex justify-start">
-      <div className="max-w-[95%] text-[14px] font-medium leading-5 text-[#303030]">
+      <div className="max-w-[min(96%,320px)] text-[13px] font-medium leading-snug text-[#303030] sm:max-w-[95%] sm:text-[14px] sm:leading-5">
         <RichText text={text} isUser={false} />
       </div>
     </div>
