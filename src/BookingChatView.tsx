@@ -9,6 +9,7 @@ import {
   loadBookings,
   type SavedBooking,
 } from './storage'
+import { syncBookingToSheets } from './syncBookingToSheets'
 import { AiChatbotLogo } from './components/AiChatbotLogo'
 import { BackChevronIcon } from './components/BackChevronIcon'
 import { GetDirectionsFab } from './components/GetDirectionsFab'
@@ -208,7 +209,7 @@ export function BookingChatView({ onBack }: Props) {
     if (step !== 'confirm') return
     setStep('submitting')
     window.setTimeout(() => {
-      addBooking({
+      const saved = addBooking({
         guests: booking.guestCount,
         service: RESTAURANT_SERVICE,
         dateIso: booking.date ? booking.date.toISOString() : '',
@@ -217,6 +218,7 @@ export function BookingChatView({ onBack }: Props) {
         email: details.email.trim(),
         phone: details.phone.trim(),
       })
+      void syncBookingToSheets(saved)
       refreshSaved()
       pushAssistant(
         '**Booking confirmed!** Your table is reserved. We look forward to welcoming you.',
