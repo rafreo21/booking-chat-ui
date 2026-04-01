@@ -64,11 +64,13 @@ export function OnboardingScreen({ onBookNow }: Props) {
             <div className="mt-2 flex justify-center">
               <StarRow filled={4} />
             </div>
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-              <button type="button" className={bookBtn} onClick={onBookNow}>
-                Book Now
-              </button>
-              <GetDirectionsIconLink />
+            <div className="mt-4 flex justify-center">
+              <div className="flex flex-row flex-nowrap items-center gap-2">
+                <button type="button" className={bookBtn} onClick={onBookNow}>
+                  Book Now
+                </button>
+                <GetDirectionsIconLink />
+              </div>
             </div>
           </div>
         </div>
