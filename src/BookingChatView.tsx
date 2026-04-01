@@ -237,6 +237,14 @@ export function BookingChatView({ onBack }: Props) {
 
   const days = nextWeekdays(5)
 
+  const timeSlotsFirstRow = TIME_SLOTS.slice(
+    0,
+    Math.ceil(TIME_SLOTS.length / 2),
+  )
+  const timeSlotsSecondRow = TIME_SLOTS.slice(
+    Math.ceil(TIME_SLOTS.length / 2),
+  )
+
   const resetChat = () => {
     setBooking({ guestCount: 0, date: null, time: '' })
     setDetails({ name: '', email: '', phone: '' })
@@ -257,7 +265,7 @@ export function BookingChatView({ onBack }: Props) {
     <div className="relative min-h-dvh bg-[var(--color-chat-bg)]">
       <div className="flex min-h-dvh w-full items-center justify-center px-4 pb-[max(5.5rem,env(safe-area-inset-bottom)+4.5rem)] pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-5 sm:pb-28 sm:pt-6">
         <div className={`flex w-full ${WIDGET_MAX_W} flex-col items-stretch gap-2`}>
-          <div className="sticky top-[max(0.5rem,env(safe-area-inset-top))] z-50 self-start">
+          <div className="sticky top-[max(0.5rem,env(safe-area-inset-top))] z-50 flex w-full justify-start py-2">
             <button
               type="button"
               onClick={onBack}
@@ -274,16 +282,16 @@ export function BookingChatView({ onBack }: Props) {
             aria-labelledby={titleId}
           >
           <div className="shrink-0 border-b border-neutral-800 bg-neutral-950 px-4 py-4">
-            <div className="mb-3 flex items-center gap-3">
+            <div className="flex flex-col items-start gap-2">
               <AiChatbotLogo sizePx={28} />
-              <div className="min-w-0 flex-1">
+              <div className="min-w-0">
                 <p
                   id={titleId}
                   className="text-[17px] font-bold leading-tight tracking-tight text-white"
                 >
                   Hey!
                 </p>
-                <p className="mt-1 text-[15px] leading-snug text-white/92">
+                <p className="mt-1 text-[15px] leading-snug text-[#f3f2f2]">
                   I&apos;m here to help you make your reservation.
                 </p>
               </div>
@@ -349,17 +357,33 @@ export function BookingChatView({ onBack }: Props) {
                 )}
 
                 {step === 'time' && (
-                  <div className="flex w-full flex-wrap justify-center gap-2.5">
-                    {TIME_SLOTS.map((t) => (
-                      <button
-                        key={t}
-                        type="button"
-                        onClick={() => pickTime(t)}
-                        className={`${chipPill} min-w-[3.25rem] px-3 tabular-nums`}
-                      >
-                        {t}
-                      </button>
-                    ))}
+                  <div className="w-full overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    <div className="inline-flex min-w-min flex-col items-start gap-2">
+                      <div className="flex w-max gap-2.5">
+                        {timeSlotsFirstRow.map((t) => (
+                          <button
+                            key={t}
+                            type="button"
+                            onClick={() => pickTime(t)}
+                            className={`${chipPill} min-w-[3.25rem] px-3 tabular-nums`}
+                          >
+                            {t}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="flex w-max gap-2.5">
+                        {timeSlotsSecondRow.map((t) => (
+                          <button
+                            key={t}
+                            type="button"
+                            onClick={() => pickTime(t)}
+                            className={`${chipPill} min-w-[3.25rem] px-3 tabular-nums`}
+                          >
+                            {t}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 )}
 
