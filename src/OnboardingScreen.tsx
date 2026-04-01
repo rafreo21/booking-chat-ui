@@ -3,11 +3,11 @@ import { GetDirectionsFab } from './components/GetDirectionsFab'
 
 function StarRow({ filled }: { filled: number }) {
   return (
-    <div className="flex gap-1" aria-label={`${filled} out of 5 stars`}>
+    <div className="flex gap-1.5" aria-label={`${filled} out of 5 stars`}>
       {Array.from({ length: 5 }, (_, i) => (
         <svg
           key={i}
-          className="size-4 shrink-0"
+          className="size-6 shrink-0"
           viewBox="0 0 24 24"
           fill={i < filled ? '#EAB308' : 'none'}
           stroke="#EAB308"
@@ -54,7 +54,7 @@ export function OnboardingScreen({ onBookNow }: Props) {
           </div>
 
           <div className="mt-3 rounded-xl border border-white/30 bg-white p-4 text-center shadow-sm backdrop-blur-[14px]">
-            <h1 className="text-center text-[14px] font-semibold text-[#121212]">
+            <h1 className="text-center text-xl font-semibold leading-tight text-[#121212]">
               Gilgamesh London
             </h1>
             <p className="mt-1 text-[13px] leading-snug text-[#121212]/75">
