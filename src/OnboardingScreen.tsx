@@ -1,5 +1,5 @@
 import { ASSETS } from './figma/assets'
-import { GetDirectionsFab } from './components/GetDirectionsFab'
+import { GetDirectionsIconLink } from './components/GetDirectionsFab'
 
 function StarRow({ filled }: { filled: number }) {
   return (
@@ -22,7 +22,7 @@ function StarRow({ filled }: { filled: number }) {
 }
 
 const bookBtn =
-  'relative mx-auto inline-flex h-11 w-[200px] shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#303030] px-4 text-[13px] font-semibold leading-5 text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2),inset_0_-1px_0_0_rgba(0,0,0,0.4)] transition will-change-transform hover:bg-[#3d3d3d] active:scale-[0.98] active:bg-[#252525] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2'
+  'relative inline-flex h-11 w-[200px] shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#303030] px-4 text-[13px] font-semibold leading-5 text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2),inset_0_-1px_0_0_rgba(0,0,0,0.4)] transition will-change-transform hover:bg-[#3d3d3d] active:scale-[0.98] active:bg-[#252525] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2'
 
 type Props = {
   onBookNow: () => void
@@ -64,16 +64,15 @@ export function OnboardingScreen({ onBookNow }: Props) {
             <div className="mt-2 flex justify-center">
               <StarRow filled={4} />
             </div>
-            <div className="mt-4">
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
               <button type="button" className={bookBtn} onClick={onBookNow}>
                 Book Now
               </button>
+              <GetDirectionsIconLink />
             </div>
           </div>
         </div>
       </div>
-
-      <GetDirectionsFab />
     </div>
   )
 }
