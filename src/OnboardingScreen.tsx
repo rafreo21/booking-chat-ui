@@ -21,9 +21,9 @@ function StarRow({ filled }: { filled: number }) {
   )
 }
 
-/** Primary fills ~75–80% of row; map stays square — equal 44px height. */
+/** ~80% width via grid 1fr + auto; same 44px height as map; ~8px gap. */
 const bookBtn =
-  'inline-flex h-11 min-h-11 min-w-0 flex-1 items-center justify-center rounded-lg bg-neutral-950 px-3 text-[15px] font-semibold text-white shadow-[0_1px_3px_rgba(0,0,0,0.2)] transition hover:bg-neutral-800 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2'
+  'inline-flex h-11 min-h-11 w-full min-w-0 items-center justify-center rounded-lg bg-[#2c2c2c] px-3 text-[15px] font-bold text-white shadow-[0_1px_2px_rgba(0,0,0,0.18)] transition hover:bg-[#3d3d3d] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2'
 
 type Props = {
   onBookNow: () => void
@@ -54,18 +54,18 @@ export function OnboardingScreen({ onBookNow }: Props) {
             </div>
           </div>
 
-          <div className="space-y-3 p-4 sm:p-5">
+          <div className="space-y-3 px-3 py-3.5 sm:px-4 sm:py-4">
             <header className="space-y-1.5 text-center">
               <h1 className="text-[1.375rem] font-bold leading-tight tracking-tight text-neutral-950 sm:text-2xl">
                 Gilgamesh London
               </h1>
-              <p className="text-[14px] leading-snug text-neutral-600 sm:text-[15px] sm:leading-relaxed">
-                The finest contemporary Pan Asian cuisine. Restaurant, bar, late
-                nights, and events — destination dining in the heart of London.
+              <p className="w-full text-pretty text-[14px] leading-snug text-neutral-600 sm:text-[15px] sm:leading-relaxed">
+                The finest contemporary Pan Asian cuisine. Restaurant, Bar, Late,
+                Events. The ultimate destination dining.
               </p>
             </header>
             <StarRow filled={4} />
-            <div className="mx-auto flex w-full max-w-[288px] items-stretch gap-3 pt-0.5">
+            <div className="grid w-full grid-cols-[1fr_auto] items-stretch gap-2 pt-0.5">
               <button type="button" className={bookBtn} onClick={onBookNow}>
                 Book Now
               </button>

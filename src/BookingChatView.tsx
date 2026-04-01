@@ -253,22 +253,25 @@ export function BookingChatView({ onBack }: Props) {
   const showFooter = step !== 'submitting'
 
   return (
-    <div className="flex min-h-dvh flex-col bg-[var(--color-chat-bg)]">
-      <div className="mx-auto flex w-full max-w-md flex-1 flex-col gap-3 px-4 pb-[max(5.5rem,env(safe-area-inset-bottom)+4.5rem)] pt-[max(0.5rem,env(safe-area-inset-top))] min-h-0 sm:max-w-lg sm:gap-4 sm:px-5 sm:pb-28 sm:pt-3">
-        <button
-          type="button"
-          onClick={onBack}
-          className={`${backAboveCard} self-start`}
-          aria-label="Back to restaurant"
-        >
-          <BackChevronIcon size={16} />
-        </button>
+    <div className="relative min-h-dvh bg-[var(--color-chat-bg)]">
+      <div className="flex min-h-dvh w-full items-center justify-center px-4 pb-[max(5.5rem,env(safe-area-inset-bottom)+4.5rem)] pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-5 sm:pb-28 sm:pt-6">
+        <div className="flex w-full max-w-md flex-col items-stretch gap-2 sm:max-w-lg">
+          <div className="sticky top-[max(0.5rem,env(safe-area-inset-top))] z-50 self-start">
+            <button
+              type="button"
+              onClick={onBack}
+              className={backAboveCard}
+              aria-label="Back to restaurant"
+            >
+              <BackChevronIcon size={16} />
+            </button>
+          </div>
 
-        <div
-          className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-neutral-300 bg-white shadow-md"
-          role="region"
-          aria-labelledby={titleId}
-        >
+          <div
+            className="flex max-h-[min(580px,calc(100dvh-5.5rem))] w-full flex-col overflow-hidden rounded-2xl border border-neutral-300 bg-white shadow-md sm:max-h-[min(580px,calc(100dvh-6rem))]"
+            role="region"
+            aria-labelledby={titleId}
+          >
           <div className="shrink-0 border-b border-neutral-800 bg-neutral-950 px-4 py-4">
             <div className="mb-3 flex items-center gap-3">
               <AiChatbotLogo sizePx={28} />
@@ -287,7 +290,7 @@ export function BookingChatView({ onBack }: Props) {
           </div>
 
           {step === 'submitting' ? (
-            <div className="flex flex-1 flex-col items-center justify-center gap-3 px-4 py-10">
+            <div className="flex min-h-[220px] flex-col items-center justify-center gap-3 px-4 py-10">
               <div
                 className="size-11 animate-spin rounded-full border-[3px] border-neutral-200 border-t-neutral-950"
                 aria-hidden
@@ -303,7 +306,7 @@ export function BookingChatView({ onBack }: Props) {
             <>
               <div
                 ref={listRef}
-                className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain bg-neutral-50/80 px-3 py-3 sm:space-y-3.5 sm:px-4 sm:py-4"
+                className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain bg-neutral-50/80 px-3 py-3 sm:space-y-3 sm:px-4 sm:py-4"
                 role="log"
                 aria-relevant="additions"
                 aria-live="polite"
@@ -313,7 +316,7 @@ export function BookingChatView({ onBack }: Props) {
                 ))}
 
                 {step === 'guests' && (
-                  <div className="flex max-w-full flex-wrap gap-2.5">
+                  <div className="flex w-full flex-wrap justify-center gap-2.5">
                     {GUEST_CHIPS.map((g) => (
                       <button
                         key={g}
@@ -328,22 +331,24 @@ export function BookingChatView({ onBack }: Props) {
                 )}
 
                 {step === 'date' && (
-                  <div className="flex gap-2.5 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                    {days.map((d) => (
-                      <button
-                        key={d.toISOString()}
-                        type="button"
-                        onClick={() => pickDate(d)}
-                        className={chipPill}
-                      >
-                        {formatDay(d)}
-                      </button>
-                    ))}
+                  <div className="flex w-full justify-center overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    <div className="inline-flex gap-2.5">
+                      {days.map((d) => (
+                        <button
+                          key={d.toISOString()}
+                          type="button"
+                          onClick={() => pickDate(d)}
+                          className={chipPill}
+                        >
+                          {formatDay(d)}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
 
                 {step === 'time' && (
-                  <div className="flex max-w-full flex-wrap gap-2.5">
+                  <div className="flex w-full flex-wrap justify-center gap-2.5">
                     {TIME_SLOTS.map((t) => (
                       <button
                         key={t}
@@ -426,6 +431,7 @@ export function BookingChatView({ onBack }: Props) {
               </button>
             </div>
           )}
+        </div>
         </div>
       </div>
 
