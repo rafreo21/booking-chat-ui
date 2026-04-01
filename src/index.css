@@ -2,11 +2,13 @@
 
 @theme {
   --font-sans: 'Inter', 'DM Sans', ui-sans-serif, system-ui, sans-serif;
-  --color-chat-bg: #f3f1ec;
+  --color-chat-bg: #ebebeb;
   --color-chat-surface: #ffffff;
-  --color-chat-ink: #1c1917;
-  --color-chat-muted: #78716c;
-  --color-chat-border: #e7e0d6;
+  --color-chat-ink: #0a0a0a;
+  --color-chat-body: #404040;
+  --color-chat-muted: #525252;
+  --color-chat-border: #d4d4d4;
+  --color-chat-primary: #171717;
   --color-chat-user: #0f766e;
   --color-chat-user-hover: #0d9488;
   --color-chat-accent: #c2410c;

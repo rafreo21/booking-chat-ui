@@ -2,10 +2,11 @@ import { MAPS_URL } from '../figma/assets'
 import { GoogleMapsPin } from './GoogleMapsPin'
 
 const fab =
-  'group fixed bottom-[max(0.75rem,env(safe-area-inset-bottom))] right-[max(0.75rem,env(safe-area-inset-right))] z-40 flex items-center gap-1.5 rounded-full border border-white/50 bg-white/90 px-3 py-2 text-sm shadow-md backdrop-blur-md transition will-change-transform hover:bg-white hover:shadow-lg active:scale-[0.97] active:shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2 sm:bottom-5 sm:right-5 sm:gap-2 sm:rounded-[33px] sm:px-[18px] sm:py-3 md:bottom-8 md:right-8'
+  'group fixed bottom-[max(0.75rem,env(safe-area-inset-bottom))] right-[max(0.75rem,env(safe-area-inset-right))] z-40 flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-4 py-2.5 text-[15px] font-semibold text-neutral-900 shadow-md transition hover:bg-neutral-50 hover:shadow-lg active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2 sm:bottom-6 sm:right-6 sm:py-3'
 
+/** Square control — same height as Book Now (44px), ~8px radius like reference. */
 const iconOnly =
-  'inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-neutral-300 bg-white shadow-sm transition will-change-transform hover:border-[#303030]/30 hover:bg-neutral-50 active:scale-[0.98] active:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2 sm:h-11 sm:w-11'
+  'inline-flex size-11 shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.1)] transition hover:border-neutral-300 hover:bg-neutral-50 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2'
 
 export function GetDirectionsFab() {
   return (
@@ -16,9 +17,7 @@ export function GetDirectionsFab() {
       className={fab}
     >
       <GoogleMapsPin />
-      <span className="whitespace-nowrap text-[13px] font-semibold text-[#494949] sm:text-[15px]">
-        Get direction
-      </span>
+      <span className="whitespace-nowrap">Get direction</span>
     </a>
   )
 }

@@ -35,6 +35,20 @@ const GUEST_CHIPS = ['1', '2', '3', '4', '5', '6+'] as const
 
 const RESTAURANT_SERVICE = 'Restaurant'
 
+/** Guest counts: equal width & height circles (reference). */
+const chipGuest =
+  'flex size-11 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white text-[15px] font-semibold tabular-nums text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition hover:border-neutral-300 hover:bg-neutral-50 active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1'
+
+/** Date / time: compact pills — not stretched full width. */
+const chipPill =
+  'inline-flex h-10 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white px-3.5 text-[13px] font-semibold text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition hover:border-neutral-300 hover:bg-neutral-50 active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1'
+
+const backAboveCard =
+  'flex size-11 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-800 shadow-[0_1px_3px_rgba(0,0,0,0.1)] transition hover:border-neutral-300 hover:bg-neutral-50 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-500'
+
+const btnPrimary =
+  'w-full min-h-[48px] rounded-xl bg-neutral-950 px-4 text-[15px] font-semibold text-white shadow-sm transition hover:bg-neutral-800 active:scale-[0.99] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2'
+
 function nextWeekdays(count: number): Date[] {
   const out: Date[] = []
   const d = new Date()
@@ -67,13 +81,6 @@ type Step =
   | 'confirm'
   | 'submitting'
   | 'success'
-
-const chipBase =
-  'min-h-10 rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-left text-xs font-medium text-neutral-800 shadow-sm transition will-change-transform hover:border-[#303030]/30 hover:bg-neutral-50 active:scale-[0.98] active:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 sm:px-3.5 sm:text-sm'
-
-/** Figma 83:3123 — above the card, aligned with its left edge (see 78:1998). */
-const backAboveCard =
-  'flex size-9 shrink-0 items-center justify-center rounded-full border border-neutral-200/80 bg-white p-1.5 text-neutral-700 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[13px] transition hover:bg-neutral-50 hover:text-neutral-900 hover:shadow-[0_3px_16px_rgba(0,0,0,0.14)] active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-500 sm:size-10 sm:p-2 sm:shadow-[0_2px_16px_rgba(0,0,0,0.14)]'
 
 type Props = {
   onBack: () => void
@@ -246,181 +253,179 @@ export function BookingChatView({ onBack }: Props) {
   const showFooter = step !== 'submitting'
 
   return (
-    <div className="relative min-h-dvh bg-[#ececec]">
-      <div className="flex min-h-dvh w-full items-center justify-center px-2.5 pb-[max(5rem,calc(env(safe-area-inset-bottom)+4.5rem))] pt-3 sm:px-4 sm:pb-24 sm:pt-6">
-        <div className="flex w-full max-w-[min(360px,calc(100vw-1.25rem))] flex-col items-stretch">
-          <div className="sticky top-[max(0.5rem,env(safe-area-inset-top))] z-50 mb-1.5 self-start sm:mb-2">
-            <button
-              type="button"
-              onClick={onBack}
-              className={backAboveCard}
-              aria-label="Back to restaurant"
-            >
-              <BackChevronIcon size={14} />
-            </button>
+    <div className="flex min-h-dvh flex-col bg-[var(--color-chat-bg)]">
+      <div className="mx-auto flex w-full max-w-md flex-1 flex-col gap-3 px-4 pb-[max(5.5rem,env(safe-area-inset-bottom)+4.5rem)] pt-[max(0.5rem,env(safe-area-inset-top))] min-h-0 sm:max-w-lg sm:gap-4 sm:px-5 sm:pb-28 sm:pt-3">
+        <button
+          type="button"
+          onClick={onBack}
+          className={`${backAboveCard} self-start`}
+          aria-label="Back to restaurant"
+        >
+          <BackChevronIcon size={16} />
+        </button>
+
+        <div
+          className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-neutral-300 bg-white shadow-md"
+          role="region"
+          aria-labelledby={titleId}
+        >
+          <div className="shrink-0 border-b border-neutral-800 bg-neutral-950 px-4 py-4">
+            <div className="mb-3 flex items-center gap-3">
+              <AiChatbotLogo sizePx={28} />
+              <div className="min-w-0 flex-1">
+                <p
+                  id={titleId}
+                  className="text-[17px] font-bold leading-tight tracking-tight text-white"
+                >
+                  Hey!
+                </p>
+                <p className="mt-1 text-[15px] leading-snug text-white/92">
+                  I&apos;m here to help you make your reservation.
+                </p>
+              </div>
+            </div>
           </div>
 
-          <div
-            className="flex max-h-[min(640px,calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-4.25rem))] w-full flex-col rounded-xl border border-white/30 bg-[#f3f3f3]/95 p-2 shadow-sm backdrop-blur-[14px] sm:max-h-[min(580px,calc(100dvh-5.5rem))] sm:rounded-2xl sm:p-2.5"
-            role="region"
-            aria-labelledby={titleId}
-          >
-            <div className="shrink-0 rounded-lg border border-white/30 bg-[#272727] p-3 shadow-inner sm:rounded-xl sm:p-3.5">
-              <div className="mb-2 sm:mb-2.5">
-                <AiChatbotLogo sizePx={22} />
-              </div>
-              <p
-                id={titleId}
-                className="text-[13px] font-semibold text-white [text-shadow:0_9px_54px_rgba(0,0,0,0.5)] sm:text-[14px]"
-              >
-                Hey !
+          {step === 'submitting' ? (
+            <div className="flex flex-1 flex-col items-center justify-center gap-3 px-4 py-10">
+              <div
+                className="size-11 animate-spin rounded-full border-[3px] border-neutral-200 border-t-neutral-950"
+                aria-hidden
+              />
+              <p className="text-center text-[16px] font-semibold text-neutral-950">
+                Booking in progress…
               </p>
-              <p className="mt-0.5 text-xs leading-snug text-white/80 [text-shadow:0_9px_54px_rgba(0,0,0,0.5)] sm:mt-1 sm:text-[13px]">
-                I&apos;m here to help you make your reservation
+              <p className="text-center text-[15px] text-neutral-600">
+                Please wait a moment.
               </p>
             </div>
+          ) : (
+            <>
+              <div
+                ref={listRef}
+                className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain bg-neutral-50/80 px-3 py-3 sm:space-y-3.5 sm:px-4 sm:py-4"
+                role="log"
+                aria-relevant="additions"
+                aria-live="polite"
+              >
+                {messages.map((msg) => (
+                  <FigmaMessage key={msg.id} role={msg.role} text={msg.text} />
+                ))}
 
-            {step === 'submitting' ? (
-              <div className="flex min-h-[min(200px,32dvh)] flex-col items-center justify-center gap-2 px-3 py-6 sm:min-h-[200px] sm:gap-3 sm:px-4 sm:py-8">
-                <div
-                  className="size-9 animate-spin rounded-full border-2 border-neutral-300 border-t-[#303030] sm:size-10"
-                  aria-hidden
-                />
-                <p className="text-center text-[13px] font-medium text-[#303030] sm:text-[14px]">
-                  Booking in progress…
-                </p>
-                <p className="text-center text-[11px] text-neutral-500 sm:text-xs">
-                  Please wait a moment
-                </p>
-              </div>
-            ) : (
-              <>
-                <div
-                  ref={listRef}
-                  className="mt-2 min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain px-0.5 py-0.5 sm:mt-2.5 sm:space-y-2.5 sm:px-1 sm:py-1"
-                  role="log"
-                  aria-relevant="additions"
-                  aria-live="polite"
-                >
-                  {messages.map((msg) => (
-                    <FigmaMessage key={msg.id} role={msg.role} text={msg.text} />
-                  ))}
-
-                  {step === 'guests' && (
-                    <div className="flex flex-wrap gap-1.5 pt-0.5 sm:gap-2 sm:pt-1">
-                      {GUEST_CHIPS.map((g) => (
-                        <button
-                          key={g}
-                          type="button"
-                          onClick={() => pickGuest(g)}
-                          className={chipBase}
-                        >
-                          {g}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  {step === 'date' && (
-                    <div className="flex gap-1.5 overflow-x-auto pb-0.5 pt-0.5 [-ms-overflow-style:none] [scrollbar-width:none] sm:gap-2 sm:pb-1 sm:pt-1 [&::-webkit-scrollbar]:hidden">
-                      {days.map((d) => (
-                        <button
-                          key={d.toISOString()}
-                          type="button"
-                          onClick={() => pickDate(d)}
-                          className={`${chipBase} shrink-0`}
-                        >
-                          {formatDay(d)}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  {step === 'time' && (
-                    <div className="flex flex-wrap gap-1.5 pt-0.5 sm:gap-2 sm:pt-1">
-                      {TIME_SLOTS.map((t) => (
-                        <button
-                          key={t}
-                          type="button"
-                          onClick={() => pickTime(t)}
-                          className={chipBase}
-                        >
-                          {t}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  {step === 'details' && (
-                    <DetailsForm
-                      details={details}
-                      errors={detailErrors}
-                      onChange={(patch) => {
-                        setDetails((d) => ({ ...d, ...patch }))
-                        setDetailErrors({})
-                      }}
-                      onSubmit={submitDetails}
-                    />
-                  )}
-
-                  {step === 'confirm' && booking.date && (
-                    <ConfirmPanel
-                      booking={booking}
-                      details={details}
-                      onConfirm={confirmBooking}
-                    />
-                  )}
-                </div>
-
-                {step === 'success' && (
-                  <div className="mt-2 shrink-0 space-y-2 border-t border-white/30 pt-2 sm:mt-3 sm:space-y-2.5 sm:pt-3">
-                    <div className="flex items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/90 px-2.5 py-2 text-center sm:rounded-xl sm:px-3 sm:py-2.5">
-                      <span
-                        className="flex size-7 items-center justify-center rounded-full bg-emerald-600 text-xs font-bold text-white sm:size-8 sm:text-sm"
-                        aria-hidden
+                {step === 'guests' && (
+                  <div className="flex max-w-full flex-wrap gap-2.5">
+                    {GUEST_CHIPS.map((g) => (
+                      <button
+                        key={g}
+                        type="button"
+                        onClick={() => pickGuest(g)}
+                        className={chipGuest}
                       >
-                        ✓
-                      </span>
-                      <p className="text-left text-xs font-medium text-emerald-900 sm:text-[13px]">
-                        You&apos;re all set. Ready for another reservation?
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={resetChat}
-                      className="mx-auto flex h-10 w-full max-w-[200px] items-center justify-center rounded-lg bg-[#303030] text-[13px] font-semibold text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)] transition hover:bg-[#3d3d3d] active:scale-[0.99] active:bg-[#252525] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 sm:h-11"
-                    >
-                      Book Now
-                    </button>
+                        {g}
+                      </button>
+                    ))}
                   </div>
                 )}
-              </>
-            )}
 
-            {showFooter && (
-              <div className="mt-2 flex items-center justify-between gap-1.5 border-t border-white/20 pt-1.5 sm:mt-2.5 sm:gap-2 sm:pt-2">
-                <p className="min-w-0 truncate text-[10px] text-neutral-500 sm:text-xs">
-                  Gilgamesh · booking assistant
-                </p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setLogOpen(true)
-                    setImportMsg(null)
-                    refreshSaved()
-                  }}
-                  className="relative shrink-0 rounded-full border border-neutral-300 bg-white px-2.5 py-1 text-[11px] font-medium text-neutral-800 shadow-sm transition hover:bg-neutral-50 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 sm:px-3 sm:py-1.5 sm:text-xs"
-                >
-                  Bookings
-                  {savedBookings.length > 0 && (
-                    <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#303030] px-0.5 text-[10px] font-semibold text-white">
-                      {savedBookings.length > 99 ? '99+' : savedBookings.length}
-                    </span>
-                  )}
-                </button>
+                {step === 'date' && (
+                  <div className="flex gap-2.5 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    {days.map((d) => (
+                      <button
+                        key={d.toISOString()}
+                        type="button"
+                        onClick={() => pickDate(d)}
+                        className={chipPill}
+                      >
+                        {formatDay(d)}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {step === 'time' && (
+                  <div className="flex max-w-full flex-wrap gap-2.5">
+                    {TIME_SLOTS.map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => pickTime(t)}
+                        className={`${chipPill} min-w-[3.25rem] px-3 tabular-nums`}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {step === 'details' && (
+                  <DetailsForm
+                    details={details}
+                    errors={detailErrors}
+                    onChange={(patch) => {
+                      setDetails((d) => ({ ...d, ...patch }))
+                      setDetailErrors({})
+                    }}
+                    onSubmit={submitDetails}
+                  />
+                )}
+
+                {step === 'confirm' && booking.date && (
+                  <ConfirmPanel
+                    booking={booking}
+                    details={details}
+                    onConfirm={confirmBooking}
+                  />
+                )}
               </div>
-            )}
-          </div>
+
+              {step === 'success' && (
+                <div className="shrink-0 space-y-3 border-t border-neutral-200 bg-white px-3 py-4 sm:px-4">
+                  <div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+                    <span
+                      className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-emerald-700 text-sm font-bold text-white"
+                      aria-hidden
+                    >
+                      ✓
+                    </span>
+                    <p className="text-left text-[15px] font-medium leading-snug text-emerald-950">
+                      You&apos;re all set. Ready for another reservation?
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={resetChat}
+                    className={`${btnPrimary} mx-auto w-full max-w-[220px]`}
+                  >
+                    Book again
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+
+          {showFooter && (
+            <div className="flex shrink-0 items-center justify-between gap-2 border-t border-neutral-200 bg-white px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3">
+              <p className="min-w-0 truncate text-[12px] font-medium text-neutral-500 sm:text-[13px] sm:text-neutral-600">
+                Gilgamesh · booking assistant
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setLogOpen(true)
+                  setImportMsg(null)
+                  refreshSaved()
+                }}
+                className="relative shrink-0 rounded-full border border-neutral-200 bg-white px-3.5 py-1.5 text-[13px] font-semibold text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition hover:border-neutral-300 hover:bg-neutral-50 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
+              >
+                Bookings
+                {savedBookings.length > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-neutral-950 px-1 text-[11px] font-bold text-white">
+                    {savedBookings.length > 99 ? '99+' : savedBookings.length}
+                  </span>
+                )}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -502,64 +507,67 @@ function DetailsForm({
   onSubmit: () => void
 }) {
   const input =
-    'w-full rounded-lg border border-neutral-300 bg-white px-2.5 py-1.5 text-[13px] text-[#303030] placeholder:text-neutral-400 focus:border-[#303030] focus:outline-none focus:ring-2 focus:ring-neutral-900/20 sm:px-3 sm:py-2'
+    'w-full min-h-[48px] rounded-xl border-2 border-neutral-200 bg-white px-3.5 text-[16px] text-neutral-950 placeholder:text-neutral-400 focus:border-neutral-950 focus:outline-none focus:ring-4 focus:ring-neutral-950/10'
 
   return (
-    <div className="space-y-2 rounded-lg border border-white/40 bg-white/80 p-2.5 pt-1.5 sm:space-y-2.5 sm:rounded-xl sm:p-3 sm:pt-2">
-      <p className="text-xs font-medium text-[#303030] sm:text-[13px]">Your details</p>
+    <div className="space-y-4 rounded-xl border-2 border-neutral-200 bg-white p-4 shadow-sm">
       <div>
-        <label className="mb-1 block text-[11px] font-medium text-neutral-500">
-          Full name
-        </label>
-        <input
-          type="text"
-          autoComplete="name"
-          value={details.name}
-          onChange={(e) => onChange({ name: e.target.value })}
-          placeholder="Alex Rivera"
-          className={input}
-        />
-        {errors.name && (
-          <p className="mt-1 text-[11px] text-red-600">{errors.name}</p>
-        )}
+        <h3 className="text-[16px] font-bold text-neutral-950">Your details</h3>
+        <p className="mt-1 text-[14px] leading-snug text-neutral-600">
+          We&apos;ll use these to confirm your reservation.
+        </p>
       </div>
-      <div>
-        <label className="mb-1 block text-[11px] font-medium text-neutral-500">
-          Email
-        </label>
-        <input
-          type="email"
-          autoComplete="email"
-          value={details.email}
-          onChange={(e) => onChange({ email: e.target.value })}
-          placeholder="alex@example.com"
-          className={input}
-        />
-        {errors.email && (
-          <p className="mt-1 text-[11px] text-red-600">{errors.email}</p>
-        )}
+      <div className="space-y-3">
+        <div>
+          <label className="mb-1.5 block text-[13px] font-semibold text-neutral-800">
+            Full name
+          </label>
+          <input
+            type="text"
+            autoComplete="name"
+            value={details.name}
+            onChange={(e) => onChange({ name: e.target.value })}
+            placeholder="Alex Rivera"
+            className={input}
+          />
+          {errors.name && (
+            <p className="mt-1.5 text-[13px] font-medium text-red-700">{errors.name}</p>
+          )}
+        </div>
+        <div>
+          <label className="mb-1.5 block text-[13px] font-semibold text-neutral-800">
+            Email
+          </label>
+          <input
+            type="email"
+            autoComplete="email"
+            value={details.email}
+            onChange={(e) => onChange({ email: e.target.value })}
+            placeholder="alex@example.com"
+            className={input}
+          />
+          {errors.email && (
+            <p className="mt-1.5 text-[13px] font-medium text-red-700">{errors.email}</p>
+          )}
+        </div>
+        <div>
+          <label className="mb-1.5 block text-[13px] font-semibold text-neutral-800">
+            Phone
+          </label>
+          <input
+            type="tel"
+            autoComplete="tel"
+            value={details.phone}
+            onChange={(e) => onChange({ phone: e.target.value })}
+            placeholder="+44 20 1234 5678"
+            className={input}
+          />
+          {errors.phone && (
+            <p className="mt-1.5 text-[13px] font-medium text-red-700">{errors.phone}</p>
+          )}
+        </div>
       </div>
-      <div>
-        <label className="mb-1 block text-[11px] font-medium text-neutral-500">
-          Phone
-        </label>
-        <input
-          type="tel"
-          autoComplete="tel"
-          value={details.phone}
-          onChange={(e) => onChange({ phone: e.target.value })}
-          placeholder="+44 20 1234 5678"
-          className={input}
-        />
-        {errors.phone && (
-          <p className="mt-1 text-[11px] text-red-600">{errors.phone}</p>
-        )}
-      </div>
-      <button
-        type="button"
-        onClick={onSubmit}
-        className="min-h-10 w-full rounded-lg bg-[#303030] py-2 text-[13px] font-semibold text-white transition hover:bg-[#3d3d3d] active:scale-[0.99] active:bg-[#252525] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 sm:min-h-11 sm:py-2.5"
-      >
+      <button type="button" onClick={onSubmit} className={btnPrimary}>
         Continue
       </button>
     </div>
@@ -580,36 +588,35 @@ function ConfirmPanel({
   onConfirm: () => void
 }) {
   const d = booking.date
+  const rows = [
+    ['Guests', booking.guestCount === 6 ? '6+' : String(booking.guestCount)],
+    ['Date', d ? formatDay(d) : '—'],
+    ['Time', booking.time],
+    ['Name', details.name.trim()],
+    ['Email', details.email.trim()],
+    ['Phone', details.phone.trim()],
+  ] as const
   return (
-    <div className="space-y-2 rounded-lg border border-[#303030]/20 bg-white/90 p-2.5 sm:space-y-2.5 sm:rounded-xl sm:p-3">
-      <p className="text-xs font-semibold text-[#303030] sm:text-[13px]">Confirm your booking</p>
-      <ul className="space-y-1 text-xs text-neutral-700 sm:space-y-1.5 sm:text-[13px]">
-        <li>
-          <span className="text-neutral-500">Guests:</span>{' '}
-          {booking.guestCount === 6 ? '6+' : booking.guestCount}
-        </li>
-        <li>
-          <span className="text-neutral-500">Date:</span>{' '}
-          {d ? formatDay(d) : '—'}
-        </li>
-        <li>
-          <span className="text-neutral-500">Time:</span> {booking.time}
-        </li>
-        <li>
-          <span className="text-neutral-500">Name:</span> {details.name.trim()}
-        </li>
-        <li>
-          <span className="text-neutral-500">Email:</span> {details.email.trim()}
-        </li>
-        <li>
-          <span className="text-neutral-500">Phone:</span> {details.phone.trim()}
-        </li>
-      </ul>
-      <button
-        type="button"
-        onClick={onConfirm}
-        className="min-h-10 w-full rounded-lg bg-[#303030] py-2 text-[13px] font-semibold text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)] transition hover:bg-[#3d3d3d] active:scale-[0.99] active:bg-[#252525] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 sm:min-h-11 sm:py-2.5"
-      >
+    <div className="space-y-4 rounded-xl border-2 border-neutral-200 bg-white p-4 shadow-sm">
+      <div>
+        <h3 className="text-[16px] font-bold text-neutral-950">Confirm your booking</h3>
+        <p className="mt-1 text-[14px] text-neutral-600">
+          Check everything looks right before you confirm.
+        </p>
+      </div>
+      <dl className="space-y-2.5 border-t border-neutral-100 pt-3">
+        {rows.map(([label, value]) => (
+          <div key={label} className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-2">
+            <dt className="text-[13px] font-semibold uppercase tracking-wide text-neutral-500 sm:w-24 sm:shrink-0">
+              {label}
+            </dt>
+            <dd className="text-[15px] font-semibold text-neutral-950 sm:min-w-0 sm:flex-1">
+              {value}
+            </dd>
+          </div>
+        ))}
+      </dl>
+      <button type="button" onClick={onConfirm} className={btnPrimary}>
         Confirm booking
       </button>
     </div>
@@ -621,21 +628,17 @@ function FigmaMessage({ role, text }: { role: Role; text: string }) {
   if (isUser) {
     return (
       <div className="flex justify-end">
-        <div className="relative max-w-[min(92%,280px)] sm:max-w-[90%]">
-          <div className="rounded-lg bg-[#303030] px-3 py-2 text-[13px] leading-snug text-white sm:rounded-xl sm:px-3.5 sm:py-2.5 sm:text-[14px]">
+        <div className="relative max-w-[min(90%,20rem)]">
+          <div className="rounded-2xl rounded-br-md bg-neutral-950 px-4 py-3 text-[15px] leading-relaxed text-white shadow-sm">
             <RichText text={text} isUser />
           </div>
-          <div
-            className="absolute -right-1 bottom-2.5 size-2 rotate-45 bg-[#303030] sm:bottom-3 sm:size-2.5"
-            aria-hidden
-          />
         </div>
       </div>
     )
   }
   return (
-    <div className="flex justify-start">
-      <div className="max-w-[min(96%,320px)] text-[13px] font-medium leading-snug text-[#303030] sm:max-w-[95%] sm:text-[14px] sm:leading-5">
+    <div className="flex justify-start border-l-4 border-neutral-300 pl-3">
+      <div className="max-w-[min(100%,24rem)] text-[15px] leading-relaxed text-neutral-950">
         <RichText text={text} isUser={false} />
       </div>
     </div>
@@ -653,7 +656,7 @@ function RichText({ text, isUser }: { text: string; isUser: boolean }) {
             <strong
               key={i}
               className={
-                isUser ? 'font-semibold text-white' : 'font-semibold text-[#303030]'
+                isUser ? 'font-bold text-white' : 'font-bold text-neutral-950'
               }
             >
               {inner}
