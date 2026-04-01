@@ -1,0 +1,26 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+  --color-chat-bg: #f3f1ec;
+  --color-chat-surface: #ffffff;
+  --color-chat-ink: #1c1917;
+  --color-chat-muted: #78716c;
+  --color-chat-border: #e7e0d6;
+  --color-chat-user: #0f766e;
+  --color-chat-user-hover: #0d9488;
+  --color-chat-accent: #c2410c;
+}
+
+@layer base {
+  html {
+    @apply antialiased;
+  }
+  body {
+    @apply m-0 min-h-dvh bg-[var(--color-chat-bg)] text-[var(--color-chat-ink)];
+    font-family: var(--font-sans);
+  }
+  #root {
+    @apply min-h-dvh;
+  }
+}
