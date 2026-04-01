@@ -1,3 +1,4 @@
+import { PencilSimple } from '@phosphor-icons/react'
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import {
   addBooking,
@@ -18,10 +19,15 @@ import { WIDGET_MAX_W } from './widgetLayout'
 
 type Role = 'assistant' | 'user'
 
+/** User answers that can be revised via the chat edit control. */
+type BookingSection = 'guests' | 'date' | 'time' | 'details'
+
 type ChatMessage = {
   id: string
   role: Role
   text: string
+  /** Set on user bubbles that correspond to a booking step. */
+  section?: BookingSection
 }
 
 /** Every 15 minutes from 14:00 through 22:00 (2pm–10pm). */
@@ -120,6 +126,42 @@ type Step =
   | 'submitting'
   | 'success'
 
+function canShowEditForSection(section: BookingSection, step: Step): boolean {
+  if (step === 'submitting') return false
+  switch (section) {
+    case 'guests':
+      return step !== 'guests'
+    case 'date':
+      return (
+        step === 'time' ||
+        step === 'details' ||
+        step === 'confirm' ||
+        step === 'success'
+      )
+    case 'time':
+      return step === 'details' || step === 'confirm' || step === 'success'
+    case 'details':
+      return step === 'confirm' || step === 'success'
+    default:
+      return false
+  }
+}
+
+function editSectionAriaLabel(section: BookingSection): string {
+  switch (section) {
+    case 'guests':
+      return 'Edit number of guests'
+    case 'date':
+      return 'Edit booking date'
+    case 'time':
+      return 'Edit booking time'
+    case 'details':
+      return 'Edit contact details'
+    default:
+      return 'Edit'
+  }
+}
+
 type Props = {
   onBack: () => void
 }
@@ -181,8 +223,8 @@ export function BookingChatView({ onBack }: Props) {
     scrollToBottom()
   }, [messages, step, scrollToBottom])
 
-  const pushUser = (text: string) => {
-    setMessages((m) => [...m, { id: uid(), role: 'user', text }])
+  const pushUser = (text: string, section?: BookingSection) => {
+    setMessages((m) => [...m, { id: uid(), role: 'user', text, section }])
   }
 
   const pushAssistant = (text: string) => {
@@ -199,6 +241,7 @@ export function BookingChatView({ onBack }: Props) {
     if (step !== 'guests') return
     pushUser(
       label === '6+' ? 'Table for 6 or more' : `Table for ${label} guest${label === '1' ? '' : 's'}`,
+      'guests',
     )
     const gc = guestCountFromLabel(label)
     setBooking((b) => ({ ...b, guestCount: gc }))
@@ -208,7 +251,7 @@ export function BookingChatView({ onBack }: Props) {
 
   const pickDate = (d: Date) => {
     if (step !== 'date') return
-    pushUser(formatDay(d))
+    pushUser(formatDay(d), 'date')
     setBooking((b) => ({ ...b, date: d }))
     pushAssistant('Here are the available times. Pick one that suits you.')
     setStep('time')
@@ -216,7 +259,7 @@ export function BookingChatView({ onBack }: Props) {
 
   const pickTime = (t: string) => {
     if (step !== 'time') return
-    pushUser(t)
+    pushUser(t, 'time')
     setBooking((b) => ({ ...b, time: t }))
     pushAssistant(
       'Almost there. Enter your **full name**, **email**, and **phone number** below, then continue.',
@@ -245,6 +288,7 @@ export function BookingChatView({ onBack }: Props) {
     if (!validateDetails()) return
     pushUser(
       `${details.name.trim()} · ${details.email.trim()} · ${details.phone.trim()}`,
+      'details',
     )
     pushAssistant('Review your booking below, then tap **Confirm booking**.')
     setStep('confirm')
@@ -271,6 +315,33 @@ export function BookingChatView({ onBack }: Props) {
       setStep('success')
     }, 1600)
   }
+
+  const handleEditSection = useCallback((section: BookingSection) => {
+    setMessages((msgs) => {
+      const idx = msgs.findIndex((m) => m.role === 'user' && m.section === section)
+      if (idx === -1) return msgs
+      return msgs.slice(0, idx)
+    })
+    setDetailErrors({})
+    if (section === 'guests') {
+      setBooking({ guestCount: 0, date: null, time: '' })
+      setDetails({ name: '', email: '', phone: '' })
+      setStep('guests')
+    } else if (section === 'date') {
+      setBooking((b) => ({
+        ...b,
+        date: null,
+        time: '',
+      }))
+      setDetails({ name: '', email: '', phone: '' })
+      setStep('date')
+    } else if (section === 'time') {
+      setBooking((b) => ({ ...b, time: '' }))
+      setStep('time')
+    } else {
+      setStep('details')
+    }
+  }, [])
 
   const days = nextWeekdays(5)
 
@@ -304,7 +375,7 @@ export function BookingChatView({ onBack }: Props) {
               className={backAboveCard}
               aria-label="Back to restaurant"
             >
-              <BackChevronIcon size={16} />
+              <BackChevronIcon size={20} />
             </button>
           </div>
 
@@ -353,7 +424,24 @@ export function BookingChatView({ onBack }: Props) {
                 aria-live="polite"
               >
                 {messages.map((msg) => (
-                  <FigmaMessage key={msg.id} role={msg.role} text={msg.text} />
+                  <FigmaMessage
+                    key={msg.id}
+                    role={msg.role}
+                    text={msg.text}
+                    section={msg.section}
+                    showEdit={
+                      msg.role === 'user' &&
+                      msg.section != null &&
+                      canShowEditForSection(msg.section, step)
+                    }
+                    onEdit={
+                      msg.section
+                        ? () => {
+                            handleEditSection(msg.section!)
+                          }
+                        : undefined
+                    }
+                  />
                 ))}
 
                 {step === 'guests' && (
@@ -695,14 +783,38 @@ function ConfirmPanel({
   )
 }
 
-function FigmaMessage({ role, text }: { role: Role; text: string }) {
+function FigmaMessage({
+  role,
+  text,
+  section,
+  showEdit,
+  onEdit,
+}: {
+  role: Role
+  text: string
+  section?: BookingSection
+  showEdit?: boolean
+  onEdit?: () => void
+}) {
   const isUser = role === 'user'
   if (isUser) {
     return (
       <div className="flex justify-end">
-        <div className="relative max-w-[min(90%,20rem)]">
-          <div className="rounded-2xl rounded-br-md bg-neutral-950 px-4 py-3 text-[15px] leading-relaxed text-white shadow-sm">
-            <RichText text={text} isUser />
+        <div className="flex max-w-full items-center justify-end gap-1.5 sm:gap-2">
+          {showEdit && onEdit && section ? (
+            <button
+              type="button"
+              onClick={onEdit}
+              className="flex size-11 shrink-0 items-center justify-center rounded-full text-[#919191] transition hover:bg-neutral-200/70 hover:text-[#717171] active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#919191]/40 focus-visible:ring-offset-1"
+              aria-label={editSectionAriaLabel(section)}
+            >
+              <PencilSimple size={20} weight="regular" aria-hidden />
+            </button>
+          ) : null}
+          <div className="min-w-0 max-w-[min(90%,20rem)]">
+            <div className="rounded-2xl rounded-br-md bg-neutral-950 px-4 py-3 text-[15px] leading-relaxed text-white shadow-sm">
+              <RichText text={text} isUser />
+            </div>
           </div>
         </div>
       </div>
