@@ -9,8 +9,8 @@ import {
   loadBookings,
   type SavedBooking,
 } from './storage'
-import { ASSETS } from './figma/assets'
 import { AiChatbotLogo } from './components/AiChatbotLogo'
+import { BackChevronIcon } from './components/BackChevronIcon'
 import { GetDirectionsFab } from './components/GetDirectionsFab'
 import { BookingsLog } from './components/BookingsLog'
 
@@ -70,12 +70,9 @@ type Step =
 const chipBase =
   'rounded-full border border-neutral-300 bg-white px-4 py-2 text-left text-sm font-medium text-neutral-800 shadow-sm transition will-change-transform hover:border-[#303030]/30 hover:bg-neutral-50 active:scale-[0.98] active:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900'
 
-const chipTime =
-  'rounded-full bg-[#303030] px-4 py-2 text-sm font-semibold text-white shadow-sm transition will-change-transform hover:bg-[#3d3d3d] active:scale-[0.98] active:bg-[#252525] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2'
-
 /** Figma 83:3123 — above the card, aligned with its left edge (see 78:1998). */
 const backAboveCard =
-  'flex size-10 shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/95 p-2 shadow-[0_2px_16px_rgba(0,0,0,0.12)] backdrop-blur-[13px] transition hover:bg-white hover:shadow-[0_4px_20px_rgba(0,0,0,0.14)] active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400'
+  'flex size-10 shrink-0 items-center justify-center rounded-full border border-neutral-200/80 bg-white p-2 text-neutral-700 shadow-[0_2px_16px_rgba(0,0,0,0.14)] backdrop-blur-[13px] transition hover:bg-neutral-50 hover:text-neutral-900 hover:shadow-[0_4px_20px_rgba(0,0,0,0.16)] active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-500'
 
 type Props = {
   onBack: () => void
@@ -250,20 +247,14 @@ export function BookingChatView({ onBack }: Props) {
     <div className="relative min-h-dvh bg-[#ececec]">
       <div className="flex min-h-dvh w-full items-center justify-center px-4 pb-28 pt-8">
         <div className="flex w-full max-w-[308px] flex-col items-stretch">
-          <div className="sticky top-[max(0.75rem,env(safe-area-inset-top))] z-40 mb-2 self-start">
+          <div className="sticky top-[max(0.75rem,env(safe-area-inset-top))] z-50 mb-2 self-start">
             <button
               type="button"
               onClick={onBack}
               className={backAboveCard}
               aria-label="Back to restaurant"
             >
-              <img
-                src={ASSETS.backChevron}
-                alt=""
-                width={14}
-                height={14}
-                className="size-[14px] object-contain"
-              />
+              <BackChevronIcon size={14} />
             </button>
           </div>
 
@@ -350,7 +341,7 @@ export function BookingChatView({ onBack }: Props) {
                           key={t}
                           type="button"
                           onClick={() => pickTime(t)}
-                          className={chipTime}
+                          className={chipBase}
                         >
                           {t}
                         </button>

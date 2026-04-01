@@ -39,12 +39,17 @@ export function OnboardingScreen({ onBookNow }: Props) {
               alt="Restaurant interior"
               className="aspect-[284/262] w-full object-cover"
             />
-            <div className="absolute right-3 top-3 flex size-10 items-center justify-center rounded-full border border-white/30 bg-[#0f0502]/95 backdrop-blur-md">
-              <img
-                src={ASSETS.logo}
-                alt="Gilgamesh London"
-                className="h-[15px] w-auto object-contain"
-              />
+            <div className="absolute right-3 top-3 flex size-10 items-center justify-center rounded-full border border-white/30 bg-[#0f0502] backdrop-blur-[13px]">
+              <div className="flex h-[15.33px] w-[22.5px] items-center justify-center overflow-hidden">
+                <img
+                  src={ASSETS.organizationLogo}
+                  alt="Gilgamesh London"
+                  width={23}
+                  height={15}
+                  className="max-h-full max-w-full object-contain object-center"
+                  decoding="async"
+                />
+              </div>
             </div>
           </div>
 

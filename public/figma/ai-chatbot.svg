@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+  <path
+    fill-rule="evenodd"
+    clip-rule="evenodd"
+    d="M12 0C18.6274 0 24 5.37258 24 12C24 18.6274 18.6274 24 12 24C5.37258 24 0 18.6274 0 12C0 5.37258 5.37258 0 12 0ZM12 5C8.13401 5 5 8.13401 5 12C5 15.866 8.13401 19 12 19C15.866 19 19 15.866 19 12C19 8.13401 15.866 5 12 5Z"
+    fill="url(#aiChatbotGrad)"
+  />
+  <defs>
+    <linearGradient id="aiChatbotGrad" x1="24" y1="0" x2="0" y2="24" gradientUnits="userSpaceOnUse">
+      <stop offset="0.13" stop-color="#BBEEC6" />
+      <stop offset="0.18" stop-color="#8DF9A6" />
+      <stop offset="0.34" stop-color="#1B9436" />
+      <stop offset="0.67" stop-color="#01340D" />
+      <stop offset="0.81" stop-color="#27A543" />
+      <stop offset="0.86" stop-color="#199234" />
+    </linearGradient>
+  </defs>
+</svg>
