@@ -191,9 +191,10 @@ export function BookingChatView({ onBack }: Props) {
     time: '',
   })
 
-  /** Typing guest count via footer input after "Enter a number". */
+  /** Typing guest count via footer after "Enter a number" (chips hidden; no extra chat lines). */
   const [guestsInputMode, setGuestsInputMode] = useState(false)
   const [guestInputDraft, setGuestInputDraft] = useState('')
+  const [guestInputError, setGuestInputError] = useState<string | null>(null)
   const guestInputRef = useRef<HTMLInputElement>(null)
 
   const [details, setDetails] = useState({
@@ -256,6 +257,7 @@ export function BookingChatView({ onBack }: Props) {
     if (step !== 'guests') return
     setGuestsInputMode(false)
     setGuestInputDraft('')
+    setGuestInputError(null)
     pushUser(
       label === '6+' ? 'Table for 6 or more' : `Table for ${label} guest${label === '1' ? '' : 's'}`,
       'guests',
@@ -274,10 +276,7 @@ export function BookingChatView({ onBack }: Props) {
     if (step !== 'guests' || guestsInputMode) return
     setGuestsInputMode(true)
     setGuestInputDraft('')
-    pushUser('Enter a number')
-    pushAssistant(
-      `Type how many guests in the box below, then tap **Send** (whole number, 1–${MAX_GUESTS_TYPED.toLocaleString()}).`,
-    )
+    setGuestInputError(null)
   }
 
   const submitGuestNumber = () => {
@@ -285,11 +284,12 @@ export function BookingChatView({ onBack }: Props) {
     const raw = guestInputDraft.trim()
     const n = Number.parseInt(raw, 10)
     if (!Number.isFinite(n) || n < 1 || n > MAX_GUESTS_TYPED) {
-      pushAssistant(
-        `Please enter a whole number between **1** and **${MAX_GUESTS_TYPED.toLocaleString()}**.`,
+      setGuestInputError(
+        `Enter a whole number from 1 to ${MAX_GUESTS_TYPED.toLocaleString()}.`,
       )
       return
     }
+    setGuestInputError(null)
     setGuestsInputMode(false)
     setGuestInputDraft('')
     pushUser(`Table for ${n} guest${n === 1 ? '' : 's'}`, 'guests')
@@ -380,6 +380,7 @@ export function BookingChatView({ onBack }: Props) {
       setBooking({ guestCount: 0, sixPlusFromChip: false, date: null, time: '' })
       setGuestsInputMode(false)
       setGuestInputDraft('')
+      setGuestInputError(null)
       setDetails({ name: '', email: '', phone: '' })
       setStep('guests')
     } else if (section === 'date') {
@@ -407,6 +408,7 @@ export function BookingChatView({ onBack }: Props) {
     setBooking({ guestCount: 0, sixPlusFromChip: false, date: null, time: '' })
     setGuestsInputMode(false)
     setGuestInputDraft('')
+    setGuestInputError(null)
     setDetails({ name: '', email: '', phone: '' })
     setDetailErrors({})
     setStep('guests')
@@ -505,7 +507,7 @@ export function BookingChatView({ onBack }: Props) {
                   />
                 ))}
 
-                {step === 'guests' && (
+                {step === 'guests' && !guestsInputMode && (
                   <div className="w-full overflow-x-auto overflow-y-visible pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     <div className="flex w-max flex-nowrap items-center justify-start gap-2.5">
                       {GUEST_CHIPS.map((g) => (
@@ -521,8 +523,7 @@ export function BookingChatView({ onBack }: Props) {
                       <button
                         type="button"
                         onClick={startGuestNumberInput}
-                        disabled={guestsInputMode}
-                        className={`${chipPill} shrink-0 whitespace-nowrap px-4 disabled:cursor-not-allowed disabled:opacity-50`}
+                        className={`${chipPill} shrink-0 whitespace-nowrap px-4`}
                       >
                         Enter a number
                       </button>
@@ -636,38 +637,59 @@ export function BookingChatView({ onBack }: Props) {
           {showFooter && (
             <>
               {step === 'guests' && guestsInputMode && (
-                <div className="flex shrink-0 items-center gap-2 border-t border-neutral-200 bg-white px-3 py-2.5 sm:px-4">
-                  <label
-                    htmlFor="guest-count-input"
-                    className="sr-only"
-                  >
-                    Number of guests
-                  </label>
-                  <input
-                    id="guest-count-input"
-                    ref={guestInputRef}
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    autoComplete="off"
-                    enterKeyHint="send"
-                    placeholder="Number of guests"
-                    value={guestInputDraft}
-                    onChange={(e) => setGuestInputDraft(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault()
-                        submitGuestNumber()
-                      }
-                    }}
-                    className="min-h-11 min-w-0 flex-1 rounded-full border-2 border-neutral-200 bg-white px-4 text-[16px] text-neutral-950 placeholder:text-neutral-400 focus:border-neutral-950 focus:outline-none focus:ring-4 focus:ring-neutral-950/10"
-                  />
+                <div className="shrink-0 border-t border-neutral-200 bg-white px-3 py-2.5 sm:px-4">
+                  <div className="flex items-center gap-2">
+                    <label
+                      htmlFor="guest-count-input"
+                      className="sr-only"
+                    >
+                      Number of guests
+                    </label>
+                    <input
+                      id="guest-count-input"
+                      ref={guestInputRef}
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      autoComplete="off"
+                      enterKeyHint="send"
+                      placeholder={`Guests (1–${MAX_GUESTS_TYPED.toLocaleString()})`}
+                      value={guestInputDraft}
+                      onChange={(e) => {
+                        setGuestInputDraft(e.target.value)
+                        setGuestInputError(null)
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault()
+                          submitGuestNumber()
+                        }
+                      }}
+                      className="min-h-11 min-w-0 flex-1 rounded-full border-2 border-neutral-200 bg-white px-4 text-[16px] text-neutral-950 placeholder:text-neutral-400 focus:border-neutral-950 focus:outline-none focus:ring-4 focus:ring-neutral-950/10"
+                    />
+                    <button
+                      type="button"
+                      onClick={submitGuestNumber}
+                      className="shrink-0 rounded-full bg-neutral-950 px-4 py-2.5 text-[15px] font-semibold text-white shadow-sm transition hover:bg-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2"
+                    >
+                      Send
+                    </button>
+                  </div>
+                  {guestInputError ? (
+                    <p className="mt-2 text-[13px] font-medium text-red-600" role="alert">
+                      {guestInputError}
+                    </p>
+                  ) : null}
                   <button
                     type="button"
-                    onClick={submitGuestNumber}
-                    className="shrink-0 rounded-full bg-neutral-950 px-4 py-2.5 text-[15px] font-semibold text-white shadow-sm transition hover:bg-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2"
+                    onClick={() => {
+                      setGuestsInputMode(false)
+                      setGuestInputDraft('')
+                      setGuestInputError(null)
+                    }}
+                    className="mt-2 text-[13px] font-medium text-neutral-500 underline-offset-2 hover:text-neutral-800 hover:underline"
                   >
-                    Send
+                    Back to quick picks
                   </button>
                 </div>
               )}
