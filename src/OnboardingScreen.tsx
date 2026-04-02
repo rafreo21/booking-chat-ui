@@ -22,7 +22,7 @@ export function OnboardingScreen({ onBookNow }: Props) {
         <article className="w-full overflow-hidden rounded-2xl border border-neutral-300/80 bg-[var(--color-chat-surface)] shadow-md">
           <div className="relative border-b border-neutral-200">
             <OnboardingHeroCarousel slides={ONBOARDING_HERO_SLIDES} />
-            <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
+            <div className="pointer-events-none absolute left-3 top-3 z-20">
               <AiChatbotLogo />
             </div>
           </div>
