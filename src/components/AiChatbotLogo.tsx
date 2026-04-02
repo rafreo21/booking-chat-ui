@@ -3,14 +3,8 @@ import { useEffect, useRef } from 'react'
 const SRC_WEBM = '/ai-chatbot-logo-loop.webm'
 const SRC_MP4 = '/ai-chatbot-logo-loop.mp4'
 
-function prefersWebmVp9(): boolean {
-  if (typeof document === 'undefined') return false
-  const v = document.createElement('video')
-  return v.canPlayType('video/webm; codecs="vp9"') !== ''
-}
-
 /**
- * Looping reference animation (VP9 + alpha in WebM; H.264 MP4 for Safari with multiply on dark bg).
+ * Looping logo — WebM + H.264, both pre-composited on #0a0a0a (no mix-blend; works on iOS / all viewports).
  */
 export function AiChatbotLogo({
   sizePx = 24,
@@ -20,7 +14,6 @@ export function AiChatbotLogo({
   className?: string
 }) {
   const ref = useRef<HTMLVideoElement>(null)
-  const blendMp4 = !prefersWebmVp9()
   const dim = `${sizePx}px`
 
   useEffect(() => {
@@ -56,12 +49,14 @@ export function AiChatbotLogo({
     >
       <video
         ref={ref}
-        className={`size-full object-cover object-center ${blendMp4 ? 'ai-chatbot-logo-video--multiply' : ''}`}
+        className="ai-chatbot-logo-video size-full min-h-px min-w-px object-cover object-center"
         autoPlay
         muted
         loop
         playsInline
         preload="auto"
+        disablePictureInPicture
+        controls={false}
         aria-hidden
       >
         <source src={SRC_WEBM} type="video/webm" />

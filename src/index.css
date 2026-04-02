@@ -14,9 +14,11 @@
   --color-chat-accent: #c2410c;
 }
 
-/* Safari / MP4 fallback: white plate multiplies away on neutral-950. */
-.ai-chatbot-logo-video--multiply {
-  mix-blend-mode: multiply;
+/* Stable paint on WebKit / small viewports. */
+.ai-chatbot-logo-video {
+  display: block;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 
 @layer base {
