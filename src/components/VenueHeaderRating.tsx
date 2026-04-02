@@ -1,4 +1,17 @@
 import { Check, Globe, Star } from '@phosphor-icons/react'
+import type { IconProps } from '@phosphor-icons/react'
+
+/**
+ * Venue row icons — official Phosphor React components, fill weight, 20px
+ * (same as phosphoricons.com: Star, Check, Globe).
+ * @see https://phosphoricons.com?q=star&size=20&weight=fill
+ * @see https://phosphoricons.com?q=check&size=20&weight=fill
+ * @see https://phosphoricons.com?q=globe&size=20&weight=fill
+ */
+const venueIconProps = {
+  size: 20,
+  weight: 'fill',
+} satisfies Pick<IconProps, 'size' | 'weight'>
 
 const GILGAMESH_WEB = 'https://www.gilgameshlondon.co.uk/'
 const GILGAMESH_GOOGLE_REVIEWS =
@@ -39,7 +52,12 @@ export function VenueHeaderRating({ className = '', theme = 'light' }: Props) {
       className={`flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-[13px] leading-snug sm:text-[14px] ${className}`}
     >
       <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
-        <Star size={20} weight="fill" color={iconStar} aria-hidden className="shrink-0" />
+        <Star
+          {...venueIconProps}
+          color={iconStar}
+          aria-hidden
+          className="shrink-0"
+        />
         <a
           href={GILGAMESH_GOOGLE_REVIEWS}
           target="_blank"
@@ -52,7 +70,12 @@ export function VenueHeaderRating({ className = '', theme = 'light' }: Props) {
       </span>
 
       <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
-        <Check size={20} weight="fill" color={iconCheck} aria-hidden className="shrink-0" />
+        <Check
+          {...venueIconProps}
+          color={iconCheck}
+          aria-hidden
+          className="shrink-0"
+        />
         <span className={dineLabel}>Dine in only</span>
       </span>
 
@@ -63,7 +86,7 @@ export function VenueHeaderRating({ className = '', theme = 'light' }: Props) {
         className={`inline-flex shrink-0 items-center justify-center rounded-full p-0.5 transition hover:opacity-90 focus:outline-none focus-visible:ring-2 ${globeFocus}`}
         aria-label="Gilgamesh website"
       >
-        <Globe size={20} weight="fill" color={iconGlobe} aria-hidden />
+        <Globe {...venueIconProps} color={iconGlobe} aria-hidden />
       </a>
     </div>
   )
