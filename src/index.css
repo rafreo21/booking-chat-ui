@@ -20,9 +20,16 @@
   transform: translateZ(0);
 }
 
-/* Desktop: white plate multiplies into header (skipped on iOS — see AiChatbotLogo). */
+/* MP4 “white plate” multiplies into `#0a0a0a` well — same look as WebM+alpha on all viewports. */
 .ai-chatbot-logo-video--multiply {
   mix-blend-mode: multiply;
+}
+
+/* iOS Safari: nudge compositing so video + blend stays visible with the dark well. */
+@supports (-webkit-touch-callout: none) {
+  .ai-chatbot-logo-root .ai-chatbot-logo-video--multiply {
+    opacity: 0.999;
+  }
 }
 
 @layer base {

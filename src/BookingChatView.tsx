@@ -385,23 +385,23 @@ export function BookingChatView({ onBack }: Props) {
             role="region"
             aria-labelledby={titleId}
           >
-          <div className="shrink-0 border-b border-neutral-800 bg-neutral-950 px-3 py-4 sm:px-4">
-            <div className="flex flex-col items-start gap-2">
-              <AiChatbotLogo sizePx={28} />
+          <div className="shrink-0 border-b border-neutral-800 bg-neutral-950 px-3 py-3 sm:px-4 sm:py-4">
+            <div className="flex flex-col items-start gap-1.5 sm:gap-2">
+              <AiChatbotLogo />
               <div className="min-w-0">
                 <p
                   id={titleId}
-                  className="text-[17px] font-bold leading-tight tracking-tight text-white"
+                  className="text-[16px] font-bold leading-tight tracking-tight text-white sm:text-[17px]"
                 >
                   Hey!
                 </p>
-                <p className="mt-1 text-[15px] leading-snug text-[#f3f2f2]">
+                <p className="mt-1 text-[14px] leading-snug text-[#f3f2f2] sm:text-[15px]">
                   I&apos;m here to help you make your reservation.
                 </p>
               </div>
               <VenueHeaderRating
                 theme="dark"
-                className="mt-3 w-full border-t border-white/10 pt-3"
+                className="mt-2 w-full border-t border-white/10 pt-2.5 sm:mt-3 sm:pt-3"
               />
             </div>
           </div>
