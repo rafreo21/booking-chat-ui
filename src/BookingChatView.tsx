@@ -399,7 +399,10 @@ export function BookingChatView({ onBack }: Props) {
                   I&apos;m here to help you make your reservation.
                 </p>
               </div>
-              <VenueHeaderRating className="mt-3 w-full border-t border-white/10 pt-3" />
+              <VenueHeaderRating
+                theme="dark"
+                className="mt-3 w-full border-t border-white/10 pt-3"
+              />
             </div>
           </div>
 

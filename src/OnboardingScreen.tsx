@@ -1,26 +1,7 @@
 import { ASSETS } from './figma/assets'
 import { GetDirectionsIconLink } from './components/GetDirectionsFab'
+import { VenueHeaderRating } from './components/VenueHeaderRating'
 import { WIDGET_MAX_W } from './widgetLayout'
-
-function StarRow({ filled }: { filled: number }) {
-  return (
-    <div className="flex justify-center gap-1.5" aria-label={`${filled} out of 5 stars`}>
-      {Array.from({ length: 5 }, (_, i) => (
-        <svg
-          key={i}
-          className="size-5 shrink-0 text-amber-500 sm:size-[22px]"
-          viewBox="0 0 24 24"
-          fill={i < filled ? 'currentColor' : 'none'}
-          stroke="currentColor"
-          strokeWidth="2"
-          aria-hidden
-        >
-          <path d="M12 3l2.09 4.26L19 8.27l-3.5 3.41L16.18 17 12 14.77 7.82 17 8.5 11.68 5 8.27l4.91-.01L12 3z" />
-        </svg>
-      ))}
-    </div>
-  )
-}
 
 /** ~80% width via grid 1fr + auto; same 44px height as map; ~8px gap. */
 const bookBtn =
@@ -67,7 +48,7 @@ export function OnboardingScreen({ onBookNow }: Props) {
                 Events. The ultimate destination dining.
               </p>
             </header>
-            <StarRow filled={4} />
+            <VenueHeaderRating className="pt-0.5" />
             <div className="grid w-full grid-cols-[1fr_auto] items-stretch gap-2 pt-0.5">
               <button type="button" className={bookBtn} onClick={onBookNow}>
                 Book Now

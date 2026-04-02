@@ -8,43 +8,63 @@ const iconGlobe = '#1A73E8'
 const iconStar = '#FBAD04'
 const iconCheck = '#31B564'
 
+type Theme = 'light' | 'dark'
+
 type Props = {
   className?: string
+  /** `light` = onboarding card; `dark` = chat header bar. */
+  theme?: Theme
 }
 
 /**
- * Dine-in row: globe (site), label, star + linked Google rating + check — aligned with Figma reference.
+ * Star + linked 4.5 · (check + dine in only) · globe. Same order in onboarding and chat.
  */
-export function VenueHeaderRating({ className = '' }: Props) {
+export function VenueHeaderRating({ className = '', theme = 'light' }: Props) {
+  const isDark = theme === 'dark'
+
+  const ratingLink = isDark
+    ? 'font-semibold tabular-nums text-white underline decoration-white/70 underline-offset-[3px] transition hover:decoration-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950'
+    : 'font-semibold tabular-nums text-neutral-950 underline decoration-neutral-400 underline-offset-[3px] transition hover:decoration-neutral-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2'
+
+  const dineLabel = isDark
+    ? 'font-medium text-[#f3f2f2]'
+    : 'font-medium text-neutral-800'
+
+  const globeFocus = isDark
+    ? 'focus-visible:ring-[#1A73E8]/50 focus-visible:ring-offset-neutral-950'
+    : 'focus-visible:ring-[#1A73E8]/50 focus-visible:ring-offset-2'
+
   return (
     <div
-      className={`flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] leading-snug sm:text-[14px] ${className}`}
+      className={`flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-[13px] leading-snug sm:text-[14px] ${className}`}
     >
-      <a
-        href={GILGAMESH_WEB}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-flex shrink-0 items-center justify-center rounded-full p-0.5 text-[#1A73E8] transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1A73E8]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
-        aria-label="Gilgamesh website"
-      >
-        <Globe size={20} weight="fill" color={iconGlobe} aria-hidden />
-      </a>
-
-      <span className="font-medium text-[#f3f2f2]">Dine in</span>
-
-      <span className="inline-flex items-center gap-1.5">
+      <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
         <Star size={20} weight="fill" color={iconStar} aria-hidden className="shrink-0" />
         <a
           href={GILGAMESH_GOOGLE_REVIEWS}
           target="_blank"
           rel="noopener noreferrer"
           aria-label="View Gilgamesh on Google Maps and read reviews (4.5 rating)"
-          className="font-semibold tabular-nums text-white underline decoration-white/70 underline-offset-[3px] transition hover:decoration-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+          className={ratingLink}
         >
           4.5
         </a>
-        <Check size={20} weight="fill" color={iconCheck} aria-hidden className="shrink-0" />
       </span>
+
+      <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+        <Check size={20} weight="fill" color={iconCheck} aria-hidden className="shrink-0" />
+        <span className={dineLabel}>Dine in only</span>
+      </span>
+
+      <a
+        href={GILGAMESH_WEB}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`inline-flex shrink-0 items-center justify-center rounded-full p-0.5 transition hover:opacity-90 focus:outline-none focus-visible:ring-2 ${globeFocus}`}
+        aria-label="Gilgamesh website"
+      >
+        <Globe size={20} weight="fill" color={iconGlobe} aria-hidden />
+      </a>
     </div>
   )
 }
