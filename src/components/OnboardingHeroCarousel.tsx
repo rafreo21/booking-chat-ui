@@ -77,7 +77,7 @@ export function OnboardingHeroCarousel({ slides, className = '' }: Props) {
         role="group"
         aria-label="Slide indicators"
       >
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex items-center justify-center gap-1.5">
           {slides.map((_, i) => {
             const isActive = i === active
             return (
@@ -89,8 +89,8 @@ export function OnboardingHeroCarousel({ slides, className = '' }: Props) {
                 onClick={() => goTo(i)}
                 className={`pointer-events-auto shrink-0 transition duration-300 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-white/90 focus-visible:ring-offset-2 focus-visible:ring-offset-black/50 ${
                   isActive
-                    ? 'h-2 w-8 rounded-full bg-white shadow-[0_0_14px_rgba(255,255,255,0.45)]'
-                    : 'size-2 rounded-full bg-neutral-500 hover:bg-neutral-400 active:scale-95'
+                    ? 'h-1.5 w-6 rounded-full bg-white/95 shadow-[0_0_8px_rgba(255,255,255,0.3)] sm:w-7'
+                    : 'size-1.5 rounded-full bg-neutral-500/90 hover:bg-neutral-400 active:scale-95'
                 }`}
               />
             )

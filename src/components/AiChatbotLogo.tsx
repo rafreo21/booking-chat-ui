@@ -20,8 +20,7 @@ const responsiveBoxClass =
   'h-6 w-6 min-h-6 min-w-6 max-h-6 max-w-6 sm:h-7 sm:w-7 sm:min-h-7 sm:min-w-7 sm:max-h-7 sm:max-w-7'
 
 /**
- * Looping AI mark: single H.264 MP4 (normal compositing — avoid mix-blend on `<video>`, it often renders invisible).
- * Grey outer ring + inner ring; used on onboarding and chat.
+ * Looping AI mark: single H.264 MP4, circular clip only — no ring or dark shadow (transparent chrome).
  */
 export function AiChatbotLogo({
   sizePx,
@@ -78,12 +77,12 @@ export function AiChatbotLogo({
 
   return (
     <span
-      className={`ai-chatbot-logo-root box-border inline-flex flex-none rounded-full border border-neutral-500 bg-neutral-950 p-[2px] shadow-[0_1px_3px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.08)] sm:p-[2.5px] ${fixed ? '' : responsiveBoxClass} ${className}`}
+      className={`ai-chatbot-logo-root inline-flex flex-none overflow-hidden rounded-full bg-transparent ${fixed ? '' : responsiveBoxClass} ${className}`}
       style={boxStyle}
       role="img"
       aria-label="Booking assistant"
     >
-      <span className="relative block size-full min-h-0 min-w-0 overflow-hidden rounded-full bg-[#0a0a0a] ring-1 ring-neutral-700/60">
+      <span className="relative block size-full min-h-0 min-w-0 overflow-hidden rounded-full bg-transparent">
         <video
           ref={ref}
           className="ai-chatbot-logo-video size-full min-h-0 min-w-0 object-cover object-center"
