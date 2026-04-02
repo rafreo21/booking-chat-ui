@@ -1,9 +1,9 @@
-import { Check, Globe, Star } from '@phosphor-icons/react'
+import { CheckFat, Globe, Star } from '@phosphor-icons/react'
 import type { IconProps } from '@phosphor-icons/react'
 
 /**
- * Venue row icons — official Phosphor React components, fill weight, 20px
- * (same as phosphoricons.com: Star, Check, Globe).
+ * Venue row icons — official Phosphor React components, fill weight, 20px.
+ * Dine-in uses **CheckFat** (not plain Check) — see Check family on Phosphor.
  * @see https://phosphoricons.com?q=star&size=20&weight=fill
  * @see https://phosphoricons.com?q=check&size=20&weight=fill
  * @see https://phosphoricons.com?q=globe&size=20&weight=fill
@@ -30,7 +30,7 @@ type Props = {
 }
 
 /**
- * Star + linked 4.5 · (check + dine in only) · globe. Same order in onboarding and chat.
+ * Star + linked 4.5 · (CheckFat + dine in only) · Globe (website). Same order in onboarding and chat.
  */
 export function VenueHeaderRating({ className = '', theme = 'light' }: Props) {
   const isDark = theme === 'dark'
@@ -70,7 +70,7 @@ export function VenueHeaderRating({ className = '', theme = 'light' }: Props) {
       </span>
 
       <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
-        <Check
+        <CheckFat
           {...venueIconProps}
           color={iconCheck}
           aria-hidden
