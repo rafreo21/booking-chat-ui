@@ -20,7 +20,7 @@
   transform: translateZ(0);
 }
 
-/* MP4 “white plate” multiplies into `#0a0a0a` well — same look as WebM+alpha on all viewports. */
+/* H.264 logo multiplies into `#0a0a0a` well on all viewports. */
 .ai-chatbot-logo-video--multiply {
   mix-blend-mode: multiply;
 }

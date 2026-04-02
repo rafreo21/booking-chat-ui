@@ -1,13 +1,7 @@
 import { useEffect, useRef } from 'react'
 
-const SRC_WEBM = '/ai-chatbot-logo-loop.webm'
-const SRC_MP4 = '/ai-chatbot-logo-loop.mp4'
-
-function prefersWebmVp9(): boolean {
-  if (typeof document === 'undefined') return false
-  const v = document.createElement('video')
-  return v.canPlayType('video/webm; codecs="vp9"') !== ''
-}
+/** Canonical looping mark (`public/ai-chatbot-logo.mp4`, H.264). */
+const LOGO_MP4 = '/ai-chatbot-logo.mp4'
 
 function isAppleTouchDevice(): boolean {
   if (typeof navigator === 'undefined') return false
@@ -22,37 +16,23 @@ function isAppleTouchDevice(): boolean {
   return false
 }
 
-/**
- * WebM VP9 carries alpha — no blend needed. MP4 is an opaque “white plate” — use multiply
- * into the dark well so it matches WebM everywhere (including iPhone / small screens).
- */
-function shouldMultiplyVideoIntoWell(): boolean {
-  return !prefersWebmVp9()
-}
-
 const responsiveBoxClass =
   'h-6 w-6 min-h-6 min-w-6 max-h-6 max-w-6 sm:h-7 sm:w-7 sm:min-h-7 sm:min-w-7 sm:max-h-7 sm:max-w-7'
 
 /**
- * Looping reference animation: WebM VP9 (alpha) or H.264 MP4 (multiply into dark well — all platforms).
- * Grey ring + inner neutral ring; same component on onboarding and chat.
- *
- * Default: **24px** below `sm`, **28px** from `sm` up — matches compact phones (e.g. iPhone 8) vs tablet/desktop.
- * Pass `sizePx` to lock one size at every breakpoint.
+ * Looping AI mark: single MP4, multiplies into the dark inner well (opaque plate → consistent orb).
+ * Grey outer ring + inner ring; used on onboarding and chat.
  */
 export function AiChatbotLogo({
   sizePx,
   className = '',
 }: {
-  /** Omit for responsive 24px → 28px at `sm`. Set to lock a fixed size (px) on all viewports. */
   sizePx?: number
   className?: string
 }) {
   const ref = useRef<HTMLVideoElement>(null)
-  const multiplyVideo = shouldMultiplyVideoIntoWell()
   const fixed = sizePx != null
   const dim = fixed ? `${sizePx}px` : null
-  /** Lock dimensions when a fixed size is requested; otherwise CSS breakpoints handle size. */
   const boxStyle = fixed
     ? {
         width: dim!,
@@ -106,7 +86,7 @@ export function AiChatbotLogo({
       <span className="relative block size-full min-h-0 min-w-0 overflow-hidden rounded-full bg-[#0a0a0a] ring-1 ring-neutral-700/60 [transform:translateZ(0)]">
         <video
           ref={ref}
-          className={`ai-chatbot-logo-video size-full min-h-px min-w-px object-cover object-center [-webkit-backface-visibility:hidden] [backface-visibility:hidden] ${multiplyVideo ? 'ai-chatbot-logo-video--multiply' : ''}`}
+          className="ai-chatbot-logo-video ai-chatbot-logo-video--multiply size-full min-h-px min-w-px object-cover object-center [-webkit-backface-visibility:hidden] [backface-visibility:hidden]"
           autoPlay
           muted
           loop
@@ -116,8 +96,7 @@ export function AiChatbotLogo({
           controls={false}
           aria-hidden
         >
-          <source src={SRC_WEBM} type="video/webm" />
-          <source src={SRC_MP4} type="video/mp4" />
+          <source src={LOGO_MP4} type="video/mp4" />
         </video>
       </span>
     </span>
