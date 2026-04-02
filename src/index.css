@@ -14,11 +14,15 @@
   --color-chat-accent: #c2410c;
 }
 
-/* Stable paint on WebKit / small viewports. */
 .ai-chatbot-logo-video {
   display: block;
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
+}
+
+/* Desktop / Chrome: white plate multiplies into neutral-950 (not on iOS — see AiChatbotLogo). */
+.ai-chatbot-logo-video--multiply {
+  mix-blend-mode: multiply;
 }
 
 @layer base {
