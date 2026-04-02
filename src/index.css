@@ -20,6 +20,11 @@
   transform: translateZ(0);
 }
 
+/* Desktop: white plate multiplies into header (skipped on iOS — see AiChatbotLogo). */
+.ai-chatbot-logo-video--multiply {
+  mix-blend-mode: multiply;
+}
+
 @layer base {
   html {
     @apply antialiased;

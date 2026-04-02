@@ -1,4 +1,5 @@
-import { ASSETS } from './figma/assets'
+import { OnboardingHeroCarousel } from './components/OnboardingHeroCarousel'
+import { ASSETS, ONBOARDING_HERO_SLIDES } from './figma/assets'
 import { GetDirectionsIconLink } from './components/GetDirectionsFab'
 import { VenueHeaderRating } from './components/VenueHeaderRating'
 import { WIDGET_MAX_W } from './widgetLayout'
@@ -19,12 +20,8 @@ export function OnboardingScreen({ onBookNow }: Props) {
       >
         <article className="w-full overflow-hidden rounded-2xl border border-neutral-300/80 bg-[var(--color-chat-surface)] shadow-md">
           <div className="relative border-b border-neutral-200">
-            <img
-              src={ASSETS.hero}
-              alt="Restaurant interior"
-              className="aspect-[284/262] w-full object-cover"
-            />
-            <div className="absolute right-3 top-3 flex size-10 items-center justify-center rounded-full border border-white/40 bg-[#0f0502] shadow-md backdrop-blur-sm">
+            <OnboardingHeroCarousel slides={ONBOARDING_HERO_SLIDES} />
+            <div className="pointer-events-none absolute right-3 top-3 z-20 flex size-10 items-center justify-center rounded-full border border-white/40 bg-[#0f0502] shadow-md backdrop-blur-sm">
               <div className="flex h-[15.33px] w-[22.5px] items-center justify-center overflow-hidden">
                 <img
                   src={ASSETS.organizationLogo}
