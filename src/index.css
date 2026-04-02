@@ -16,20 +16,6 @@
 
 .ai-chatbot-logo-video {
   display: block;
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
-}
-
-/* H.264 logo multiplies into `#0a0a0a` well on all viewports. */
-.ai-chatbot-logo-video--multiply {
-  mix-blend-mode: multiply;
-}
-
-/* iOS Safari: nudge compositing so video + blend stays visible with the dark well. */
-@supports (-webkit-touch-callout: none) {
-  .ai-chatbot-logo-root .ai-chatbot-logo-video--multiply {
-    opacity: 0.999;
-  }
 }
 
 @layer base {
