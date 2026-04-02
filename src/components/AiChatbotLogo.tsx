@@ -31,6 +31,7 @@ function shouldMultiplyMp4Background(): boolean {
 
 /**
  * Looping reference animation (VP9 + alpha in WebM; H.264 MP4 with multiply on dark bg where supported).
+ * Grey stroke + dark spacer ring around the orb (all viewports).
  */
 export function AiChatbotLogo({
   sizePx = 24,
@@ -76,26 +77,28 @@ export function AiChatbotLogo({
 
   return (
     <span
-      className={`ai-chatbot-logo-root inline-flex shrink-0 overflow-hidden rounded-full bg-[#0a0a0a] ${className}`}
+      className={`ai-chatbot-logo-root inline-flex shrink-0 rounded-full border border-neutral-500 bg-neutral-950 p-[2.5px] shadow-[0_1px_3px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.08)] ${className}`}
       style={{ width: dim, height: dim }}
       role="img"
       aria-label="Booking assistant"
     >
-      <video
-        ref={ref}
-        className={`ai-chatbot-logo-video size-full min-h-px min-w-px object-cover object-center ${multiplyMp4 ? 'ai-chatbot-logo-video--multiply' : ''}`}
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="auto"
-        disablePictureInPicture
-        controls={false}
-        aria-hidden
-      >
-        <source src={SRC_WEBM} type="video/webm" />
-        <source src={SRC_MP4} type="video/mp4" />
-      </video>
+      <span className="relative block size-full min-h-0 min-w-0 overflow-hidden rounded-full bg-[#0a0a0a] ring-1 ring-neutral-700/60">
+        <video
+          ref={ref}
+          className={`ai-chatbot-logo-video size-full min-h-px min-w-px object-cover object-center ${multiplyMp4 ? 'ai-chatbot-logo-video--multiply' : ''}`}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          disablePictureInPicture
+          controls={false}
+          aria-hidden
+        >
+          <source src={SRC_WEBM} type="video/webm" />
+          <source src={SRC_MP4} type="video/mp4" />
+        </video>
+      </span>
     </span>
   )
 }

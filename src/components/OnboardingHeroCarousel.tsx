@@ -73,22 +73,29 @@ export function OnboardingHeroCarousel({ slides, className = '' }: Props) {
       </div>
 
       <div
-        className="pointer-events-none absolute bottom-2.5 left-0 right-0 z-10 flex justify-center gap-1.5 px-2"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/70 via-black/25 to-transparent px-4 pb-3.5 pt-14"
         role="group"
         aria-label="Slide indicators"
       >
-        {slides.map((_, i) => (
-          <button
-            key={i}
-            type="button"
-            aria-label={`Go to slide ${i + 1} of ${slides.length}`}
-            aria-current={i === active ? 'true' : undefined}
-            onClick={() => goTo(i)}
-            className={`pointer-events-auto size-2 shrink-0 rounded-full transition focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900/80 ${
-              i === active ? 'bg-white shadow-sm' : 'bg-white/45 hover:bg-white/70'
-            }`}
-          />
-        ))}
+        <div className="flex items-center justify-center gap-2">
+          {slides.map((_, i) => {
+            const isActive = i === active
+            return (
+              <button
+                key={i}
+                type="button"
+                aria-label={`Go to slide ${i + 1} of ${slides.length}`}
+                aria-current={isActive ? 'true' : undefined}
+                onClick={() => goTo(i)}
+                className={`pointer-events-auto shrink-0 transition duration-300 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-white/90 focus-visible:ring-offset-2 focus-visible:ring-offset-black/50 ${
+                  isActive
+                    ? 'h-2 w-8 rounded-full bg-white shadow-[0_0_14px_rgba(255,255,255,0.45)]'
+                    : 'size-2 rounded-full bg-neutral-500 hover:bg-neutral-400 active:scale-95'
+                }`}
+              />
+            )
+          })}
+        </div>
       </div>
     </div>
   )
