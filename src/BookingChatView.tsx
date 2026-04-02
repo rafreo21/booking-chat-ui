@@ -717,8 +717,9 @@ export function BookingChatView({ onBack }: Props) {
                 </div>
               )}
               {step === 'date' && datesCustomMode && (
-                <div className="max-h-[min(480px,65dvh)] shrink-0 overflow-y-auto overflow-x-hidden border-t border-neutral-200 bg-neutral-50/90 px-3 py-3 sm:px-4">
+                <div className="w-full min-w-0 shrink-0 border-t border-neutral-200 bg-white px-3 py-2 sm:px-4 sm:py-2.5">
                   <NotionStyleDatePicker
+                    className="min-w-0"
                     onSelectDate={(d) => pickDate(d)}
                     onClear={() => setDatesCustomMode(false)}
                   />

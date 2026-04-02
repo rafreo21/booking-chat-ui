@@ -74,12 +74,14 @@ type Props = {
   onSelectDate: (d: Date) => void
   /** Clear / dismiss back to quick picks without booking. */
   onClear: () => void
+  /** Merged onto root; use `w-full` in host so it tracks chat column width. */
+  className?: string
 }
 
 /**
- * Notion-inspired month calendar: month nav, grid, footer Clear.
+ * Month calendar for inline chat/footer use: no floating card — fills parent width.
  */
-export function NotionStyleDatePicker({ onSelectDate, onClear }: Props) {
+export function NotionStyleDatePicker({ onSelectDate, onClear, className = '' }: Props) {
   const today = useMemo(() => startOfDay(new Date()), [])
   const maxDate = useMemo(() => {
     const x = new Date()
@@ -132,8 +134,8 @@ export function NotionStyleDatePicker({ onSelectDate, onClear }: Props) {
   }
 
   return (
-    <div className="mx-auto w-full max-w-[20rem] rounded-xl border border-neutral-200/90 bg-white p-3 shadow-[0_4px_24px_rgba(0,0,0,0.08)]">
-      <div className="flex items-center justify-between gap-2">
+    <div className={`w-full min-w-0 ${className}`}>
+      <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 border-b border-neutral-100 pb-2.5">
         <span className="text-[15px] font-semibold text-neutral-900">{monthYearLabel}</span>
         <div className="flex items-center gap-1">
           <button
@@ -162,11 +164,11 @@ export function NotionStyleDatePicker({ onSelectDate, onClear }: Props) {
         </div>
       </div>
 
-      <div className="mt-2 grid grid-cols-7 gap-y-1 text-center">
+      <div className="mt-2.5 grid w-full grid-cols-7 gap-x-0.5 gap-y-1 text-center sm:gap-x-1">
         {WEEK.map((w) => (
           <div
             key={w}
-            className="py-1 text-[11px] font-medium uppercase tracking-wide text-neutral-400"
+            className="py-1 text-[10px] font-medium uppercase tracking-wide text-neutral-400 sm:text-[11px]"
           >
             {w}
           </div>
@@ -181,7 +183,7 @@ export function NotionStyleDatePicker({ onSelectDate, onClear }: Props) {
               type="button"
               disabled={!sel}
               onClick={() => handleDayClick(day, inMonth)}
-              className={`relative mx-auto flex size-9 items-center justify-center rounded-md text-[14px] font-medium transition ${
+              className={`relative mx-auto flex aspect-square w-full max-w-11 min-h-0 min-w-0 items-center justify-center rounded-md text-[13px] font-medium transition sm:text-[14px] ${
                 !inMonth
                   ? sel
                     ? 'text-neutral-600'
@@ -199,7 +201,7 @@ export function NotionStyleDatePicker({ onSelectDate, onClear }: Props) {
         })}
       </div>
 
-      <div className="mt-3 border-t border-neutral-100 pt-2">
+      <div className="mt-2.5 border-t border-neutral-100 pt-2">
         <button
           type="button"
           onClick={onClear}
