@@ -43,6 +43,16 @@ export function AiChatbotLogo({
   const ref = useRef<HTMLVideoElement>(null)
   const multiplyMp4 = shouldMultiplyMp4Background()
   const dim = `${sizePx}px`
+  /** Lock the outer box on all viewports (avoids flex/subpixel shrink on narrow phones, e.g. iPhone 8). */
+  const boxStyle = {
+    width: dim,
+    height: dim,
+    minWidth: dim,
+    minHeight: dim,
+    maxWidth: dim,
+    maxHeight: dim,
+    boxSizing: 'border-box' as const,
+  }
 
   useEffect(() => {
     const v = ref.current
@@ -77,15 +87,15 @@ export function AiChatbotLogo({
 
   return (
     <span
-      className={`ai-chatbot-logo-root inline-flex shrink-0 rounded-full border border-neutral-500 bg-neutral-950 p-[2.5px] shadow-[0_1px_3px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.08)] ${className}`}
-      style={{ width: dim, height: dim }}
+      className={`ai-chatbot-logo-root box-border inline-flex flex-none rounded-full border border-neutral-500 bg-neutral-950 p-[2.5px] shadow-[0_1px_3px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.08)] [transform:translateZ(0)] isolate ${className}`}
+      style={boxStyle}
       role="img"
       aria-label="Booking assistant"
     >
-      <span className="relative block size-full min-h-0 min-w-0 overflow-hidden rounded-full bg-[#0a0a0a] ring-1 ring-neutral-700/60">
+      <span className="relative block size-full min-h-0 min-w-0 overflow-hidden rounded-full bg-[#0a0a0a] ring-1 ring-neutral-700/60 [transform:translateZ(0)]">
         <video
           ref={ref}
-          className={`ai-chatbot-logo-video size-full min-h-px min-w-px object-cover object-center ${multiplyMp4 ? 'ai-chatbot-logo-video--multiply' : ''}`}
+          className={`ai-chatbot-logo-video size-full min-h-px min-w-px object-cover object-center [-webkit-backface-visibility:hidden] [backface-visibility:hidden] ${multiplyMp4 ? 'ai-chatbot-logo-video--multiply' : ''}`}
           autoPlay
           muted
           loop

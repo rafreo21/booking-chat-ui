@@ -1,4 +1,3 @@
-import { AiChatbotLogo } from './components/AiChatbotLogo'
 import { OnboardingHeroCarousel } from './components/OnboardingHeroCarousel'
 import { ONBOARDING_HERO_SLIDES } from './figma/assets'
 import { GetDirectionsIconLink } from './components/GetDirectionsFab'
@@ -20,11 +19,8 @@ export function OnboardingScreen({ onBookNow }: Props) {
         className={`mx-auto flex min-h-dvh w-full ${WIDGET_MAX_W} flex-col justify-center px-4 py-6 sm:px-5 sm:py-8`}
       >
         <article className="w-full overflow-hidden rounded-2xl border border-neutral-300/80 bg-[var(--color-chat-surface)] shadow-md">
-          <div className="relative border-b border-neutral-200">
+          <div className="border-b border-neutral-200">
             <OnboardingHeroCarousel slides={ONBOARDING_HERO_SLIDES} />
-            <div className="pointer-events-none absolute right-3 top-3 z-20">
-              <AiChatbotLogo sizePx={28} />
-            </div>
           </div>
 
           <div className="space-y-3 px-3 py-3.5 sm:px-4 sm:py-4">

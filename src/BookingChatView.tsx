@@ -385,7 +385,7 @@ export function BookingChatView({ onBack }: Props) {
             role="region"
             aria-labelledby={titleId}
           >
-          <div className="shrink-0 border-b border-neutral-800 bg-neutral-950 px-4 py-4">
+          <div className="shrink-0 border-b border-neutral-800 bg-neutral-950 px-3 py-4 sm:px-4">
             <div className="flex flex-col items-start gap-2">
               <AiChatbotLogo sizePx={28} />
               <div className="min-w-0">
