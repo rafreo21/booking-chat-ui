@@ -15,6 +15,7 @@ import { AiChatbotLogo } from './components/AiChatbotLogo'
 import { BackChevronIcon } from './components/BackChevronIcon'
 import { GetDirectionsFab } from './components/GetDirectionsFab'
 import { BookingsLog } from './components/BookingsLog'
+import { VenueHeaderRating } from './components/VenueHeaderRating'
 import { WIDGET_MAX_W } from './widgetLayout'
 
 type Role = 'assistant' | 'user'
@@ -398,6 +399,7 @@ export function BookingChatView({ onBack }: Props) {
                   I&apos;m here to help you make your reservation.
                 </p>
               </div>
+              <VenueHeaderRating className="mt-3 w-full border-t border-white/10 pt-3" />
             </div>
           </div>
 
