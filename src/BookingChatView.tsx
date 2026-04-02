@@ -78,6 +78,9 @@ function formatTimeSlot12h(hhmm: string): string {
 
 const GUEST_CHIPS = ['1', '2', '3', '4', '5', '6+'] as const
 
+/** Max guests when typing a number (chip picks stay 1–6+ as today). */
+const MAX_GUESTS_TYPED = 100_000
+
 const RESTAURANT_SERVICE = 'Restaurant'
 
 /** Guest counts: equal width & height circles (reference). */
@@ -273,7 +276,7 @@ export function BookingChatView({ onBack }: Props) {
     setGuestInputDraft('')
     pushUser('Enter a number')
     pushAssistant(
-      'Type how many guests in the box below, then tap **Send** (whole number, 1–99).',
+      `Type how many guests in the box below, then tap **Send** (whole number, 1–${MAX_GUESTS_TYPED.toLocaleString()}).`,
     )
   }
 
@@ -281,8 +284,10 @@ export function BookingChatView({ onBack }: Props) {
     if (step !== 'guests' || !guestsInputMode) return
     const raw = guestInputDraft.trim()
     const n = Number.parseInt(raw, 10)
-    if (!Number.isFinite(n) || n < 1 || n > 99) {
-      pushAssistant('Please enter a whole number between **1** and **99**.')
+    if (!Number.isFinite(n) || n < 1 || n > MAX_GUESTS_TYPED) {
+      pushAssistant(
+        `Please enter a whole number between **1** and **${MAX_GUESTS_TYPED.toLocaleString()}**.`,
+      )
       return
     }
     setGuestsInputMode(false)
