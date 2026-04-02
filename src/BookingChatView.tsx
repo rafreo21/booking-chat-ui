@@ -182,9 +182,16 @@ export function BookingChatView({ onBack }: Props) {
 
   const [booking, setBooking] = useState({
     guestCount: 0,
+    /** True only when user picked the **6+** chip (show as "6+" in summary). */
+    sixPlusFromChip: false,
     date: null as Date | null,
     time: '',
   })
+
+  /** Typing guest count via footer input after "Enter a number". */
+  const [guestsInputMode, setGuestsInputMode] = useState(false)
+  const [guestInputDraft, setGuestInputDraft] = useState('')
+  const guestInputRef = useRef<HTMLInputElement>(null)
 
   const [details, setDetails] = useState({
     name: '',
@@ -209,6 +216,10 @@ export function BookingChatView({ onBack }: Props) {
       setSavedBookings(loadBookings())
     })()
   }, [])
+
+  useEffect(() => {
+    if (guestsInputMode) guestInputRef.current?.focus()
+  }, [guestsInputMode])
 
   const refreshSaved = useCallback(() => {
     setSavedBookings(loadBookings())
@@ -240,12 +251,48 @@ export function BookingChatView({ onBack }: Props) {
 
   const pickGuest = (label: string) => {
     if (step !== 'guests') return
+    setGuestsInputMode(false)
+    setGuestInputDraft('')
     pushUser(
       label === '6+' ? 'Table for 6 or more' : `Table for ${label} guest${label === '1' ? '' : 's'}`,
       'guests',
     )
     const gc = guestCountFromLabel(label)
-    setBooking((b) => ({ ...b, guestCount: gc }))
+    setBooking((b) => ({
+      ...b,
+      guestCount: gc,
+      sixPlusFromChip: label === '6+',
+    }))
+    pushAssistant('Which **date** would you like to book?')
+    setStep('date')
+  }
+
+  const startGuestNumberInput = () => {
+    if (step !== 'guests' || guestsInputMode) return
+    setGuestsInputMode(true)
+    setGuestInputDraft('')
+    pushUser('Enter a number')
+    pushAssistant(
+      'Type how many guests in the box below, then tap **Send** (whole number, 1–99).',
+    )
+  }
+
+  const submitGuestNumber = () => {
+    if (step !== 'guests' || !guestsInputMode) return
+    const raw = guestInputDraft.trim()
+    const n = Number.parseInt(raw, 10)
+    if (!Number.isFinite(n) || n < 1 || n > 99) {
+      pushAssistant('Please enter a whole number between **1** and **99**.')
+      return
+    }
+    setGuestsInputMode(false)
+    setGuestInputDraft('')
+    pushUser(`Table for ${n} guest${n === 1 ? '' : 's'}`, 'guests')
+    setBooking((b) => ({
+      ...b,
+      guestCount: n,
+      sixPlusFromChip: false,
+    }))
     pushAssistant('Which **date** would you like to book?')
     setStep('date')
   }
@@ -325,7 +372,9 @@ export function BookingChatView({ onBack }: Props) {
     })
     setDetailErrors({})
     if (section === 'guests') {
-      setBooking({ guestCount: 0, date: null, time: '' })
+      setBooking({ guestCount: 0, sixPlusFromChip: false, date: null, time: '' })
+      setGuestsInputMode(false)
+      setGuestInputDraft('')
       setDetails({ name: '', email: '', phone: '' })
       setStep('guests')
     } else if (section === 'date') {
@@ -350,7 +399,9 @@ export function BookingChatView({ onBack }: Props) {
   const timeSlotsSecondRow = TIME_SLOTS_24.slice(10, 20)
 
   const resetChat = () => {
-    setBooking({ guestCount: 0, date: null, time: '' })
+    setBooking({ guestCount: 0, sixPlusFromChip: false, date: null, time: '' })
+    setGuestsInputMode(false)
+    setGuestInputDraft('')
     setDetails({ name: '', email: '', phone: '' })
     setDetailErrors({})
     setStep('guests')
@@ -450,17 +501,27 @@ export function BookingChatView({ onBack }: Props) {
                 ))}
 
                 {step === 'guests' && (
-                  <div className="flex w-full flex-wrap justify-center gap-2.5">
-                    {GUEST_CHIPS.map((g) => (
+                  <div className="w-full overflow-x-auto overflow-y-visible pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    <div className="flex w-max flex-nowrap items-center justify-start gap-2.5">
+                      {GUEST_CHIPS.map((g) => (
+                        <button
+                          key={g}
+                          type="button"
+                          onClick={() => pickGuest(g)}
+                          className={chipGuest}
+                        >
+                          {g}
+                        </button>
+                      ))}
                       <button
-                        key={g}
                         type="button"
-                        onClick={() => pickGuest(g)}
-                        className={chipGuest}
+                        onClick={startGuestNumberInput}
+                        disabled={guestsInputMode}
+                        className={`${chipPill} shrink-0 whitespace-nowrap px-4 disabled:cursor-not-allowed disabled:opacity-50`}
                       >
-                        {g}
+                        Enter a number
                       </button>
-                    ))}
+                    </div>
                   </div>
                 )}
 
@@ -568,27 +629,65 @@ export function BookingChatView({ onBack }: Props) {
           )}
 
           {showFooter && (
-            <div className="flex shrink-0 items-center justify-between gap-2 border-t border-neutral-200 bg-white px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3">
-              <p className="min-w-0 truncate text-[12px] font-medium text-neutral-500 sm:text-[13px] sm:text-neutral-600">
-                Gilgamesh · booking assistant
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  setLogOpen(true)
-                  setImportMsg(null)
-                  refreshSaved()
-                }}
-                className="relative shrink-0 rounded-full border border-neutral-200 bg-white px-3.5 py-1.5 text-[13px] font-semibold text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition hover:border-neutral-300 hover:bg-neutral-50 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
-              >
-                Bookings
-                {savedBookings.length > 0 && (
-                  <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-neutral-950 px-1 text-[11px] font-bold text-white">
-                    {savedBookings.length > 99 ? '99+' : savedBookings.length}
-                  </span>
-                )}
-              </button>
-            </div>
+            <>
+              {step === 'guests' && guestsInputMode && (
+                <div className="flex shrink-0 items-center gap-2 border-t border-neutral-200 bg-white px-3 py-2.5 sm:px-4">
+                  <label
+                    htmlFor="guest-count-input"
+                    className="sr-only"
+                  >
+                    Number of guests
+                  </label>
+                  <input
+                    id="guest-count-input"
+                    ref={guestInputRef}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    autoComplete="off"
+                    enterKeyHint="send"
+                    placeholder="Number of guests"
+                    value={guestInputDraft}
+                    onChange={(e) => setGuestInputDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        submitGuestNumber()
+                      }
+                    }}
+                    className="min-h-11 min-w-0 flex-1 rounded-full border-2 border-neutral-200 bg-white px-4 text-[16px] text-neutral-950 placeholder:text-neutral-400 focus:border-neutral-950 focus:outline-none focus:ring-4 focus:ring-neutral-950/10"
+                  />
+                  <button
+                    type="button"
+                    onClick={submitGuestNumber}
+                    className="shrink-0 rounded-full bg-neutral-950 px-4 py-2.5 text-[15px] font-semibold text-white shadow-sm transition hover:bg-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2"
+                  >
+                    Send
+                  </button>
+                </div>
+              )}
+              <div className="flex shrink-0 items-center justify-between gap-2 border-t border-neutral-200 bg-white px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3">
+                <p className="min-w-0 truncate text-[12px] font-medium text-neutral-500 sm:text-[13px] sm:text-neutral-600">
+                  Gilgamesh · booking assistant
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLogOpen(true)
+                    setImportMsg(null)
+                    refreshSaved()
+                  }}
+                  className="relative shrink-0 rounded-full border border-neutral-200 bg-white px-3.5 py-1.5 text-[13px] font-semibold text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition hover:border-neutral-300 hover:bg-neutral-50 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
+                >
+                  Bookings
+                  {savedBookings.length > 0 && (
+                    <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-neutral-950 px-1 text-[11px] font-bold text-white">
+                      {savedBookings.length > 99 ? '99+' : savedBookings.length}
+                    </span>
+                  )}
+                </button>
+              </div>
+            </>
           )}
         </div>
         </div>
@@ -746,6 +845,7 @@ function ConfirmPanel({
 }: {
   booking: {
     guestCount: number
+    sixPlusFromChip: boolean
     date: Date | null
     time: string
   }
@@ -753,8 +853,12 @@ function ConfirmPanel({
   onConfirm: () => void
 }) {
   const d = booking.date
+  const guestLabel =
+    booking.sixPlusFromChip && booking.guestCount === 6
+      ? '6+'
+      : String(booking.guestCount)
   const rows = [
-    ['Guests', booking.guestCount === 6 ? '6+' : String(booking.guestCount)],
+    ['Guests', guestLabel],
     ['Date', d ? formatDay(d) : '—'],
     ['Time', booking.time],
     ['Name', details.name.trim()],
