@@ -201,7 +201,7 @@ export function BookingChatView({ onBack }: Props) {
   const [guestInputError, setGuestInputError] = useState<string | null>(null)
   const guestInputRef = useRef<HTMLInputElement>(null)
 
-  /** Custom calendar in footer (same pattern as typed guest count). */
+  /** Pick Date calendar in footer (same pattern as typed guest count). */
   const [datesCustomMode, setDatesCustomMode] = useState(false)
 
   const [details, setDetails] = useState({
@@ -565,7 +565,7 @@ export function BookingChatView({ onBack }: Props) {
                         onClick={startCustomDatePicker}
                         className={`${chipPill} shrink-0 whitespace-nowrap px-4`}
                       >
-                        Custom
+                        Pick Date
                       </button>
                     </div>
                   </div>

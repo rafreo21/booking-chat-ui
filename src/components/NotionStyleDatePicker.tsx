@@ -19,7 +19,10 @@ function daysInMonth(year: number, month: number): number {
   return new Date(year, month + 1, 0).getDate()
 }
 
-/** 6×7 grid for a visible month (leading/trailing days from adjacent months). */
+/**
+ * Minimum rows: leading pad + month days, then only enough trailing next-month
+ * days to finish the last row (no extra full week unless the month needs it).
+ */
 function buildMonthCells(viewMonth: Date): { day: Date; inMonth: boolean }[] {
   const y = viewMonth.getFullYear()
   const m = viewMonth.getMonth()
@@ -45,16 +48,20 @@ function buildMonthCells(viewMonth: Date): { day: Date; inMonth: boolean }[] {
     cells.push({ day: new Date(y, m, d, 12, 0, 0, 0), inMonth: true })
   }
 
-  let nextY = y
-  let nextM = m + 1
-  if (nextM > 11) {
-    nextM = 0
-    nextY += 1
-  }
-  let nextDay = 1
-  while (cells.length < 42) {
-    cells.push({ day: new Date(nextY, nextM, nextDay, 12, 0, 0, 0), inMonth: false })
-    nextDay++
+  const remainder = cells.length % 7
+  if (remainder !== 0) {
+    const pad = 7 - remainder
+    let nextY = y
+    let nextM = m + 1
+    if (nextM > 11) {
+      nextM = 0
+      nextY += 1
+    }
+    let nextDay = 1
+    for (let p = 0; p < pad; p++) {
+      cells.push({ day: new Date(nextY, nextM, nextDay, 12, 0, 0, 0), inMonth: false })
+      nextDay++
+    }
   }
 
   return cells
@@ -70,7 +77,7 @@ type Props = {
 }
 
 /**
- * Notion-inspired month calendar: top field, month nav, grid, footer Clear.
+ * Notion-inspired month calendar: month nav, grid, footer Clear.
  */
 export function NotionStyleDatePicker({ onSelectDate, onClear }: Props) {
   const today = useMemo(() => startOfDay(new Date()), [])
@@ -87,14 +94,6 @@ export function NotionStyleDatePicker({ onSelectDate, onClear }: Props) {
     d.setHours(12, 0, 0, 0)
     return d
   })
-
-  const [fieldPreview, setFieldPreview] = useState(() =>
-    new Date().toLocaleDateString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    }),
-  )
 
   const cells = useMemo(() => buildMonthCells(viewMonth), [viewMonth])
 
@@ -116,13 +115,6 @@ export function NotionStyleDatePicker({ onSelectDate, onClear }: Props) {
     n.setDate(1)
     n.setHours(12, 0, 0, 0)
     setViewMonth(n)
-    setFieldPreview(
-      new Date().toLocaleDateString(undefined, {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      }),
-    )
   }
 
   const isSelectable = (d: Date) => {
@@ -132,13 +124,6 @@ export function NotionStyleDatePicker({ onSelectDate, onClear }: Props) {
 
   const handleDayClick = (d: Date, inMonth: boolean) => {
     if (!isSelectable(d)) return
-    setFieldPreview(
-      d.toLocaleDateString(undefined, {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      }),
-    )
     if (!inMonth) {
       const nm = new Date(d.getFullYear(), d.getMonth(), 1, 12, 0, 0, 0)
       setViewMonth(nm)
@@ -148,14 +133,7 @@ export function NotionStyleDatePicker({ onSelectDate, onClear }: Props) {
 
   return (
     <div className="mx-auto w-full max-w-[20rem] rounded-xl border border-neutral-200/90 bg-white p-3 shadow-[0_4px_24px_rgba(0,0,0,0.08)]">
-      <div
-        className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-[15px] font-medium text-neutral-900 shadow-sm"
-        aria-hidden
-      >
-        {fieldPreview}
-      </div>
-
-      <div className="mt-3 flex items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-2">
         <span className="text-[15px] font-semibold text-neutral-900">{monthYearLabel}</span>
         <div className="flex items-center gap-1">
           <button
