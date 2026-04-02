@@ -1,7 +1,16 @@
-import { useId } from 'react'
+import { useEffect, useRef } from 'react'
+
+const SRC_WEBM = '/ai-chatbot-logo-loop.webm'
+const SRC_MP4 = '/ai-chatbot-logo-loop.mp4'
+
+function prefersWebmVp9(): boolean {
+  if (typeof document === 'undefined') return false
+  const v = document.createElement('video')
+  return v.canPlayType('video/webm; codecs="vp9"') !== ''
+}
 
 /**
- * AI ring logo (Figma 83:3097) — inlined SVG so it always renders (no .png/.svg MIME issues).
+ * Looping reference animation (VP9 + alpha in WebM; H.264 MP4 for Safari with multiply on dark bg).
  */
 export function AiChatbotLogo({
   sizePx = 24,
@@ -10,44 +19,54 @@ export function AiChatbotLogo({
   sizePx?: number
   className?: string
 }) {
-  const gradId = `ai-logo-grad-${useId().replace(/:/g, '')}`
+  const ref = useRef<HTMLVideoElement>(null)
+  const blendMp4 = !prefersWebmVp9()
+  const dim = `${sizePx}px`
+
+  useEffect(() => {
+    const v = ref.current
+    if (!v) return
+
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+
+    const sync = () => {
+      if (mq.matches) {
+        v.pause()
+        try {
+          v.currentTime = 0
+        } catch {
+          /* ignore */
+        }
+      } else {
+        void v.play().catch(() => {})
+      }
+    }
+
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
 
   return (
-    <span className={`ai-chatbot-logo-scene shrink-0 ${className}`}>
-      <svg
-        width={sizePx}
-        height={sizePx}
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="ai-chatbot-logo-rolling shrink-0"
-        role="img"
-        aria-label="Booking assistant"
+    <span
+      className={`ai-chatbot-logo-root inline-flex shrink-0 overflow-hidden rounded-full bg-[#0a0a0a] ${className}`}
+      style={{ width: dim, height: dim }}
+      role="img"
+      aria-label="Booking assistant"
+    >
+      <video
+        ref={ref}
+        className={`size-full object-cover object-center ${blendMp4 ? 'ai-chatbot-logo-video--multiply' : ''}`}
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        aria-hidden
       >
-        <path
-          fillRule="evenodd"
-          clipRule="evenodd"
-          d="M12 0C18.6274 0 24 5.37258 24 12C24 18.6274 18.6274 24 12 24C5.37258 24 0 18.6274 0 12C0 5.37258 5.37258 0 12 0ZM12 5C8.13401 5 5 8.13401 5 12C5 15.866 8.13401 19 12 19C15.866 19 19 15.866 19 12C19 8.13401 15.866 5 12 5Z"
-          fill={`url(#${gradId})`}
-        />
-        <defs>
-          <linearGradient
-            id={gradId}
-            x1="24"
-            y1="0"
-            x2="0"
-            y2="24"
-            gradientUnits="userSpaceOnUse"
-          >
-            <stop offset="0.13" stopColor="#BBEEC6" />
-            <stop offset="0.18" stopColor="#8DF9A6" />
-            <stop offset="0.34" stopColor="#1B9436" />
-            <stop offset="0.67" stopColor="#01340D" />
-            <stop offset="0.81" stopColor="#27A543" />
-            <stop offset="0.86" stopColor="#199234" />
-          </linearGradient>
-        </defs>
-      </svg>
+        <source src={SRC_WEBM} type="video/webm" />
+        <source src={SRC_MP4} type="video/mp4" />
+      </video>
     </span>
   )
 }
