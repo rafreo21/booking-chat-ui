@@ -14,6 +14,36 @@
   --color-chat-accent: #c2410c;
 }
 
+/* Chat header logo — smooth off-axis 3D roll (honours reduced motion). */
+@keyframes ai-logo-roll {
+  from {
+    transform: rotate3d(0.18, 1, 0.12, 0deg);
+  }
+  to {
+    transform: rotate3d(0.18, 1, 0.12, 360deg);
+  }
+}
+
+.ai-chatbot-logo-scene {
+  display: inline-flex;
+  perspective: 110px;
+  perspective-origin: 50% 50%;
+}
+
+.ai-chatbot-logo-rolling {
+  transform-style: preserve-3d;
+  transform-origin: center center;
+  animation: ai-logo-roll 14s linear infinite;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-chatbot-logo-rolling {
+    animation: none;
+  }
+}
+
 @layer base {
   html {
     @apply antialiased;
