@@ -20,11 +20,6 @@
   transform: translateZ(0);
 }
 
-/* Desktop / Chrome: white plate multiplies into neutral-950 (not on iOS — see AiChatbotLogo). */
-.ai-chatbot-logo-video--multiply {
-  mix-blend-mode: multiply;
-}
-
 @layer base {
   html {
     @apply antialiased;

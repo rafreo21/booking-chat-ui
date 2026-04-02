@@ -3,34 +3,9 @@ import { useEffect, useRef } from 'react'
 const SRC_WEBM = '/ai-chatbot-logo-loop.webm'
 const SRC_MP4 = '/ai-chatbot-logo-loop.mp4'
 
-function prefersWebmVp9(): boolean {
-  if (typeof document === 'undefined') return false
-  const v = document.createElement('video')
-  return v.canPlayType('video/webm; codecs="vp9"') !== ''
-}
-
-/** iOS Safari: `mix-blend-mode` on `<video>` often hides the layer — skip multiply there. */
-function isAppleTouchDevice(): boolean {
-  if (typeof navigator === 'undefined') return false
-  if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) return true
-  if (
-    typeof navigator.maxTouchPoints === 'number' &&
-    navigator.maxTouchPoints > 1 &&
-    /MacIntel/i.test(navigator.platform)
-  ) {
-    return true
-  }
-  return false
-}
-
-function shouldMultiplyMp4Background(): boolean {
-  if (prefersWebmVp9()) return false
-  if (isAppleTouchDevice()) return false
-  return true
-}
-
 /**
- * Looping reference animation (VP9 + alpha in WebM; H.264 MP4 with multiply on dark bg where supported).
+ * Looping logo — WebM + H.264, both pre-composited on #0a0a0a.
+ * Same rendering on every viewport and OS (no mix-blend / no device branches).
  */
 export function AiChatbotLogo({
   sizePx = 24,
@@ -40,7 +15,6 @@ export function AiChatbotLogo({
   className?: string
 }) {
   const ref = useRef<HTMLVideoElement>(null)
-  const multiplyMp4 = shouldMultiplyMp4Background()
   const dim = `${sizePx}px`
 
   useEffect(() => {
@@ -62,16 +36,14 @@ export function AiChatbotLogo({
       }
     }
 
+    const onLoaded = () => sync()
+    v.addEventListener('loadeddata', onLoaded)
     sync()
     mq.addEventListener('change', sync)
-    return () => mq.removeEventListener('change', sync)
-  }, [])
-
-  useEffect(() => {
-    const v = ref.current
-    if (!v || !isAppleTouchDevice()) return
-    v.load()
-    void v.play().catch(() => {})
+    return () => {
+      v.removeEventListener('loadeddata', onLoaded)
+      mq.removeEventListener('change', sync)
+    }
   }, [])
 
   return (
@@ -83,7 +55,7 @@ export function AiChatbotLogo({
     >
       <video
         ref={ref}
-        className={`ai-chatbot-logo-video size-full min-h-px min-w-px object-cover object-center ${multiplyMp4 ? 'ai-chatbot-logo-video--multiply' : ''}`}
+        className="ai-chatbot-logo-video size-full min-h-px min-w-px object-cover object-center"
         autoPlay
         muted
         loop
