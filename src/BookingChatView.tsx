@@ -15,6 +15,7 @@ import { AiChatbotLogo } from './components/AiChatbotLogo'
 import { BackChevronIcon } from './components/BackChevronIcon'
 import { GetDirectionsFab } from './components/GetDirectionsFab'
 import { BookingsLog } from './components/BookingsLog'
+import { NotionStyleDatePicker } from './components/NotionStyleDatePicker'
 import { VenueHeaderRating } from './components/VenueHeaderRating'
 import { WIDGET_MAX_W } from './widgetLayout'
 
@@ -97,13 +98,16 @@ const backAboveCard =
 const btnPrimary =
   'w-full min-h-[48px] rounded-full bg-neutral-950 px-4 text-[15px] font-semibold text-white shadow-sm transition hover:bg-neutral-800 active:scale-[0.99] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2'
 
-function nextWeekdays(count: number): Date[] {
+/** How many days appear as quick-pick chips — one full week (7-day window from today). */
+const QUICK_PICK_DAYS = 7
+
+/** Inclusive range: today through today + (QUICK_PICK_DAYS − 1); weekends included. */
+function quickPickDatesInWeekWindow(): Date[] {
   const out: Date[] = []
   const d = new Date()
   d.setHours(12, 0, 0, 0)
-  while (out.length < count) {
-    const day = d.getDay()
-    if (day !== 0 && day !== 6) out.push(new Date(d))
+  for (let i = 0; i < QUICK_PICK_DAYS; i++) {
+    out.push(new Date(d))
     d.setDate(d.getDate() + 1)
   }
   return out
@@ -196,6 +200,9 @@ export function BookingChatView({ onBack }: Props) {
   const [guestInputDraft, setGuestInputDraft] = useState('')
   const [guestInputError, setGuestInputError] = useState<string | null>(null)
   const guestInputRef = useRef<HTMLInputElement>(null)
+
+  /** Custom calendar in footer (same pattern as typed guest count). */
+  const [datesCustomMode, setDatesCustomMode] = useState(false)
 
   const [details, setDetails] = useState({
     name: '',
@@ -304,10 +311,16 @@ export function BookingChatView({ onBack }: Props) {
 
   const pickDate = (d: Date) => {
     if (step !== 'date') return
+    setDatesCustomMode(false)
     pushUser(formatDay(d), 'date')
     setBooking((b) => ({ ...b, date: d }))
     pushAssistant('Here are the available times. Pick one that suits you.')
     setStep('time')
+  }
+
+  const startCustomDatePicker = () => {
+    if (step !== 'date' || datesCustomMode) return
+    setDatesCustomMode(true)
   }
 
   const pickTime = (t: string) => {
@@ -381,9 +394,11 @@ export function BookingChatView({ onBack }: Props) {
       setGuestsInputMode(false)
       setGuestInputDraft('')
       setGuestInputError(null)
+      setDatesCustomMode(false)
       setDetails({ name: '', email: '', phone: '' })
       setStep('guests')
     } else if (section === 'date') {
+      setDatesCustomMode(false)
       setBooking((b) => ({
         ...b,
         date: null,
@@ -399,7 +414,7 @@ export function BookingChatView({ onBack }: Props) {
     }
   }, [])
 
-  const days = nextWeekdays(5)
+  const days = quickPickDatesInWeekWindow()
 
   const timeSlotsFirstRow = TIME_SLOTS_24.slice(0, 10)
   const timeSlotsSecondRow = TIME_SLOTS_24.slice(10, 20)
@@ -409,6 +424,7 @@ export function BookingChatView({ onBack }: Props) {
     setGuestsInputMode(false)
     setGuestInputDraft('')
     setGuestInputError(null)
+    setDatesCustomMode(false)
     setDetails({ name: '', email: '', phone: '' })
     setDetailErrors({})
     setStep('guests')
@@ -531,9 +547,9 @@ export function BookingChatView({ onBack }: Props) {
                   </div>
                 )}
 
-                {step === 'date' && (
-                  <div className="flex w-full justify-center overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                    <div className="inline-flex gap-2.5">
+                {step === 'date' && !datesCustomMode && (
+                  <div className="w-full overflow-x-auto overflow-y-visible pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    <div className="flex w-max flex-nowrap items-center justify-start gap-2.5">
                       {days.map((d) => (
                         <button
                           key={d.toISOString()}
@@ -544,6 +560,13 @@ export function BookingChatView({ onBack }: Props) {
                           {formatDay(d)}
                         </button>
                       ))}
+                      <button
+                        type="button"
+                        onClick={startCustomDatePicker}
+                        className={`${chipPill} shrink-0 whitespace-nowrap px-4`}
+                      >
+                        Custom
+                      </button>
                     </div>
                   </div>
                 )}
@@ -691,6 +714,14 @@ export function BookingChatView({ onBack }: Props) {
                   >
                     Back to quick picks
                   </button>
+                </div>
+              )}
+              {step === 'date' && datesCustomMode && (
+                <div className="max-h-[min(480px,65dvh)] shrink-0 overflow-y-auto overflow-x-hidden border-t border-neutral-200 bg-neutral-50/90 px-3 py-3 sm:px-4">
+                  <NotionStyleDatePicker
+                    onSelectDate={(d) => pickDate(d)}
+                    onClear={() => setDatesCustomMode(false)}
+                  />
                 </div>
               )}
               <div className="flex shrink-0 items-center justify-between gap-2 border-t border-neutral-200 bg-white px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3">
