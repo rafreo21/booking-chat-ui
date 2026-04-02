@@ -1,4 +1,4 @@
-import { CheckFat, Globe, Star } from '@phosphor-icons/react'
+import { CheckFat, GlobeHemisphereEast, Star } from '@phosphor-icons/react'
 import type { IconProps } from '@phosphor-icons/react'
 
 /**
@@ -6,7 +6,7 @@ import type { IconProps } from '@phosphor-icons/react'
  * Dine-in uses **CheckFat** (not plain Check) — see Check family on Phosphor.
  * @see https://phosphoricons.com?q=star&size=20&weight=fill
  * @see https://phosphoricons.com?q=check&size=20&weight=fill
- * @see https://phosphoricons.com?q=globe&size=20&weight=fill
+ * @see https://phosphoricons.com?q=globe-hemisphere-east&size=20&weight=fill
  */
 const venueIconProps = {
   size: 20,
@@ -30,7 +30,7 @@ type Props = {
 }
 
 /**
- * Star + linked 4.5 · (CheckFat + dine in only) · Globe (website). Same order in onboarding and chat.
+ * Star + linked 4.5 · (CheckFat + dine in only) · GlobeHemisphereEast (website). Same order in onboarding and chat.
  */
 export function VenueHeaderRating({ className = '', theme = 'light' }: Props) {
   const isDark = theme === 'dark'
@@ -86,7 +86,7 @@ export function VenueHeaderRating({ className = '', theme = 'light' }: Props) {
         className={`inline-flex shrink-0 items-center justify-center rounded-full p-0.5 transition hover:opacity-90 focus:outline-none focus-visible:ring-2 ${globeFocus}`}
         aria-label="Gilgamesh website"
       >
-        <Globe {...venueIconProps} color={iconGlobe} aria-hidden />
+        <GlobeHemisphereEast {...venueIconProps} color={iconGlobe} aria-hidden />
       </a>
     </div>
   )
