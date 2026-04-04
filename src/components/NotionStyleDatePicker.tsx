@@ -72,8 +72,6 @@ const WEEK = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'] as const
 type Props = {
   /** Fired when user picks a selectable day (single tap — same as choosing a chip). */
   onSelectDate: (d: Date) => void
-  /** Clear / dismiss back to quick picks without booking. */
-  onClear: () => void
   /** Merged onto root; use `w-full` in host so it tracks chat column width. */
   className?: string
 }
@@ -81,7 +79,7 @@ type Props = {
 /**
  * Month calendar for inline chat/footer use: no floating card — fills parent width.
  */
-export function NotionStyleDatePicker({ onSelectDate, onClear, className = '' }: Props) {
+export function NotionStyleDatePicker({ onSelectDate, className = '' }: Props) {
   const today = useMemo(() => startOfDay(new Date()), [])
   const maxDate = useMemo(() => {
     const x = new Date()
@@ -183,32 +181,20 @@ export function NotionStyleDatePicker({ onSelectDate, onClear, className = '' }:
               type="button"
               disabled={!sel}
               onClick={() => handleDayClick(day, inMonth)}
-              className={`relative mx-auto flex aspect-square w-full max-w-11 min-h-0 min-w-0 items-center justify-center rounded-md text-[13px] font-medium transition sm:text-[14px] ${
-                !inMonth
-                  ? sel
-                    ? 'text-neutral-600'
-                    : 'text-neutral-300'
-                  : 'text-neutral-900'
-              } ${
-                sel
-                  ? 'hover:bg-neutral-100 active:bg-[#2383e2] active:text-white'
-                  : 'cursor-not-allowed opacity-40'
-              } ${isToday && sel ? 'ring-2 ring-rose-300 ring-offset-0' : ''} `}
+              className={`relative mx-auto flex aspect-square w-full max-w-11 min-h-0 min-w-0 items-center justify-center rounded-full text-[13px] font-medium transition sm:text-[14px] ${
+                !sel
+                  ? 'cursor-not-allowed text-neutral-300 opacity-40'
+                  : isToday
+                    ? 'bg-neutral-950 text-white hover:bg-neutral-800 active:bg-neutral-950 active:text-white'
+                    : `${
+                        !inMonth ? 'text-neutral-600' : 'text-neutral-900'
+                      } hover:bg-neutral-100 active:bg-neutral-950 active:text-white`
+              }`}
             >
               {num}
             </button>
           )
         })}
-      </div>
-
-      <div className="mt-2.5 border-t border-neutral-100 pt-2">
-        <button
-          type="button"
-          onClick={onClear}
-          className="text-[13px] font-medium text-neutral-500 hover:text-neutral-800"
-        >
-          Clear
-        </button>
       </div>
     </div>
   )

@@ -17,7 +17,11 @@ import { GetDirectionsFab } from './components/GetDirectionsFab'
 import { BookingsLog } from './components/BookingsLog'
 import { NotionStyleDatePicker } from './components/NotionStyleDatePicker'
 import { VenueHeaderRating } from './components/VenueHeaderRating'
-import { WIDGET_MAX_W } from './widgetLayout'
+import {
+  WIDGET_FRAME_HEIGHT_CLASS,
+  WIDGET_PAGE_SHELL_CLASS,
+  WIDGET_STACK_COLUMN_CLASS,
+} from './widgetLayout'
 
 type Role = 'assistant' | 'user'
 
@@ -77,9 +81,9 @@ function formatTimeSlot12h(hhmm: string): string {
   })
 }
 
-const GUEST_CHIPS = ['1', '2', '3', '4', '5', '6+'] as const
+const GUEST_CHIPS = ['1', '2', '3', '4', '5'] as const
 
-/** Max guests when typing a number (chip picks stay 1–6+ as today). */
+/** Max guests when typing a number (quick chips are 1–5; 6+ uses Enter Number). */
 const MAX_GUESTS_TYPED = 100_000
 
 const RESTAURANT_SERVICE = 'Restaurant'
@@ -121,6 +125,18 @@ function formatDay(d: Date): string {
   })
 }
 
+/** Same rules as validateDetails, without mutating error state. */
+function detailsFormIsComplete(d: { name: string; email: string; phone: string }): boolean {
+  const name = d.name.trim()
+  const email = d.email.trim()
+  const phone = d.phone.replace(/\s/g, '')
+  const digits = phone.replace(/\D/g, '')
+  if (name.length < 2) return false
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return false
+  if (digits.length < 8) return false
+  return true
+}
+
 function uid(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
 }
@@ -133,6 +149,82 @@ type Step =
   | 'confirm'
   | 'submitting'
   | 'success'
+
+/** Snapshot of booking fields used to resume the thread after a step is re-answered. */
+type BookingSnapshot = {
+  guestCount: number
+  date: Date | null
+  time: string
+}
+
+type DetailsSnapshot = { name: string; email: string; phone: string }
+
+type ResumeChatActions = {
+  pushUser: (text: string, section?: BookingSection) => void
+  pushAssistant: (text: string) => void
+  setStep: (s: Step) => void
+}
+
+const ASSISTANT_DETAILS_PROMPT =
+  'Almost there. Enter your **full name**, **email**, and **phone number** below, then continue.'
+
+/** After time is chosen (or restored), jump to details or confirm from saved contact fields. */
+function resumeAfterTimeChosen(
+  details: DetailsSnapshot,
+  { pushUser, pushAssistant, setStep }: ResumeChatActions,
+) {
+  // Always show this prompt when leaving the time step so the thread stays consistent
+  // (including when contact fields are already valid and we skip ahead to confirm).
+  pushAssistant(ASSISTANT_DETAILS_PROMPT)
+  if (detailsFormIsComplete(details)) {
+    pushUser(
+      `${details.name.trim()} · ${details.email.trim()} · ${details.phone.trim()}`,
+      'details',
+    )
+    pushAssistant('Review your booking below, then tap **Confirm booking**.')
+    setStep('confirm')
+  } else {
+    setStep('details')
+  }
+}
+
+/**
+ * After date is set, either ask for time or replay saved time + downstream messages.
+ * Caller must already have pushed the user date line when entering this from pickDate.
+ */
+function resumeAfterDateSet(
+  b: BookingSnapshot,
+  details: DetailsSnapshot,
+  actions: ResumeChatActions,
+) {
+  if (!b.time.trim()) {
+    actions.pushAssistant('Here are the available times. Pick one that suits you.')
+    actions.setStep('time')
+    return
+  }
+  actions.pushAssistant('Here are the available times. Pick one that suits you.')
+  actions.pushUser(b.time, 'time')
+  resumeAfterTimeChosen(details, actions)
+}
+
+/**
+ * After guest count is set, continue at the first step that still needs input,
+ * re-inserting user bubbles for any values we kept in state (uniform with date/time edits).
+ */
+function resumeAfterGuestCountSet(
+  b: BookingSnapshot,
+  details: DetailsSnapshot,
+  actions: ResumeChatActions,
+) {
+  if (!b.date) {
+    actions.pushAssistant('Which **date** would you like to book?')
+    actions.setStep('date')
+    return
+  }
+  actions.pushAssistant('Which **date** would you like to book?')
+  actions.pushUser(formatDay(b.date), 'date')
+  resumeAfterDateSet(b, details, actions)
+}
 
 function canShowEditForSection(section: BookingSection, step: Step): boolean {
   if (step === 'submitting') return false
@@ -189,19 +281,17 @@ export function BookingChatView({ onBack }: Props) {
 
   const [booking, setBooking] = useState({
     guestCount: 0,
-    /** True only when user picked the **6+** chip (show as "6+" in summary). */
-    sixPlusFromChip: false,
     date: null as Date | null,
     time: '',
   })
 
-  /** Typing guest count via footer after "Enter a number" (chips hidden; no extra chat lines). */
+  /** Typing guest count via footer after "Enter Number" (chips hidden; no extra chat lines). */
   const [guestsInputMode, setGuestsInputMode] = useState(false)
   const [guestInputDraft, setGuestInputDraft] = useState('')
   const [guestInputError, setGuestInputError] = useState<string | null>(null)
   const guestInputRef = useRef<HTMLInputElement>(null)
 
-  /** Pick Date calendar in footer (same pattern as typed guest count). */
+  /** Full calendar in footer when user taps “Pick Date”; otherwise show the date option chips. */
   const [datesCustomMode, setDatesCustomMode] = useState(false)
 
   const [details, setDetails] = useState({
@@ -255,9 +345,14 @@ export function BookingChatView({ onBack }: Props) {
   }
 
   const guestCountFromLabel = (label: string) => {
-    if (label === '6+') return 6
     const n = Number(label)
     return Number.isFinite(n) ? n : 0
+  }
+
+  const resumeActions: ResumeChatActions = {
+    pushUser,
+    pushAssistant,
+    setStep,
   }
 
   const pickGuest = (label: string) => {
@@ -265,18 +360,21 @@ export function BookingChatView({ onBack }: Props) {
     setGuestsInputMode(false)
     setGuestInputDraft('')
     setGuestInputError(null)
-    pushUser(
-      label === '6+' ? 'Table for 6 or more' : `Table for ${label} guest${label === '1' ? '' : 's'}`,
-      'guests',
-    )
+    pushUser(`Table for ${label} guest${label === '1' ? '' : 's'}`, 'guests')
     const gc = guestCountFromLabel(label)
-    setBooking((b) => ({
-      ...b,
-      guestCount: gc,
-      sixPlusFromChip: label === '6+',
-    }))
-    pushAssistant('Which **date** would you like to book?')
-    setStep('date')
+    // Never schedule resume inside setBooking's updater — React Strict Mode may run it twice
+    // in dev and duplicate assistant lines. One microtask per user action is enough.
+    let snapshot: BookingSnapshot | null = null
+    setBooking((b) => {
+      snapshot = {
+        ...b,
+        guestCount: gc,
+      }
+      return snapshot
+    })
+    queueMicrotask(() => {
+      if (snapshot) resumeAfterGuestCountSet(snapshot, details, resumeActions)
+    })
   }
 
   const startGuestNumberInput = () => {
@@ -300,22 +398,28 @@ export function BookingChatView({ onBack }: Props) {
     setGuestsInputMode(false)
     setGuestInputDraft('')
     pushUser(`Table for ${n} guest${n === 1 ? '' : 's'}`, 'guests')
-    setBooking((b) => ({
-      ...b,
-      guestCount: n,
-      sixPlusFromChip: false,
-    }))
-    pushAssistant('Which **date** would you like to book?')
-    setStep('date')
+    let snapshot: BookingSnapshot | null = null
+    setBooking((b) => {
+      snapshot = { ...b, guestCount: n }
+      return snapshot
+    })
+    queueMicrotask(() => {
+      if (snapshot) resumeAfterGuestCountSet(snapshot, details, resumeActions)
+    })
   }
 
   const pickDate = (d: Date) => {
     if (step !== 'date') return
     setDatesCustomMode(false)
     pushUser(formatDay(d), 'date')
-    setBooking((b) => ({ ...b, date: d }))
-    pushAssistant('Here are the available times. Pick one that suits you.')
-    setStep('time')
+    let snapshot: BookingSnapshot | null = null
+    setBooking((b) => {
+      snapshot = { ...b, date: d }
+      return snapshot
+    })
+    queueMicrotask(() => {
+      if (snapshot) resumeAfterDateSet(snapshot, details, resumeActions)
+    })
   }
 
   const startCustomDatePicker = () => {
@@ -327,10 +431,7 @@ export function BookingChatView({ onBack }: Props) {
     if (step !== 'time') return
     pushUser(t, 'time')
     setBooking((b) => ({ ...b, time: t }))
-    pushAssistant(
-      'Almost there. Enter your **full name**, **email**, and **phone number** below, then continue.',
-    )
-    setStep('details')
+    resumeAfterTimeChosen(details, resumeActions)
   }
 
   const validateDetails = (): boolean => {
@@ -390,21 +491,21 @@ export function BookingChatView({ onBack }: Props) {
     })
     setDetailErrors({})
     if (section === 'guests') {
-      setBooking({ guestCount: 0, sixPlusFromChip: false, date: null, time: '' })
+      setBooking((b) => ({
+        ...b,
+        guestCount: 0,
+      }))
       setGuestsInputMode(false)
       setGuestInputDraft('')
       setGuestInputError(null)
       setDatesCustomMode(false)
-      setDetails({ name: '', email: '', phone: '' })
       setStep('guests')
     } else if (section === 'date') {
       setDatesCustomMode(false)
       setBooking((b) => ({
         ...b,
         date: null,
-        time: '',
       }))
-      setDetails({ name: '', email: '', phone: '' })
       setStep('date')
     } else if (section === 'time') {
       setBooking((b) => ({ ...b, time: '' }))
@@ -420,7 +521,7 @@ export function BookingChatView({ onBack }: Props) {
   const timeSlotsSecondRow = TIME_SLOTS_24.slice(10, 20)
 
   const resetChat = () => {
-    setBooking({ guestCount: 0, sixPlusFromChip: false, date: null, time: '' })
+    setBooking({ guestCount: 0, date: null, time: '' })
     setGuestsInputMode(false)
     setGuestInputDraft('')
     setGuestInputError(null)
@@ -441,8 +542,8 @@ export function BookingChatView({ onBack }: Props) {
 
   return (
     <div className="relative min-h-dvh bg-[var(--color-chat-bg)]">
-      <div className="flex min-h-dvh w-full items-center justify-center px-4 pb-[max(5.5rem,env(safe-area-inset-bottom)+4.5rem)] pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-5 sm:pb-28 sm:pt-6">
-        <div className={`flex w-full ${WIDGET_MAX_W} flex-col items-stretch gap-2`}>
+      <div className={WIDGET_PAGE_SHELL_CLASS}>
+        <div className={WIDGET_STACK_COLUMN_CLASS}>
           <div className="sticky top-[max(0.5rem,env(safe-area-inset-top))] z-50 flex w-full justify-start py-2">
             <button
               type="button"
@@ -455,7 +556,7 @@ export function BookingChatView({ onBack }: Props) {
           </div>
 
           <div
-            className="flex max-h-[min(580px,calc(100dvh-5.5rem))] w-full flex-col overflow-hidden rounded-2xl border border-neutral-300 bg-white shadow-md sm:max-h-[min(580px,calc(100dvh-6rem))]"
+            className={`flex w-full flex-col overflow-hidden rounded-2xl border border-neutral-300 bg-white shadow-md ${WIDGET_FRAME_HEIGHT_CLASS}`}
             role="region"
             aria-labelledby={titleId}
           >
@@ -541,7 +642,7 @@ export function BookingChatView({ onBack }: Props) {
                         onClick={startGuestNumberInput}
                         className={`${chipPill} shrink-0 whitespace-nowrap px-4`}
                       >
-                        Enter a number
+                        Enter Number
                       </button>
                     </div>
                   </div>
@@ -628,6 +729,7 @@ export function BookingChatView({ onBack }: Props) {
                     booking={booking}
                     details={details}
                     onConfirm={confirmBooking}
+                    onEditDetails={() => handleEditSection('details')}
                   />
                 )}
               </div>
@@ -717,35 +819,36 @@ export function BookingChatView({ onBack }: Props) {
                 </div>
               )}
               {step === 'date' && datesCustomMode && (
-                <div className="w-full min-w-0 shrink-0 border-t border-neutral-200 bg-white px-3 py-2 sm:px-4 sm:py-2.5">
+                <div className="w-full min-w-0 shrink-0 border-t border-neutral-200 bg-white px-3 py-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4 sm:py-2.5 sm:pb-3">
                   <NotionStyleDatePicker
                     className="min-w-0"
                     onSelectDate={(d) => pickDate(d)}
-                    onClear={() => setDatesCustomMode(false)}
                   />
                 </div>
               )}
-              <div className="flex shrink-0 items-center justify-between gap-2 border-t border-neutral-200 bg-white px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3">
-                <p className="min-w-0 truncate text-[12px] font-medium text-neutral-500 sm:text-[13px] sm:text-neutral-600">
-                  Gilgamesh · booking assistant
-                </p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setLogOpen(true)
-                    setImportMsg(null)
-                    refreshSaved()
-                  }}
-                  className="relative shrink-0 rounded-full border border-neutral-200 bg-white px-3.5 py-1.5 text-[13px] font-semibold text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition hover:border-neutral-300 hover:bg-neutral-50 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
-                >
-                  Bookings
-                  {savedBookings.length > 0 && (
-                    <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-neutral-950 px-1 text-[11px] font-bold text-white">
-                      {savedBookings.length > 99 ? '99+' : savedBookings.length}
-                    </span>
-                  )}
-                </button>
-              </div>
+              {!(step === 'date' && datesCustomMode) && (
+                <div className="flex shrink-0 items-center justify-between gap-2 border-t border-neutral-200 bg-white px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3">
+                  <p className="min-w-0 truncate text-[12px] font-medium text-neutral-500 sm:text-[13px] sm:text-neutral-600">
+                    Gilgamesh · booking assistant
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLogOpen(true)
+                      setImportMsg(null)
+                      refreshSaved()
+                    }}
+                    className="relative shrink-0 rounded-full border border-neutral-200 bg-white px-3.5 py-1.5 text-[13px] font-semibold text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition hover:border-neutral-300 hover:bg-neutral-50 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
+                  >
+                    Bookings
+                    {savedBookings.length > 0 && (
+                      <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-neutral-950 px-1 text-[11px] font-bold text-white">
+                        {savedBookings.length > 99 ? '99+' : savedBookings.length}
+                      </span>
+                    )}
+                  </button>
+                </div>
+              )}
             </>
           )}
         </div>
@@ -901,21 +1004,19 @@ function ConfirmPanel({
   booking,
   details,
   onConfirm,
+  onEditDetails,
 }: {
   booking: {
     guestCount: number
-    sixPlusFromChip: boolean
     date: Date | null
     time: string
   }
   details: { name: string; email: string; phone: string }
   onConfirm: () => void
+  onEditDetails: () => void
 }) {
   const d = booking.date
-  const guestLabel =
-    booking.sixPlusFromChip && booking.guestCount === 6
-      ? '6+'
-      : String(booking.guestCount)
+  const guestLabel = String(booking.guestCount)
   const rows = [
     ['Guests', guestLabel],
     ['Date', d ? formatDay(d) : '—'],
@@ -924,13 +1025,25 @@ function ConfirmPanel({
     ['Email', details.email.trim()],
     ['Phone', details.phone.trim()],
   ] as const
+  const editBtn =
+    'flex size-10 shrink-0 items-center justify-center rounded-full text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-800 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-1 sm:size-11'
   return (
     <div className="space-y-4 rounded-xl border-2 border-neutral-200 bg-white p-4 shadow-sm">
-      <div>
-        <h3 className="text-[16px] font-bold text-neutral-950">Confirm your booking</h3>
-        <p className="mt-1 text-[14px] text-neutral-600">
-          Check everything looks right before you confirm.
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <h3 className="text-[16px] font-bold text-neutral-950">Confirm your booking</h3>
+          <p className="mt-1 text-[14px] text-neutral-600">
+            Check everything looks right before you confirm.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onEditDetails}
+          className={editBtn}
+          aria-label={editSectionAriaLabel('details')}
+        >
+          <PencilSimple size={20} weight="regular" aria-hidden />
+        </button>
       </div>
       <dl className="space-y-2.5 border-t border-neutral-100 pt-3">
         {rows.map(([label, value]) => (

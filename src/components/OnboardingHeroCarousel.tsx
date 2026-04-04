@@ -50,7 +50,7 @@ export function OnboardingHeroCarousel({ slides, className = '' }: Props) {
     <div className={`relative ${className}`}>
       <div
         ref={scrollerRef}
-        className="flex aspect-[284/262] w-full snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex h-full min-h-0 w-full snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         aria-roledescription="carousel"
         aria-label="Gilgamesh London gallery"
       >
