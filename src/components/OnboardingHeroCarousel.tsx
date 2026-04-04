@@ -87,10 +87,10 @@ export function OnboardingHeroCarousel({ slides, className = '' }: Props) {
                 aria-label={`Go to slide ${i + 1} of ${slides.length}`}
                 aria-current={isActive ? 'true' : undefined}
                 onClick={() => goTo(i)}
-                className={`pointer-events-auto shrink-0 transition duration-300 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-white/90 focus-visible:ring-offset-2 focus-visible:ring-offset-black/50 ${
+                className={`pointer-events-auto shrink-0 transition-[width,background-color,transform,box-shadow] duration-300 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-white/90 focus-visible:ring-offset-2 focus-visible:ring-offset-black/50 active:scale-95 ${
                   isActive
                     ? 'h-1.5 w-6 rounded-full bg-white/95 shadow-[0_0_8px_rgba(255,255,255,0.3)] sm:w-7'
-                    : 'size-1.5 rounded-full bg-neutral-500/90 hover:bg-neutral-400 active:scale-95'
+                    : 'size-1.5 rounded-full bg-neutral-500/90 press:bg-neutral-400 active:scale-95'
                 }`}
               />
             )

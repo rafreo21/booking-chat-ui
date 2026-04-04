@@ -18,6 +18,7 @@ import { BookingsLog } from './components/BookingsLog'
 import { NotionStyleDatePicker } from './components/NotionStyleDatePicker'
 import { VenueHeaderRating } from './components/VenueHeaderRating'
 import {
+  WIDGET_CHAT_HEADER_PAD_CLASS,
   WIDGET_FRAME_HEIGHT_CLASS,
   WIDGET_PAGE_SHELL_CLASS,
   WIDGET_STACK_COLUMN_CLASS,
@@ -90,17 +91,17 @@ const RESTAURANT_SERVICE = 'Restaurant'
 
 /** Guest counts: equal width & height circles (reference). */
 const chipGuest =
-  'flex size-11 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white text-[15px] font-semibold tabular-nums text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition hover:border-neutral-300 hover:bg-neutral-50 active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1'
+  'flex size-11 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white text-[15px] font-semibold tabular-nums text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-[colors,box-shadow,border-color,transform] duration-200 ease-out press:border-neutral-400 press:bg-neutral-200 press:shadow-[0_3px_10px_rgba(0,0,0,0.08)] active:scale-[0.97] active:bg-neutral-300/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1'
 
 /** Date / time: compact pills — not stretched full width. */
 const chipPill =
-  'inline-flex h-10 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white px-3.5 text-[13px] font-semibold text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition hover:border-neutral-300 hover:bg-neutral-50 active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1'
+  'inline-flex h-10 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white px-3.5 text-[13px] font-semibold text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-[colors,box-shadow,border-color,transform] duration-200 ease-out press:border-neutral-400 press:bg-neutral-200 press:shadow-[0_3px_10px_rgba(0,0,0,0.08)] active:scale-[0.97] active:bg-neutral-300/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1'
 
 const backAboveCard =
-  'flex size-11 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-800 shadow-[0_1px_3px_rgba(0,0,0,0.1)] transition hover:border-neutral-300 hover:bg-neutral-50 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-500'
+  'flex size-11 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-800 shadow-[0_1px_3px_rgba(0,0,0,0.1)] transition-[colors,box-shadow,border-color,transform] duration-200 ease-out press:border-neutral-400 press:bg-neutral-200 press:shadow-[0_3px_10px_rgba(0,0,0,0.1)] active:scale-95 active:bg-neutral-300/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-500'
 
 const btnPrimary =
-  'w-full min-h-[48px] rounded-full bg-neutral-950 px-4 text-[15px] font-semibold text-white shadow-sm transition hover:bg-neutral-800 active:scale-[0.99] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2'
+  'w-full min-h-[48px] rounded-full bg-neutral-950 px-4 text-[15px] font-semibold text-white shadow-sm transition-[colors,box-shadow,transform] duration-200 ease-out press:bg-neutral-700 press:shadow-md active:bg-neutral-900 active:scale-[0.99] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2'
 
 /** How many days appear as quick-pick chips — one full week (7-day window from today). */
 const QUICK_PICK_DAYS = 7
@@ -560,7 +561,9 @@ export function BookingChatView({ onBack }: Props) {
             role="region"
             aria-labelledby={titleId}
           >
-          <div className="shrink-0 border-b border-neutral-800 bg-neutral-950 px-3 py-3 sm:px-4 sm:py-4">
+          <div
+            className={`shrink-0 border-b border-neutral-800 bg-neutral-950 ${WIDGET_CHAT_HEADER_PAD_CLASS}`}
+          >
             <div className="flex flex-col items-start gap-1.5 sm:gap-2">
               <AiChatbotLogo />
               <div className="min-w-0">
@@ -795,7 +798,7 @@ export function BookingChatView({ onBack }: Props) {
                     <button
                       type="button"
                       onClick={submitGuestNumber}
-                      className="shrink-0 rounded-full bg-neutral-950 px-4 py-2.5 text-[15px] font-semibold text-white shadow-sm transition hover:bg-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2"
+                      className="shrink-0 rounded-full bg-neutral-950 px-4 py-2.5 text-[15px] font-semibold text-white shadow-sm transition-[colors,box-shadow] duration-200 ease-out press:bg-neutral-700 press:shadow-md active:bg-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2"
                     >
                       Send
                     </button>
@@ -812,7 +815,7 @@ export function BookingChatView({ onBack }: Props) {
                       setGuestInputDraft('')
                       setGuestInputError(null)
                     }}
-                    className="mt-2 text-[13px] font-medium text-neutral-500 underline-offset-2 hover:text-neutral-800 hover:underline"
+                    className="mt-2 text-[13px] font-medium text-neutral-500 underline-offset-2 press:text-neutral-800 press:underline"
                   >
                     Back to quick picks
                   </button>
@@ -838,7 +841,7 @@ export function BookingChatView({ onBack }: Props) {
                       setImportMsg(null)
                       refreshSaved()
                     }}
-                    className="relative shrink-0 rounded-full border border-neutral-200 bg-white px-3.5 py-1.5 text-[13px] font-semibold text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition hover:border-neutral-300 hover:bg-neutral-50 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
+                    className="relative shrink-0 rounded-full border border-neutral-200 bg-white px-3.5 py-1.5 text-[13px] font-semibold text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-[colors,box-shadow,border-color,transform] duration-200 ease-out press:border-neutral-400 press:bg-neutral-200 press:shadow-[0_3px_10px_rgba(0,0,0,0.08)] active:scale-[0.98] active:bg-neutral-300/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
                   >
                     Bookings
                     {savedBookings.length > 0 && (
@@ -1026,7 +1029,7 @@ function ConfirmPanel({
     ['Phone', details.phone.trim()],
   ] as const
   const editBtn =
-    'flex size-10 shrink-0 items-center justify-center rounded-full text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-800 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-1 sm:size-11'
+    'flex size-10 shrink-0 items-center justify-center rounded-full text-neutral-500 transition-[colors,background-color,transform] duration-200 ease-out press:bg-neutral-300 press:text-neutral-950 active:scale-95 active:bg-neutral-400/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-1 sm:size-11'
   return (
     <div className="space-y-4 rounded-xl border-2 border-neutral-200 bg-white p-4 shadow-sm">
       <div className="flex items-start justify-between gap-3">
@@ -1086,7 +1089,7 @@ function FigmaMessage({
             <button
               type="button"
               onClick={onEdit}
-              className="flex size-11 shrink-0 items-center justify-center rounded-full text-[#919191] transition hover:bg-neutral-200/70 hover:text-[#717171] active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#919191]/40 focus-visible:ring-offset-1"
+              className="flex size-11 shrink-0 items-center justify-center rounded-full text-[#919191] transition-[colors,background-color,transform] duration-200 ease-out press:bg-neutral-300 press:text-neutral-800 active:scale-95 active:bg-neutral-400/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#919191]/40 focus-visible:ring-offset-1"
               aria-label={editSectionAriaLabel(section)}
             >
               <PencilSimple size={20} weight="regular" aria-hidden />

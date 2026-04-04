@@ -17,6 +17,15 @@ export const WIDGET_STACK_COLUMN_CLASS = `flex w-full ${WIDGET_MAX_W} flex-col i
 export const WIDGET_TOP_ROW_SPACER_CLASS = 'flex w-full justify-start py-2'
 
 /**
+ * Chat dark header padding — logo is the first element at this inset from the card inner top-left.
+ * Onboarding uses WIDGET_LOGO_ABSOLUTE_INSET_CLASS on the hero so placement matches.
+ */
+export const WIDGET_CHAT_HEADER_PAD_CLASS = 'px-3 py-3 sm:px-4 sm:py-4'
+
+/** Same top/left offset as `WIDGET_CHAT_HEADER_PAD_CLASS` for an absolutely positioned logo. */
+export const WIDGET_LOGO_ABSOLUTE_INSET_CLASS = 'left-3 top-3 sm:left-4 sm:top-4'
+
+/**
  * Shared fixed cap for onboarding + chat cards so both screens match.
  * Mirrors BookingChatView shell (580px max, viewport-safe on small phones).
  */

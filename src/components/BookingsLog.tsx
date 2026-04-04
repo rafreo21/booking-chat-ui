@@ -54,7 +54,7 @@ export function BookingsLog({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full px-4 py-2 text-[14px] font-semibold text-neutral-700 hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-500"
+            className="rounded-full px-4 py-2 text-[14px] font-semibold text-neutral-700 transition-colors duration-200 ease-out press:bg-neutral-200 active:bg-neutral-300/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-500"
           >
             Close
           </button>
@@ -96,7 +96,7 @@ export function BookingsLog({
                     <button
                       type="button"
                       onClick={() => onDelete(b.id)}
-                      className="shrink-0 text-[13px] font-semibold text-red-700 hover:underline"
+                      className="shrink-0 text-[13px] font-semibold text-red-700 press:underline"
                     >
                       Remove
                     </button>
@@ -118,28 +118,28 @@ export function BookingsLog({
             <button
               type="button"
               onClick={onExport}
-              className="min-h-[44px] rounded-full bg-neutral-950 px-4 text-[14px] font-semibold text-white transition hover:bg-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950"
+              className="min-h-[44px] rounded-full bg-neutral-950 px-4 text-[14px] font-semibold text-white transition-colors duration-150 press:bg-neutral-800 active:bg-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950"
             >
               Download JSON
             </button>
             <button
               type="button"
               onClick={() => onPickImportFile('merge')}
-              className="min-h-[44px] rounded-full border-2 border-neutral-300 bg-white px-4 text-[14px] font-semibold text-neutral-950 transition hover:bg-neutral-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400"
+              className="min-h-[44px] rounded-full border-2 border-neutral-300 bg-white px-4 text-[14px] font-semibold text-neutral-950 transition-[colors,border-color,box-shadow] duration-200 ease-out press:border-neutral-400 press:bg-neutral-200 press:shadow-[0_2px_8px_rgba(0,0,0,0.06)] active:bg-neutral-300/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400"
             >
               Import (merge)
             </button>
             <button
               type="button"
               onClick={() => onPickImportFile('replace')}
-              className="min-h-[44px] rounded-full border-2 border-neutral-300 bg-white px-4 text-[14px] font-semibold text-neutral-950 transition hover:bg-neutral-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400"
+              className="min-h-[44px] rounded-full border-2 border-neutral-300 bg-white px-4 text-[14px] font-semibold text-neutral-950 transition-[colors,border-color,box-shadow] duration-200 ease-out press:border-neutral-400 press:bg-neutral-200 press:shadow-[0_2px_8px_rgba(0,0,0,0.06)] active:bg-neutral-300/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400"
             >
               Replace from file
             </button>
             <button
               type="button"
               onClick={onClear}
-              className="min-h-[44px] rounded-full border-2 border-red-200 bg-white px-4 text-[14px] font-semibold text-red-800 transition hover:bg-red-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+              className="min-h-[44px] rounded-full border-2 border-red-200 bg-white px-4 text-[14px] font-semibold text-red-800 transition-colors duration-150 press:bg-red-50 active:bg-red-100/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
             >
               Clear all
             </button>

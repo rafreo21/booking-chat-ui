@@ -5,6 +5,7 @@ import { GetDirectionsIconLink } from './components/GetDirectionsFab'
 import { VenueHeaderRating } from './components/VenueHeaderRating'
 import {
   WIDGET_FRAME_HEIGHT_CLASS,
+  WIDGET_LOGO_ABSOLUTE_INSET_CLASS,
   WIDGET_PAGE_SHELL_CLASS,
   WIDGET_STACK_COLUMN_CLASS,
   WIDGET_TOP_ROW_SPACER_CLASS,
@@ -12,7 +13,7 @@ import {
 
 /** ~80% width via grid 1fr + auto; same 44px height as map; ~8px gap. */
 const bookBtn =
-  'inline-flex h-11 min-h-11 w-full min-w-0 items-center justify-center rounded-full bg-[#2c2c2c] px-4 text-[15px] font-bold text-white shadow-[0_1px_2px_rgba(0,0,0,0.18)] transition hover:bg-[#3d3d3d] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2'
+  'inline-flex h-11 min-h-11 w-full min-w-0 items-center justify-center rounded-full bg-[#2c2c2c] px-4 text-[15px] font-bold text-white shadow-[0_1px_2px_rgba(0,0,0,0.18)] transition-[colors,box-shadow,transform] duration-200 ease-out press:bg-[#3d3d3d] press:shadow-[0_4px_14px_rgba(0,0,0,0.28)] active:scale-[0.98] active:bg-[#252525] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2'
 
 type Props = {
   onBookNow: () => void
@@ -31,7 +32,9 @@ export function OnboardingScreen({ onBookNow }: Props) {
           >
             <div className="relative min-h-0 flex-1 border-b border-neutral-200">
               <OnboardingHeroCarousel slides={ONBOARDING_HERO_SLIDES} className="h-full min-h-[9.5rem]" />
-              <div className="pointer-events-none absolute left-3 top-3 z-20">
+              <div
+                className={`pointer-events-none absolute z-20 ${WIDGET_LOGO_ABSOLUTE_INSET_CLASS}`}
+              >
                 <AiChatbotLogo />
               </div>
             </div>

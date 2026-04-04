@@ -1,5 +1,14 @@
 @import 'tailwindcss';
 
+/**
+ * `hover:` — plain `:hover` (not `@media (hover: hover)`) so hybrid / desktop browsers always get hover styles.
+ * `press:` — `:hover` OR `:active` so phones and iPads get the same surface treatment while the finger is down
+ * (and mouse users still get hover without press). Keep separate `active:` for scale or stronger “pressed” overrides.
+ * Calendar days use `press:` plus `active:!bg-neutral-950` so the pressed (selected) look wins over the light `press` fill.
+ */
+@custom-variant hover (&:hover);
+@custom-variant press (&:is(:hover, :active));
+
 @theme {
   --font-sans: 'Inter', 'DM Sans', ui-sans-serif, system-ui, sans-serif;
   --color-chat-bg: #ebebeb;
@@ -28,6 +37,13 @@
   }
   #root {
     @apply min-h-dvh;
-    -webkit-tap-highlight-color: transparent;
+    -webkit-tap-highlight-color: rgba(23, 23, 23, 0.07);
+  }
+  button,
+  [type='button'],
+  [type='submit'],
+  [role='button'],
+  a[href] {
+    touch-action: manipulation;
   }
 }

@@ -139,14 +139,14 @@ export function NotionStyleDatePicker({ onSelectDate, className = '' }: Props) {
           <button
             type="button"
             onClick={goToday}
-            className="rounded-md px-2 py-1 text-[13px] font-medium text-neutral-600 transition hover:bg-neutral-100 hover:text-neutral-900"
+            className="rounded-md px-2 py-1 text-[13px] font-medium text-neutral-600 transition-colors duration-200 ease-out press:bg-neutral-200 press:text-neutral-900 active:bg-neutral-300/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-1"
           >
             Today
           </button>
           <button
             type="button"
             onClick={goPrevMonth}
-            className="flex size-8 items-center justify-center rounded-md text-neutral-600 transition hover:bg-neutral-100"
+            className="flex size-8 items-center justify-center rounded-md text-neutral-600 transition-colors duration-200 ease-out press:bg-neutral-200 active:bg-neutral-300/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-1"
             aria-label="Previous month"
           >
             <CaretLeft size={18} weight="bold" />
@@ -154,7 +154,7 @@ export function NotionStyleDatePicker({ onSelectDate, className = '' }: Props) {
           <button
             type="button"
             onClick={goNextMonth}
-            className="flex size-8 items-center justify-center rounded-md text-neutral-600 transition hover:bg-neutral-100"
+            className="flex size-8 items-center justify-center rounded-md text-neutral-600 transition-colors duration-200 ease-out press:bg-neutral-200 active:bg-neutral-300/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-1"
             aria-label="Next month"
           >
             <CaretRight size={18} weight="bold" />
@@ -181,14 +181,14 @@ export function NotionStyleDatePicker({ onSelectDate, className = '' }: Props) {
               type="button"
               disabled={!sel}
               onClick={() => handleDayClick(day, inMonth)}
-              className={`relative mx-auto flex aspect-square w-full max-w-11 min-h-0 min-w-0 items-center justify-center rounded-full text-[13px] font-medium transition sm:text-[14px] ${
+              className={`relative mx-auto flex aspect-square w-full max-w-11 min-h-0 min-w-0 items-center justify-center rounded-full text-[13px] font-medium transition-colors duration-150 sm:text-[14px] ${
                 !sel
                   ? 'cursor-not-allowed text-neutral-300 opacity-40'
                   : isToday
-                    ? 'bg-neutral-950 text-white hover:bg-neutral-800 active:bg-neutral-950 active:text-white'
+                    ? 'bg-neutral-950 text-white press:bg-neutral-700 press:shadow-[0_2px_8px_rgba(0,0,0,0.25)] active:!bg-neutral-900 active:!text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950'
                     : `${
                         !inMonth ? 'text-neutral-600' : 'text-neutral-900'
-                      } hover:bg-neutral-100 active:bg-neutral-950 active:text-white`
+                      } press:bg-neutral-200 active:!bg-neutral-950 active:!text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-1`
               }`}
             >
               {num}

@@ -36,8 +36,8 @@ export function VenueHeaderRating({ className = '', theme = 'light' }: Props) {
   const isDark = theme === 'dark'
 
   const ratingLink = isDark
-    ? 'font-semibold tabular-nums text-white underline decoration-white/70 underline-offset-[3px] transition hover:decoration-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950'
-    : 'font-semibold tabular-nums text-neutral-950 underline decoration-neutral-400 underline-offset-[3px] transition hover:decoration-neutral-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2'
+    ? 'font-semibold tabular-nums text-white underline decoration-white/70 underline-offset-[3px] transition-[text-decoration-color,opacity] duration-150 press:decoration-white press:opacity-95 active:opacity-85 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950'
+    : 'font-semibold tabular-nums text-neutral-950 underline decoration-neutral-400 underline-offset-[3px] transition-[text-decoration-color,opacity] duration-150 press:decoration-neutral-600 press:opacity-90 active:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2'
 
   const dineLabel = isDark
     ? 'font-medium text-[#f3f2f2]'
@@ -83,7 +83,7 @@ export function VenueHeaderRating({ className = '', theme = 'light' }: Props) {
         href={GILGAMESH_WEB}
         target="_blank"
         rel="noopener noreferrer"
-        className={`inline-flex shrink-0 items-center justify-center rounded-full p-0.5 transition hover:opacity-90 focus:outline-none focus-visible:ring-2 ${globeFocus}`}
+        className={`inline-flex shrink-0 items-center justify-center rounded-full p-0.5 transition-[opacity,background-color] duration-200 ease-out press:bg-neutral-200/90 press:opacity-100 active:bg-neutral-300/80 active:opacity-95 focus:outline-none focus-visible:ring-2 ${globeFocus}`}
         aria-label="Gilgamesh website"
       >
         <GlobeHemisphereEast {...venueIconProps} color={iconGlobe} aria-hidden />

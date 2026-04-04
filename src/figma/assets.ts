@@ -2,7 +2,7 @@
 export const ONBOARDING_HERO_SLIDES = [
   {
     src: '/figma/onboarding/slide-1.png',
-    alt: 'Guests celebrating over dinner at Gilgamesh London',
+    alt: 'Private dining group celebrating at Gilgamesh London',
   },
   {
     src: '/figma/onboarding/slide-2.png',
