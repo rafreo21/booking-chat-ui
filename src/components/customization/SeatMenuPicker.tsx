@@ -117,7 +117,7 @@ export function SeatMenuPicker({
           Maximum dishes reached for this seat — remove one to add another.
         </p>
       ) : null}
-      <ul className="grid grid-cols-4 gap-2">
+      <ul className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
         {visibleItems.map((item) => {
           const selected = activeSeat.selectedMenuItemIds.includes(item.id)
           const blocked = !selected && atCap
