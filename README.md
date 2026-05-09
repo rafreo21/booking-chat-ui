@@ -2,6 +2,20 @@
 
 A small restaurant booking experience built with **React 19 + Vite + TypeScript + Tailwind v4**, with optional **Supabase** persistence and **Vercel serverless functions** for email and Google Sheets sync.
 
+> **Latest release:** see [`CHANGELOG.md`](./CHANGELOG.md) for the full list of changes shipped on `main` (commit `35cff7e`).
+
+## Recent updates
+
+- **Manage reservation page** at `/reservation/:manageToken` — wide, responsive layout (`max-w-[1400px]`), sticky **Summary** sidebar on the right from `md:`, top-left back button, consistent shell across loading/error/loaded states.
+- **Dining customization flow** — per-seat menu picker (2 → 3 → 4 column responsive grid), dietary badges, undo, and a live summary panel.
+- **Staff prep page** at `/staff/prep` for upcoming reservations and seat-level selections.
+- **Menu catalog** loaded from `public/menu.json` with a versioned in-app fallback (`MenuCatalogContext` + `useMenuCatalog`) so menus update without a redeploy.
+- **Storage split** — `src/storage/` now has separate local and Supabase backends; opaque `manage_token` + `meta` migrations under `supabase/migrations/`.
+- **Serverless endpoints** — `api/send-booking-email.ts` (Resend), `api/dining-customization.ts` (ops ingest), and cleanups to `api/sheets-append.ts`.
+- **Vercel SPA routing fix** — `vercel.json` rewrites use a negative-lookahead so `/api/*` is no longer shadowed by `index.html`.
+- **Onboarding ↔ chat layout parity** — shared class constants in `src/widgetLayout.ts`; tightened spacing on the success step in `BookingChatView.tsx`.
+- **Repo hygiene** — `.gitignore` now excludes `.claude/` plugin scratch and local `.env*` files (keeping `.env.example`).
+
 It includes:
 
 - An **onboarding screen** and a **chat-style booking widget** (date → time → guests → name → confirm).
