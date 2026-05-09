@@ -131,7 +131,7 @@ export function SeatMenuPicker({
                 disabled={blocked}
                 className={
                   pill +
-                  ' h-full w-full ' +
+                  ' flex h-full w-full flex-col items-stretch justify-start ' +
                   (selected
                     ? ' border-neutral-950 bg-neutral-950 text-white shadow-md press:bg-neutral-800 active:scale-[0.99]'
                     : blocked
