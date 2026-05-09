@@ -1,5 +1,6 @@
 import { PencilSimple } from '@phosphor-icons/react'
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   addBooking,
   clearBookings,
@@ -10,6 +11,9 @@ import {
   loadBookings,
   type SavedBooking,
 } from './storage'
+import { reservationManageAbsoluteUrl, reservationManagePath } from './lib/reservationUrls'
+import { sendBookingConfirmationEmail } from './lib/sendBookingEmail'
+import { useMenuCatalog } from './menu/useMenuCatalog'
 import { syncBookingToSheets } from './syncBookingToSheets'
 import { AiChatbotLogo } from './components/AiChatbotLogo'
 import { BackChevronIcon } from './components/BackChevronIcon'
@@ -17,11 +21,12 @@ import { GetDirectionsFab } from './components/GetDirectionsFab'
 import { BookingsLog } from './components/BookingsLog'
 import { NotionStyleDatePicker } from './components/NotionStyleDatePicker'
 import { VenueHeaderRating } from './components/VenueHeaderRating'
+import { BookingConfirmationCta } from './components/customization/BookingConfirmationCta'
 import {
+  WIDGET_CHAT_CARD_FRAME_CLASS,
   WIDGET_CHAT_HEADER_PAD_CLASS,
-  WIDGET_FRAME_HEIGHT_CLASS,
-  WIDGET_PAGE_SHELL_CLASS,
-  WIDGET_STACK_COLUMN_CLASS,
+  WIDGET_CHAT_PAGE_SHELL_CLASS,
+  WIDGET_CHAT_STACK_COLUMN_CLASS,
 } from './widgetLayout'
 
 type Role = 'assistant' | 'user'
@@ -124,6 +129,16 @@ function formatDay(d: Date): string {
     month: 'short',
     day: 'numeric',
   })
+}
+
+function formatDayFromIso(dateIso: string): string {
+  if (!dateIso) return '—'
+  try {
+    const d = new Date(dateIso)
+    return formatDay(d)
+  } catch {
+    return '—'
+  }
 }
 
 /** Same rules as validateDetails, without mutating error state. */
@@ -268,6 +283,8 @@ type Props = {
 }
 
 export function BookingChatView({ onBack }: Props) {
+  const navigate = useNavigate()
+  const { availabilityVersion } = useMenuCatalog()
   const titleId = useId()
   const listRef = useRef<HTMLDivElement>(null)
 
@@ -311,11 +328,15 @@ export function BookingChatView({ onBack }: Props) {
   const [importMsg, setImportMsg] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const importModeRef = useRef<'merge' | 'replace'>('merge')
+  /** Latest confirmed reservation — drives optional post-booking dining CTA */
+  const [lastConfirmedReservation, setLastConfirmedReservation] =
+    useState<SavedBooking | null>(null)
+  const [linkCopied, setLinkCopied] = useState(false)
 
   useEffect(() => {
     void (async () => {
       await hydrateFromPublicFile()
-      setSavedBookings(loadBookings())
+      setSavedBookings(await loadBookings())
     })()
   }, [])
 
@@ -323,8 +344,12 @@ export function BookingChatView({ onBack }: Props) {
     if (guestsInputMode) guestInputRef.current?.focus()
   }, [guestsInputMode])
 
-  const refreshSaved = useCallback(() => {
-    setSavedBookings(loadBookings())
+  const refreshSaved = useCallback(async () => {
+    try {
+      setSavedBookings(await loadBookings())
+    } catch {
+      setSavedBookings([])
+    }
   }, [])
 
   const scrollToBottom = useCallback(() => {
@@ -335,6 +360,12 @@ export function BookingChatView({ onBack }: Props) {
 
   useEffect(() => {
     scrollToBottom()
+    const t = window.setTimeout(scrollToBottom, 80)
+    const t2 = window.setTimeout(scrollToBottom, 280)
+    return () => {
+      window.clearTimeout(t)
+      window.clearTimeout(t2)
+    }
   }, [messages, step, scrollToBottom])
 
   const pushUser = (text: string, section?: BookingSection) => {
@@ -466,21 +497,33 @@ export function BookingChatView({ onBack }: Props) {
     if (step !== 'confirm') return
     setStep('submitting')
     window.setTimeout(() => {
-      const saved = addBooking({
-        guests: booking.guestCount,
-        service: RESTAURANT_SERVICE,
-        dateIso: booking.date ? booking.date.toISOString() : '',
-        time: booking.time,
-        name: details.name.trim(),
-        email: details.email.trim(),
-        phone: details.phone.trim(),
-      })
-      void syncBookingToSheets(saved)
-      refreshSaved()
-      pushAssistant(
-        '**Booking confirmed!** Your table is reserved. We look forward to welcoming you.',
-      )
-      setStep('success')
+      void (async () => {
+        try {
+          const saved = await addBooking({
+            guests: booking.guestCount,
+            service: RESTAURANT_SERVICE,
+            dateIso: booking.date ? booking.date.toISOString() : '',
+            time: booking.time,
+            name: details.name.trim(),
+            email: details.email.trim(),
+            phone: details.phone.trim(),
+            meta: { menuAvailabilityVersion: availabilityVersion },
+          })
+          void syncBookingToSheets(saved)
+          void sendBookingConfirmationEmail(saved)
+          await refreshSaved()
+          setLastConfirmedReservation(saved)
+          pushAssistant(
+            '**Booking confirmed!** Your table is reserved. We look forward to welcoming you.',
+          )
+          setStep('success')
+        } catch {
+          pushAssistant(
+            "**We couldn't save your booking.** Check your connection and tap **Confirm booking** again.",
+          )
+          setStep('confirm')
+        }
+      })()
     }, 1600)
   }
 
@@ -522,6 +565,8 @@ export function BookingChatView({ onBack }: Props) {
   const timeSlotsSecondRow = TIME_SLOTS_24.slice(10, 20)
 
   const resetChat = () => {
+    setLinkCopied(false)
+    setLastConfirmedReservation(null)
     setBooking({ guestCount: 0, date: null, time: '' })
     setGuestsInputMode(false)
     setGuestInputDraft('')
@@ -542,9 +587,9 @@ export function BookingChatView({ onBack }: Props) {
   const showFooter = step !== 'submitting'
 
   return (
-    <div className="relative min-h-dvh bg-[var(--color-chat-bg)]">
-      <div className={WIDGET_PAGE_SHELL_CLASS}>
-        <div className={WIDGET_STACK_COLUMN_CLASS}>
+    <div className="relative flex h-dvh max-h-dvh flex-col overflow-hidden bg-[var(--color-chat-bg)]">
+      <div className={WIDGET_CHAT_PAGE_SHELL_CLASS}>
+        <div className={`${WIDGET_CHAT_STACK_COLUMN_CLASS} mx-auto`}>
           <div className="sticky top-[max(0.5rem,env(safe-area-inset-top))] z-50 flex w-full justify-start py-2">
             <button
               type="button"
@@ -557,7 +602,7 @@ export function BookingChatView({ onBack }: Props) {
           </div>
 
           <div
-            className={`flex w-full flex-col overflow-hidden rounded-2xl border border-neutral-300 bg-white shadow-md ${WIDGET_FRAME_HEIGHT_CLASS}`}
+            className={`flex min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-neutral-300 bg-white shadow-md ${WIDGET_CHAT_CARD_FRAME_CLASS}`}
             role="region"
             aria-labelledby={titleId}
           >
@@ -585,7 +630,7 @@ export function BookingChatView({ onBack }: Props) {
           </div>
 
           {step === 'submitting' ? (
-            <div className="flex min-h-[220px] flex-col items-center justify-center gap-3 px-4 py-10">
+            <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-4 py-10">
               <div
                 className="size-11 animate-spin rounded-full border-[3px] border-neutral-200 border-t-neutral-950"
                 aria-hidden
@@ -601,7 +646,12 @@ export function BookingChatView({ onBack }: Props) {
             <>
               <div
                 ref={listRef}
-                className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain bg-neutral-50/80 px-3 py-3 sm:space-y-3 sm:px-4 sm:py-4"
+                className={
+                  'min-h-0 max-h-[min(360px,calc(100dvh-13rem))] touch-pan-y space-y-3 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] bg-neutral-50/80 px-3 py-3 sm:space-y-3 sm:px-4 sm:py-4 ' +
+                  (step === 'success'
+                    ? 'scroll-pb-[max(7rem,calc(env(safe-area-inset-bottom)+5rem))]'
+                    : '')
+                }
                 role="log"
                 aria-relevant="additions"
                 aria-live="polite"
@@ -735,30 +785,82 @@ export function BookingChatView({ onBack }: Props) {
                     onEditDetails={() => handleEditSection('details')}
                   />
                 )}
-              </div>
 
-              {step === 'success' && (
-                <div className="shrink-0 space-y-3 border-t border-neutral-200 bg-white px-3 py-4 sm:px-4">
-                  <div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
-                    <span
-                      className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-emerald-700 text-sm font-bold text-white"
-                      aria-hidden
-                    >
-                      ✓
-                    </span>
-                    <p className="text-left text-[15px] font-medium leading-snug text-emerald-950">
-                      You&apos;re all set. Ready for another reservation?
-                    </p>
+                {step === 'success' && (
+                  <div className="mt-3 space-y-4 border-t border-neutral-200 bg-white -mx-3 px-3 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:-mx-4 sm:px-4">
+                    {lastConfirmedReservation ? (
+                      <BookingConfirmationCta
+                        manageToken={lastConfirmedReservation.manageToken}
+                        guests={lastConfirmedReservation.guests}
+                        dateLabel={formatDayFromIso(lastConfirmedReservation.dateIso)}
+                        timeLabel={lastConfirmedReservation.time || '—'}
+                        onCustomize={() =>
+                          navigate(reservationManagePath(lastConfirmedReservation.manageToken))
+                        }
+                        onSkip={resetChat}
+                      />
+                    ) : (
+                      <div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+                        <span
+                          className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-emerald-700 text-sm font-bold text-white"
+                          aria-hidden
+                        >
+                          ✓
+                        </span>
+                        <p className="text-left text-[15px] font-medium leading-snug text-emerald-950">
+                          You&apos;re all set. Ready for another reservation?
+                        </p>
+                      </div>
+                    )}
+                    <div className="flex justify-center">
+                      <button
+                        type="button"
+                        onClick={resetChat}
+                        className={`${btnPrimary} w-full max-w-[220px]`}
+                      >
+                        Book again
+                      </button>
+                    </div>
+                    {lastConfirmedReservation ? (
+                      <p className="text-center text-[12px] leading-snug text-neutral-500">
+                        Manage dining preferences anytime:{' '}
+                        <button
+                          type="button"
+                          className="font-semibold text-neutral-800 underline-offset-2 press:underline"
+                          onClick={async () => {
+                            const url = reservationManageAbsoluteUrl(
+                              lastConfirmedReservation.manageToken,
+                            )
+                            try {
+                              await navigator.clipboard.writeText(url)
+                              setLinkCopied(true)
+                              window.setTimeout(() => setLinkCopied(false), 2500)
+                            } catch {
+                              /* ignore */
+                            }
+                          }}
+                        >
+                          {linkCopied ? 'Link copied' : 'Copy reservation link'}
+                        </button>{' '}
+                        (confirmation email sends automatically when Resend is configured on the server).
+                      </p>
+                    ) : null}
+                    <div className="flex justify-center pt-1">
+                      <button
+                        type="button"
+                        className="text-[13px] font-semibold text-neutral-700 underline-offset-2 press:text-neutral-950 press:underline"
+                        onClick={() => {
+                          setImportMsg(null)
+                          void refreshSaved()
+                          setLogOpen(true)
+                        }}
+                      >
+                        Saved bookings
+                      </button>
+                    </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={resetChat}
-                    className={`${btnPrimary} mx-auto w-full max-w-[220px]`}
-                  >
-                    Book again
-                  </button>
-                </div>
-              )}
+                )}
+              </div>
             </>
           )}
 
@@ -829,7 +931,7 @@ export function BookingChatView({ onBack }: Props) {
                   />
                 </div>
               )}
-              {!(step === 'date' && datesCustomMode) && (
+              {!(step === 'date' && datesCustomMode) && step !== 'success' && (
                 <div className="flex shrink-0 items-center justify-between gap-2 border-t border-neutral-200 bg-white px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3">
                   <p className="min-w-0 truncate text-[12px] font-medium text-neutral-500 sm:text-[13px] sm:text-neutral-600">
                     Gilgamesh · booking assistant
@@ -839,7 +941,7 @@ export function BookingChatView({ onBack }: Props) {
                     onClick={() => {
                       setLogOpen(true)
                       setImportMsg(null)
-                      refreshSaved()
+                      void refreshSaved()
                     }}
                     className="relative shrink-0 rounded-full border border-neutral-200 bg-white px-3.5 py-1.5 text-[13px] font-semibold text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-[colors,box-shadow,border-color,transform] duration-200 ease-out press:border-neutral-400 press:bg-neutral-200 press:shadow-[0_3px_10px_rgba(0,0,0,0.08)] active:scale-[0.98] active:bg-neutral-300/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
                   >
@@ -867,27 +969,36 @@ export function BookingChatView({ onBack }: Props) {
           fileInputRef={fileInputRef}
           onClose={() => setLogOpen(false)}
           onDelete={(id) => {
-            deleteBooking(id)
-            refreshSaved()
+            void (async () => {
+              await deleteBooking(id)
+              await refreshSaved()
+            })()
           }}
           onClear={() => {
             if (
               typeof window !== 'undefined' &&
-              window.confirm('Remove all saved bookings from this browser?')
+              window.confirm(
+                'Remove all saved bookings? This cannot be undone when using cloud storage.',
+              )
             ) {
-              clearBookings()
-              refreshSaved()
+              void (async () => {
+                await clearBookings()
+                await refreshSaved()
+              })()
             }
           }}
           onExport={() => {
-            const blob = new Blob([exportBookingsJson()], {
-              type: 'application/json',
-            })
-            const a = document.createElement('a')
-            a.href = URL.createObjectURL(blob)
-            a.download = `bookings-${new Date().toISOString().slice(0, 10)}.json`
-            a.click()
-            URL.revokeObjectURL(a.href)
+            void (async () => {
+              const json = await exportBookingsJson()
+              const blob = new Blob([json], {
+                type: 'application/json',
+              })
+              const a = document.createElement('a')
+              a.href = URL.createObjectURL(blob)
+              a.download = `bookings-${new Date().toISOString().slice(0, 10)}.json`
+              a.click()
+              URL.revokeObjectURL(a.href)
+            })()
           }}
           onPickImportFile={(mode) => {
             importModeRef.current = mode
@@ -900,21 +1011,23 @@ export function BookingChatView({ onBack }: Props) {
             const mode = importModeRef.current
             const reader = new FileReader()
             reader.onload = () => {
-              const text = String(reader.result ?? '')
-              const result = importBookingsFromJson(
-                text,
-                mode === 'replace' ? 'replace' : 'merge',
-              )
-              if (result.ok) {
-                setImportMsg(
-                  mode === 'replace'
-                    ? `Replaced with ${result.count} booking(s).`
-                    : `Imported / merged · ${result.count} total in browser.`,
+              void (async () => {
+                const text = String(reader.result ?? '')
+                const result = await importBookingsFromJson(
+                  text,
+                  mode === 'replace' ? 'replace' : 'merge',
                 )
-                refreshSaved()
-              } else {
-                setImportMsg(result.error)
-              }
+                if (result.ok) {
+                  setImportMsg(
+                    mode === 'replace'
+                      ? `Replaced with ${result.count} booking(s).`
+                      : `Imported / merged · ${result.count} total.`,
+                  )
+                  await refreshSaved()
+                } else {
+                  setImportMsg(result.error)
+                }
+              })()
             }
             reader.readAsText(file)
           }}

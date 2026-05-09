@@ -54,6 +54,10 @@ function doPost(e) {
     data.email,
     data.phone,
     data.id,
+    data.manageUrl || '',
+    data.manageToken || '',
+    data.meta !== undefined ? JSON.stringify(data.meta) : '',
+    data.opsPayloadJson || '',
   ])
 
   return jsonResponse({ ok: true })

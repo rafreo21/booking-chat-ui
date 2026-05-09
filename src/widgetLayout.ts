@@ -7,6 +7,20 @@ export const WIDGET_MAX_W = 'max-w-sm'
 export const WIDGET_PAGE_SHELL_CLASS =
   'flex min-h-dvh w-full items-center justify-center px-4 pb-[max(5.5rem,env(safe-area-inset-bottom)+4.5rem)] pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-5 sm:pb-28 sm:pt-6'
 
+/**
+ * Chat — vertically centered. Card shrinks to its content (see card frame class),
+ * shell centers the back-row + card group so the shorter card doesn't leave a
+ * huge grey area above or below.
+ */
+export const WIDGET_CHAT_PAGE_SHELL_CLASS =
+  'flex min-h-0 w-full flex-1 flex-col items-center justify-center overflow-hidden px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-5 sm:pb-6 sm:pt-6'
+
+/**
+ * Column: natural height (no `flex-1`) so the centered shell can center the
+ * back-row + card group as a tight stack.
+ */
+export const WIDGET_CHAT_STACK_COLUMN_CLASS = `flex w-full ${WIDGET_MAX_W} flex-col items-stretch gap-2`
+
 /** Column: top row (back or spacer) + main card, `gap-2` between. */
 export const WIDGET_STACK_COLUMN_CLASS = `flex w-full ${WIDGET_MAX_W} flex-col items-stretch gap-2`
 
@@ -31,3 +45,11 @@ export const WIDGET_LOGO_ABSOLUTE_INSET_CLASS = 'left-3 top-3 sm:left-4 sm:top-4
  */
 export const WIDGET_FRAME_HEIGHT_CLASS =
   'h-[min(580px,calc(100dvh-5.5rem))] max-h-[min(580px,calc(100dvh-5.5rem))] sm:h-[min(580px,calc(100dvh-6rem))] sm:max-h-[min(580px,calc(100dvh-6rem))]'
+
+/**
+ * Chat card frame — `max-h` only (no `h`, no `flex-1`). Card sizes to its content
+ * so it shrinks on short screens (e.g. success step). Cap matches the available
+ * vertical space minus the back-row + page padding.
+ */
+export const WIDGET_CHAT_CARD_FRAME_CLASS =
+  'max-h-[min(580px,calc(100dvh-5.5rem))] sm:max-h-[min(580px,calc(100dvh-6rem))]'

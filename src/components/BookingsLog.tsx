@@ -1,4 +1,6 @@
 import type { RefObject } from 'react'
+import { Link } from 'react-router-dom'
+import { reservationManagePath } from '../lib/reservationUrls'
 import type { SavedBooking } from '../storage'
 
 function formatDay(d: Date): string {
@@ -93,13 +95,21 @@ export function BookingsLog({
                         {b.phone ? ` · ${b.phone}` : ''}
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => onDelete(b.id)}
-                      className="shrink-0 text-[13px] font-semibold text-red-700 press:underline"
-                    >
-                      Remove
-                    </button>
+                    <div className="flex shrink-0 flex-col items-end gap-2">
+                      <Link
+                        to={reservationManagePath(b.manageToken)}
+                        className="text-[13px] font-semibold text-neutral-900 underline-offset-2 press:underline"
+                      >
+                        Dining prefs
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => onDelete(b.id)}
+                        className="text-[13px] font-semibold text-red-700 press:underline"
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </div>
                 </li>
               ))}

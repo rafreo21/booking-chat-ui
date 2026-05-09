@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Cursor / Claude plugin scratch (worktrees, caches)
+.claude/
+
+# Local env files
+.env
+.env.*
+!.env.example

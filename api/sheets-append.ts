@@ -15,6 +15,11 @@ type BookingPayload = {
   name: string
   email: string
   phone: string
+  manageUrl?: string
+  manageToken?: string
+  meta?: unknown
+  /** Serialized `DiningCustomization` or other ops JSON for CRM columns */
+  opsPayloadJson?: string
 }
 
 function isBookingPayload(x: unknown): x is BookingPayload {
@@ -99,7 +104,7 @@ async function appendViaServiceAccount(
   const rawJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON
   const sheetId =
     process.env.GOOGLE_SHEET_ID?.trim() || DEFAULT_GOOGLE_SHEET_ID
-  const range = process.env.GOOGLE_SHEET_RANGE ?? 'Sheet1!A:I'
+  const range = process.env.GOOGLE_SHEET_RANGE ?? 'Sheet1!A:M'
 
   if (!rawJson) {
     res.status(503).json({
@@ -122,6 +127,9 @@ async function appendViaServiceAccount(
     credentials.private_key = credentials.private_key.replace(/\\n/g, '\n')
   }
 
+  const metaJson =
+    body.meta !== undefined ? JSON.stringify(body.meta as Record<string, unknown>) : ''
+
   const row: string[] = [
     body.createdAt,
     String(body.guests),
@@ -132,6 +140,10 @@ async function appendViaServiceAccount(
     body.email,
     body.phone,
     body.id,
+    typeof body.manageUrl === 'string' ? body.manageUrl : '',
+    typeof body.manageToken === 'string' ? body.manageToken : '',
+    metaJson,
+    typeof body.opsPayloadJson === 'string' ? body.opsPayloadJson : '',
   ]
 
   try {
