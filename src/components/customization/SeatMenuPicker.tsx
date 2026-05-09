@@ -143,17 +143,19 @@ export function SeatMenuPicker({
                   onToggleItem(activeSeat.seatIndex, item.id, !selected)
                 }}
               >
-                <span className="block">{item.name}</span>
-                {price ? (
-                  <span
-                    className={
-                      'mt-1 block tabular-nums text-[13px] font-bold ' +
-                      (selected ? 'text-white' : 'text-neutral-900')
-                    }
-                  >
-                    {price}
-                  </span>
-                ) : null}
+                <span className="flex items-start justify-between gap-2">
+                  <span className="block">{item.name}</span>
+                  {price ? (
+                    <span
+                      className={
+                        'shrink-0 tabular-nums text-[13px] font-bold ' +
+                        (selected ? 'text-white' : 'text-neutral-900')
+                      }
+                    >
+                      {price}
+                    </span>
+                  ) : null}
+                </span>
                 {item.description ? (
                   <span
                     className={
