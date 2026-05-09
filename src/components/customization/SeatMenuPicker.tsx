@@ -6,7 +6,7 @@ type Props = {
   activeSeat: GuestSeat
   maxSelectablePerSeat: number
   onToggleItem: (seatIndex: number, menuItemId: string, selected: boolean) => void
-  /** Items per pagination page. Defaults to 4 (4×1 on xl). */
+  /** Items per pagination page. Defaults to 4 (4×1 grid). */
   pageSize?: number
 }
 
@@ -16,8 +16,8 @@ const pill =
 const badgeCls =
   'rounded-full border border-neutral-400/80 bg-neutral-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-neutral-700'
 
-const pageBtn =
-  'inline-flex h-9 min-w-9 items-center justify-center rounded-full border border-neutral-300 bg-white px-3 text-[13px] font-semibold text-neutral-800 shadow-[0_1px_3px_rgba(0,0,0,0.06)] transition-[colors,border-color] duration-200 ease-out press:border-neutral-400 press:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1'
+const arrowBtn =
+  'inline-flex h-8 w-8 items-center justify-center rounded-full border border-neutral-300 bg-white text-[14px] font-semibold text-neutral-800 shadow-[0_1px_3px_rgba(0,0,0,0.06)] transition-[colors,border-color] duration-200 ease-out press:border-neutral-400 press:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1'
 
 const gbp = new Intl.NumberFormat('en-GB', {
   style: 'currency',
@@ -55,31 +55,69 @@ export function SeatMenuPicker({
   )
 
   const showPagination = pageCount > 1
-  const rangeFrom = items.length === 0 ? 0 : startIndex + 1
-  const rangeTo = Math.min(startIndex + pageSize, items.length)
+  const canPrev = safePage > 1
+  const canNext = safePage < pageCount
+
+  const seatLabel = (
+    <>
+      Tap to add or remove for{' '}
+      <span className="font-semibold text-neutral-900">
+        Seat {activeSeat.seatIndex}
+        {activeSeat.displayName.trim() &&
+        activeSeat.displayName.trim() !== `Guest ${activeSeat.seatIndex}`
+          ? ` (${activeSeat.displayName.trim()})`
+          : ''}
+      </span>
+      .{' '}
+      <span className="tabular-nums text-neutral-500">
+        {count}/{maxSelectablePerSeat} dishes
+      </span>
+    </>
+  )
 
   return (
     <div className="space-y-2">
-      <p className="text-[13px] text-neutral-600">
-        Tap to add or remove for{' '}
-        <span className="font-semibold text-neutral-900">
-          Seat {activeSeat.seatIndex}
-          {activeSeat.displayName.trim() &&
-          activeSeat.displayName.trim() !== `Guest ${activeSeat.seatIndex}`
-            ? ` (${activeSeat.displayName.trim()})`
-            : ''}
-        </span>
-        .{' '}
-        <span className="tabular-nums text-neutral-500">
-          {count}/{maxSelectablePerSeat} dishes
-        </span>
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <p className="min-w-0 text-[13px] text-neutral-600">{seatLabel}</p>
+        {showPagination ? (
+          <div
+            className="flex shrink-0 items-center gap-2"
+            role="navigation"
+            aria-label="Menu pagination"
+          >
+            <button
+              type="button"
+              className={arrowBtn}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={!canPrev}
+              aria-label="Previous page"
+            >
+              <span aria-hidden>←</span>
+            </button>
+            <span
+              className="tabular-nums text-[12px] font-semibold text-neutral-700"
+              aria-live="polite"
+            >
+              {safePage} / {pageCount}
+            </span>
+            <button
+              type="button"
+              className={arrowBtn}
+              onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+              disabled={!canNext}
+              aria-label="Next page"
+            >
+              <span aria-hidden>→</span>
+            </button>
+          </div>
+        ) : null}
+      </div>
       {atCap ? (
         <p className="text-[12px] font-medium text-amber-900">
           Maximum dishes reached for this seat — remove one to add another.
         </p>
       ) : null}
-      <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <ul className="grid grid-cols-4 gap-2">
         {visibleItems.map((item) => {
           const selected = activeSeat.selectedMenuItemIds.includes(item.id)
           const blocked = !selected && atCap
@@ -93,7 +131,7 @@ export function SeatMenuPicker({
                 disabled={blocked}
                 className={
                   pill +
-                  ' w-full ' +
+                  ' h-full w-full ' +
                   (selected
                     ? ' border-neutral-950 bg-neutral-950 text-white shadow-md press:bg-neutral-800 active:scale-[0.99]'
                     : blocked
@@ -146,45 +184,6 @@ export function SeatMenuPicker({
         <p className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-4 py-6 text-center text-[14px] text-neutral-600">
           No dishes in this category yet.
         </p>
-      ) : null}
-      {showPagination ? (
-        <nav
-          className="mt-3 flex items-center justify-between gap-3"
-          aria-label="Menu pagination"
-        >
-          <p className="text-[12px] tabular-nums text-neutral-600">
-            Showing <span className="font-semibold text-neutral-900">{rangeFrom}–{rangeTo}</span>{' '}
-            of <span className="font-semibold text-neutral-900">{items.length}</span>
-          </p>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              className={pageBtn}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={safePage <= 1}
-              aria-label="Previous page"
-            >
-              <span aria-hidden>←</span>
-              <span className="ml-1 hidden sm:inline">Prev</span>
-            </button>
-            <span
-              className="tabular-nums text-[13px] font-semibold text-neutral-800"
-              aria-live="polite"
-            >
-              Page {safePage} of {pageCount}
-            </span>
-            <button
-              type="button"
-              className={pageBtn}
-              onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
-              disabled={safePage >= pageCount}
-              aria-label="Next page"
-            >
-              <span className="mr-1 hidden sm:inline">Next</span>
-              <span aria-hidden>→</span>
-            </button>
-          </div>
-        </nav>
       ) : null}
     </div>
   )
