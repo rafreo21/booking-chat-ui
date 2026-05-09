@@ -6,6 +6,7 @@ A small restaurant booking experience built with **React 19 + Vite + TypeScript 
 
 ## Recent updates
 
+- **Real Gilgamesh à la carte menu** in `public/menu.json` (11 categories, ~50 dishes, prices, dietary tags) plus pagination on the dish picker — 4 per page, prev/next, **4×1 per page on `xl`**.
 - **Manage reservation page** at `/reservation/:manageToken` — wide, responsive layout (`max-w-[1400px]`), sticky **Summary** sidebar on the right from `md:`, top-left back button, consistent shell across loading/error/loaded states.
 - **Dining customization flow** — per-seat menu picker (2 → 3 → 4 column responsive grid), dietary badges, undo, and a live summary panel.
 - **Staff prep page** at `/staff/prep` for upcoming reservations and seat-level selections.

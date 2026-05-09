@@ -6,7 +6,16 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/
 
 ## [Unreleased]
 
-_Nothing yet._
+### Added
+
+- **Real Gilgamesh à la carte menu** loaded from `public/menu.json`, replacing the placeholder Starters/Mains/Desserts/Drinks. Now includes 11 categories (Small sharing, Salad, Baskets, Rolls, Skewers, Sashimi & Nigiri, Sushi, Plant based, From the sea, From the land, Sides) and ~50 dishes with prices in `priceCents` and dietary tags from the printed menu.
+- **GBP price labels** on each dish card (formatted via `Intl.NumberFormat`).
+- **Menu pagination** in `SeatMenuPicker` — 4 items per page with prev / next controls and a "Showing X–Y of Z · Page N of M" indicator. Resets to page 1 when the category changes. The grid stays responsive (2 → 3 → 4 columns) so on `xl` it lays out as **4×1 per page**.
+
+### Changed
+
+- `MenuCategoryId` is now `string` so the catalog is fully JSON-driven instead of a hardcoded literal union.
+- `src/data/mockMenu.ts` (offline fallback) mirrors the new Gilgamesh data so the menu is consistent online and offline.
 
 ---
 

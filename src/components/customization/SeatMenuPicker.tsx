@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from 'react'
 import type { GuestSeat, MenuItem } from '../../types/bookingCustomization'
 
 type Props = {
@@ -5,6 +6,8 @@ type Props = {
   activeSeat: GuestSeat
   maxSelectablePerSeat: number
   onToggleItem: (seatIndex: number, menuItemId: string, selected: boolean) => void
+  /** Items per pagination page. Defaults to 4 (4×1 on xl). */
+  pageSize?: number
 }
 
 const pill =
@@ -13,14 +16,47 @@ const pill =
 const badgeCls =
   'rounded-full border border-neutral-400/80 bg-neutral-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-neutral-700'
 
+const pageBtn =
+  'inline-flex h-9 min-w-9 items-center justify-center rounded-full border border-neutral-300 bg-white px-3 text-[13px] font-semibold text-neutral-800 shadow-[0_1px_3px_rgba(0,0,0,0.06)] transition-[colors,border-color] duration-200 ease-out press:border-neutral-400 press:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1'
+
+const gbp = new Intl.NumberFormat('en-GB', {
+  style: 'currency',
+  currency: 'GBP',
+  maximumFractionDigits: 0,
+})
+
+function formatPrice(priceCents: number | undefined): string | null {
+  if (typeof priceCents !== 'number' || !Number.isFinite(priceCents)) return null
+  return gbp.format(priceCents / 100)
+}
+
 export function SeatMenuPicker({
   items,
   activeSeat,
   maxSelectablePerSeat,
   onToggleItem,
+  pageSize = 4,
 }: Props) {
   const count = activeSeat.selectedMenuItemIds.length
   const atCap = count >= maxSelectablePerSeat
+
+  const pageCount = Math.max(1, Math.ceil(items.length / pageSize))
+  const [page, setPage] = useState(1)
+
+  useEffect(() => {
+    setPage(1)
+  }, [items])
+
+  const safePage = Math.min(Math.max(1, page), pageCount)
+  const startIndex = (safePage - 1) * pageSize
+  const visibleItems = useMemo(
+    () => items.slice(startIndex, startIndex + pageSize),
+    [items, startIndex, pageSize],
+  )
+
+  const showPagination = pageCount > 1
+  const rangeFrom = items.length === 0 ? 0 : startIndex + 1
+  const rangeTo = Math.min(startIndex + pageSize, items.length)
 
   return (
     <div className="space-y-2">
@@ -44,9 +80,10 @@ export function SeatMenuPicker({
         </p>
       ) : null}
       <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {items.map((item) => {
+        {visibleItems.map((item) => {
           const selected = activeSeat.selectedMenuItemIds.includes(item.id)
           const blocked = !selected && atCap
+          const price = formatPrice(item.priceCents)
           return (
             <li key={item.id}>
               <button
@@ -68,7 +105,19 @@ export function SeatMenuPicker({
                   onToggleItem(activeSeat.seatIndex, item.id, !selected)
                 }}
               >
-                <span className="block">{item.name}</span>
+                <span className="flex items-start justify-between gap-2">
+                  <span className="block">{item.name}</span>
+                  {price ? (
+                    <span
+                      className={
+                        'shrink-0 tabular-nums text-[13px] font-bold ' +
+                        (selected ? 'text-white' : 'text-neutral-900')
+                      }
+                    >
+                      {price}
+                    </span>
+                  ) : null}
+                </span>
                 {item.description ? (
                   <span
                     className={
@@ -97,6 +146,45 @@ export function SeatMenuPicker({
         <p className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-4 py-6 text-center text-[14px] text-neutral-600">
           No dishes in this category yet.
         </p>
+      ) : null}
+      {showPagination ? (
+        <nav
+          className="mt-3 flex items-center justify-between gap-3"
+          aria-label="Menu pagination"
+        >
+          <p className="text-[12px] tabular-nums text-neutral-600">
+            Showing <span className="font-semibold text-neutral-900">{rangeFrom}–{rangeTo}</span>{' '}
+            of <span className="font-semibold text-neutral-900">{items.length}</span>
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className={pageBtn}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={safePage <= 1}
+              aria-label="Previous page"
+            >
+              <span aria-hidden>←</span>
+              <span className="ml-1 hidden sm:inline">Prev</span>
+            </button>
+            <span
+              className="tabular-nums text-[13px] font-semibold text-neutral-800"
+              aria-live="polite"
+            >
+              Page {safePage} of {pageCount}
+            </span>
+            <button
+              type="button"
+              className={pageBtn}
+              onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+              disabled={safePage >= pageCount}
+              aria-label="Next page"
+            >
+              <span className="mr-1 hidden sm:inline">Next</span>
+              <span aria-hidden>→</span>
+            </button>
+          </div>
+        </nav>
       ) : null}
     </div>
   )

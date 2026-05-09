@@ -6,7 +6,8 @@ export type Reservation = SavedBooking
 /** Alias for kitchen/slot/menu versioning fields shared with `SavedBooking.meta`. */
 export type ReservationMeta = ReservationBookingMeta
 
-export type MenuCategoryId = 'starters' | 'mains' | 'desserts' | 'drinks'
+/** Category ids are JSON-driven (see `public/menu.json`). Keep stable across deploys. */
+export type MenuCategoryId = string
 
 export interface MenuCategory {
   id: MenuCategoryId
