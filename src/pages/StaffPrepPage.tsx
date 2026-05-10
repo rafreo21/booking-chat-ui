@@ -1,9 +1,15 @@
-import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
+import { Loader2Icon } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
+import { Skeleton } from '@/components/ui/skeleton'
 import { CustomizationSummary } from '../components/customization/CustomizationSummary'
 import { loadCustomization, resolveReservationPublicRef } from '../storage'
 import type { SavedBooking } from '../storage'
 import type { DiningCustomization } from '../types/bookingCustomization'
+import { useEffect, useState } from 'react'
 
 export function StaffPrepPage() {
   const [params] = useSearchParams()
@@ -57,65 +63,73 @@ export function StaffPrepPage() {
 
   if (denied) {
     return (
-      <div className="min-h-dvh bg-neutral-100 px-4 py-10">
-        <div className="mx-auto max-w-lg rounded-2xl border border-neutral-200 bg-white p-6 shadow-md">
-          <h1 className="text-lg font-bold text-neutral-950">Staff prep</h1>
-          <p className="mt-2 text-[15px] text-neutral-600">
-            Add the correct <code className="rounded bg-neutral-100 px-1">key</code> query parameter matching{' '}
-            <code className="rounded bg-neutral-100 px-1">VITE_STAFF_PREP_SECRET</code>.
-          </p>
-          <Link to="/" className="mt-4 inline-block font-semibold text-neutral-950 underline">
-            Home
-          </Link>
-        </div>
+      <div className="min-h-dvh bg-muted/40 px-4 py-10 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <Card className="mx-auto max-w-lg">
+          <CardHeader>
+            <CardTitle className="text-xl tracking-tight">Staff prep</CardTitle>
+            <CardDescription className="text-[15px] leading-relaxed">
+              Add the correct <code className="rounded-md bg-muted px-1.5 py-0.5 text-sm">key</code> query parameter matching{' '}
+              <code className="rounded-md bg-muted px-1.5 py-0.5 text-sm">VITE_STAFF_PREP_SECRET</code>.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild variant="secondary">
+              <Link to="/">Home</Link>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     )
   }
 
   if (missingRef) {
     return (
-      <div className="min-h-dvh bg-neutral-100 px-4 py-10">
-        <div className="mx-auto max-w-lg rounded-2xl border border-neutral-200 bg-white p-6 shadow-md">
-          <h1 className="text-lg font-bold text-neutral-950">Staff prep</h1>
-          <p className="mt-2 text-[15px] leading-relaxed text-neutral-600">
-            Pass <code className="rounded bg-neutral-100 px-1">ref</code> with the guest&apos;s reservation manage token
-            (or legacy internal id).
-          </p>
-          <p className="mt-3 font-mono text-[13px] text-neutral-500">
-            Example: /staff/prep?ref=YOUR_TOKEN
-          </p>
-          <Link to="/" className="mt-4 inline-block font-semibold text-neutral-950 underline">
-            Home
-          </Link>
-        </div>
+      <div className="min-h-dvh bg-muted/40 px-4 py-10 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <Card className="mx-auto max-w-lg">
+          <CardHeader>
+            <CardTitle className="text-xl tracking-tight">Staff prep</CardTitle>
+            <CardDescription className="text-[15px] leading-relaxed">
+              Pass <code className="rounded-md bg-muted px-1.5 py-0.5 text-sm">ref</code> with the guest&apos;s reservation manage token
+              (or legacy internal id).
+            </CardDescription>
+            <p className="pt-2 font-mono text-[13px] text-muted-foreground">Example: /staff/prep?ref=YOUR_TOKEN</p>
+          </CardHeader>
+          <CardContent>
+            <Button asChild variant="secondary">
+              <Link to="/">Home</Link>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     )
   }
 
   if (loading) {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center gap-3 bg-neutral-100">
-        <div
-          className="size-10 animate-spin rounded-full border-[3px] border-neutral-200 border-t-neutral-950"
-          aria-hidden
-        />
-        <p className="text-[15px] text-neutral-700">Loading prep sheet…</p>
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-muted/40 px-4">
+        <Loader2Icon className="size-10 animate-spin text-primary" aria-hidden />
+        <Skeleton className="h-4 w-48" />
+        <p className="text-[15px] font-medium text-muted-foreground">Loading prep sheet…</p>
       </div>
     )
   }
 
   if (notFound || !payload) {
     return (
-      <div className="min-h-dvh bg-neutral-100 px-4 py-10">
-        <div className="mx-auto max-w-lg rounded-2xl border border-neutral-200 bg-white p-6 shadow-md">
-          <h1 className="text-lg font-bold text-neutral-950">Reservation not found</h1>
-          <p className="mt-2 text-[15px] text-neutral-600">
-            No booking matches this ref. Check the token or try the internal id for legacy rows.
-          </p>
-          <Link to="/" className="mt-4 inline-block font-semibold text-neutral-950 underline">
-            Home
-          </Link>
-        </div>
+      <div className="min-h-dvh bg-muted/40 px-4 py-10 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <Card className="mx-auto max-w-lg">
+          <CardHeader>
+            <CardTitle className="text-xl tracking-tight">Reservation not found</CardTitle>
+            <CardDescription className="text-[15px]">
+              No booking matches this ref. Check the token or try the internal id for legacy rows.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild variant="secondary">
+              <Link to="/">Home</Link>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     )
   }
@@ -126,52 +140,70 @@ export function StaffPrepPage() {
     typeof booking.meta?.kitchenPrepNotes === 'string' ? booking.meta.kitchenPrepNotes.trim() : ''
 
   return (
-    <div className="min-h-dvh bg-neutral-100 px-4 py-8 pb-[max(1rem,env(safe-area-inset-bottom))]">
+    <div className="min-h-dvh bg-muted/40 px-4 py-8 pb-[max(1rem,env(safe-area-inset-bottom))]">
       <div className="mx-auto flex max-w-2xl flex-col gap-4">
-        <header className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-          <p className="text-[11px] font-bold uppercase tracking-wide text-neutral-500">Kitchen / floor</p>
-          <h1 className="mt-1 text-xl font-bold text-neutral-950">{booking.name}</h1>
-          <p className="mt-1 text-[15px] text-neutral-700">
-            {booking.guests} guest{booking.guests === 1 ? '' : 's'} · {booking.time || '—'}
-          </p>
-          <p className="mt-2 font-mono text-[12px] text-neutral-500">
-            Token <span className="font-semibold text-neutral-800">{booking.manageToken.slice(0, 14)}…</span>
-          </p>
-          {prepNotes ? (
-            <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2">
-              <p className="text-[11px] font-bold uppercase tracking-wide text-amber-900">Kitchen notes (meta)</p>
-              <p className="mt-1 whitespace-pre-wrap text-[14px] text-amber-950">{prepNotes}</p>
-            </div>
-          ) : null}
-        </header>
+        <Card>
+          <CardHeader className="gap-1">
+            <Badge variant="outline" className="w-fit text-[11px] uppercase tracking-wide">
+              Kitchen / floor
+            </Badge>
+            <CardTitle className="text-xl tracking-tight">{booking.name}</CardTitle>
+            <CardDescription className="text-[15px]">
+              {booking.guests} guest{booking.guests === 1 ? '' : 's'} · {booking.time || '—'}
+            </CardDescription>
+            <p className="font-mono text-[12px] text-muted-foreground">
+              Token{' '}
+              <span className="font-semibold text-foreground">{booking.manageToken.slice(0, 14)}…</span>
+            </p>
+            {prepNotes ? (
+              <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 dark:border-amber-900/40 dark:bg-amber-950/30">
+                <p className="text-[11px] font-bold uppercase tracking-wide text-amber-900 dark:text-amber-200">
+                  Kitchen notes (meta)
+                </p>
+                <p className="mt-1 whitespace-pre-wrap text-[14px] text-amber-950 dark:text-amber-50">{prepNotes}</p>
+              </div>
+            ) : null}
+          </CardHeader>
+        </Card>
 
-        <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-          <h2 className="text-[15px] font-bold text-neutral-950">Guest dining customization</h2>
-          {customization?.notes ? (
-            <div className="mt-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2">
-              <p className="text-[11px] font-bold uppercase tracking-wide text-neutral-600">Guest notes</p>
-              <p className="mt-1 whitespace-pre-wrap text-[14px] text-neutral-900">{customization.notes}</p>
-            </div>
-          ) : (
-            <p className="mt-3 text-[14px] text-neutral-600">No dining customization saved yet.</p>
-          )}
-          {customization?.seats?.length ? (
-            <div className="mt-4">
-              <CustomizationSummary seats={customization.seats} />
-            </div>
-          ) : null}
-        </section>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base font-semibold tracking-tight">Guest dining customization</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 pt-0">
+            {customization?.notes ? (
+              <div className="rounded-lg border border-border bg-muted/40 px-3 py-2">
+                <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Guest notes</p>
+                <p className="mt-1 whitespace-pre-wrap text-[14px] text-foreground">{customization.notes}</p>
+              </div>
+            ) : (
+              <p className="text-[14px] text-muted-foreground">No dining customization saved yet.</p>
+            )}
+            {customization?.seats?.length ? (
+              <>
+                <Separator />
+                <CustomizationSummary seats={customization.seats} />
+              </>
+            ) : null}
+          </CardContent>
+        </Card>
 
-        <section className="rounded-2xl border border-neutral-200 bg-neutral-950 p-4 shadow-sm">
-          <p className="text-[11px] font-bold uppercase tracking-wide text-neutral-400">Raw JSON</p>
-          <pre className="mt-2 max-h-[40vh] overflow-auto text-[11px] leading-relaxed text-emerald-100">
-            {JSON.stringify({ booking, customization }, null, 2)}
-          </pre>
-        </section>
+        <Card className="border-primary/20 bg-primary text-primary-foreground shadow-md">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-bold uppercase tracking-wide text-primary-foreground/80">
+              Raw JSON
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <pre className="max-h-[40vh] overflow-auto rounded-md bg-black/20 p-3 text-[11px] leading-relaxed text-primary-foreground/95">
+              {JSON.stringify({ booking, customization }, null, 2)}
+            </pre>
+          </CardContent>
+        </Card>
 
-        <Link to="/" className="text-center text-[14px] font-semibold text-neutral-700 underline">
-          ← Home
-        </Link>
+        <Button variant="ghost" className="w-full" asChild>
+          <Link to="/">← Home</Link>
+        </Button>
       </div>
     </div>
   )

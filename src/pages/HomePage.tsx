@@ -26,7 +26,7 @@ export function HomePage() {
   }, [])
 
   return (
-    <div className="relative min-h-dvh overflow-hidden bg-[var(--color-chat-bg)]">
+    <div className="relative min-h-dvh overflow-hidden bg-muted/40">
       {chatPrimed ? (
         <div className="absolute inset-0 z-[1] min-h-dvh">
           <BookingChatView onBack={goToOnboarding} />

@@ -1,6 +1,13 @@
 import { PencilSimple } from '@phosphor-icons/react'
+import { Loader2Icon } from 'lucide-react'
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
 import {
   addBooking,
   clearBookings,
@@ -94,19 +101,8 @@ const MAX_GUESTS_TYPED = 100_000
 
 const RESTAURANT_SERVICE = 'Restaurant'
 
-/** Guest counts: equal width & height circles (reference). */
-const chipGuest =
-  'flex size-11 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white text-[15px] font-semibold tabular-nums text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-[colors,box-shadow,border-color,transform] duration-200 ease-out press:border-neutral-400 press:bg-neutral-200 press:shadow-[0_3px_10px_rgba(0,0,0,0.08)] active:scale-[0.97] active:bg-neutral-300/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1'
-
-/** Date / time: compact pills — not stretched full width. */
-const chipPill =
-  'inline-flex h-10 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white px-3.5 text-[13px] font-semibold text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-[colors,box-shadow,border-color,transform] duration-200 ease-out press:border-neutral-400 press:bg-neutral-200 press:shadow-[0_3px_10px_rgba(0,0,0,0.08)] active:scale-[0.97] active:bg-neutral-300/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1'
-
-const backAboveCard =
-  'flex size-11 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-800 shadow-[0_1px_3px_rgba(0,0,0,0.1)] transition-[colors,box-shadow,border-color,transform] duration-200 ease-out press:border-neutral-400 press:bg-neutral-200 press:shadow-[0_3px_10px_rgba(0,0,0,0.1)] active:scale-95 active:bg-neutral-300/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-500'
-
-const btnPrimary =
-  'w-full min-h-[48px] rounded-full bg-neutral-950 px-4 text-[15px] font-semibold text-white shadow-sm transition-[colors,box-shadow,transform] duration-200 ease-out press:bg-neutral-700 press:shadow-md active:bg-neutral-900 active:scale-[0.99] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2'
+const chipOutline =
+  'rounded-full shadow-sm active:scale-[0.97] h-auto min-h-0 px-0 py-0 font-semibold'
 
 /** How many days appear as quick-pick chips — one full week (7-day window from today). */
 const QUICK_PICK_DAYS = 7
@@ -587,58 +583,63 @@ export function BookingChatView({ onBack }: Props) {
   const showFooter = step !== 'submitting'
 
   return (
-    <div className="relative flex h-dvh max-h-dvh flex-col overflow-hidden bg-[var(--color-chat-bg)]">
+    <div className="relative flex h-dvh max-h-dvh flex-col overflow-hidden bg-muted/40">
       <div className={WIDGET_CHAT_PAGE_SHELL_CLASS}>
         <div className={`${WIDGET_CHAT_STACK_COLUMN_CLASS} mx-auto`}>
           <div className="sticky top-[max(0.5rem,env(safe-area-inset-top))] z-50 flex w-full justify-start py-2">
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="icon-lg"
+              className="size-11 shrink-0 rounded-full shadow-sm"
               onClick={onBack}
-              className={backAboveCard}
               aria-label="Back to restaurant"
             >
               <BackChevronIcon size={20} />
-            </button>
+            </Button>
           </div>
 
           <div
-            className={`flex min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-neutral-300 bg-white shadow-md ${WIDGET_CHAT_CARD_FRAME_CLASS}`}
+            className={cn(
+              'flex min-h-0 w-full flex-col overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-md ring-1 ring-border',
+              WIDGET_CHAT_CARD_FRAME_CLASS,
+            )}
             role="region"
             aria-labelledby={titleId}
           >
           <div
-            className={`shrink-0 border-b border-neutral-800 bg-neutral-950 ${WIDGET_CHAT_HEADER_PAD_CLASS}`}
+            className={cn(
+              'shrink-0 border-b border-primary/20 bg-primary text-primary-foreground',
+              WIDGET_CHAT_HEADER_PAD_CLASS,
+            )}
           >
             <div className="flex flex-col items-start gap-1.5 sm:gap-2">
               <AiChatbotLogo />
               <div className="min-w-0">
                 <p
                   id={titleId}
-                  className="text-[16px] font-bold leading-tight tracking-tight text-white sm:text-[17px]"
+                  className="text-[16px] font-bold leading-tight tracking-tight text-primary-foreground sm:text-[17px]"
                 >
                   Hey!
                 </p>
-                <p className="mt-1 text-[14px] leading-snug text-[#f3f2f2] sm:text-[15px]">
+                <p className="mt-1 text-[14px] leading-snug text-primary-foreground/90 sm:text-[15px]">
                   I&apos;m here to help you make your reservation.
                 </p>
               </div>
               <VenueHeaderRating
                 theme="dark"
-                className="mt-2 w-full border-t border-white/10 pt-2.5 sm:mt-3 sm:pt-3"
+                className="mt-2 w-full border-t border-primary-foreground/15 pt-2.5 sm:mt-3 sm:pt-3"
               />
             </div>
           </div>
 
           {step === 'submitting' ? (
             <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-4 py-10">
-              <div
-                className="size-11 animate-spin rounded-full border-[3px] border-neutral-200 border-t-neutral-950"
-                aria-hidden
-              />
-              <p className="text-center text-[16px] font-semibold text-neutral-950">
+              <Loader2Icon className="size-11 animate-spin text-primary" aria-hidden />
+              <p className="text-center text-[16px] font-semibold text-foreground">
                 Booking in progress…
               </p>
-              <p className="text-center text-[15px] text-neutral-600">
+              <p className="text-center text-[15px] text-muted-foreground">
                 Please wait a moment.
               </p>
             </div>
@@ -647,7 +648,7 @@ export function BookingChatView({ onBack }: Props) {
               <div
                 ref={listRef}
                 className={
-                  'min-h-0 max-h-[min(360px,calc(100dvh-13rem))] touch-pan-y space-y-3 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] bg-neutral-50/80 px-3 py-3 sm:space-y-3 sm:px-4 sm:py-4 ' +
+                  'min-h-0 max-h-[min(360px,calc(100dvh-13rem))] touch-pan-y space-y-3 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] bg-muted/50 px-3 py-3 sm:space-y-3 sm:px-4 sm:py-4 ' +
                   (step === 'success'
                     ? 'scroll-pb-[max(7rem,calc(env(safe-area-inset-bottom)+5rem))]'
                     : '')
@@ -681,22 +682,27 @@ export function BookingChatView({ onBack }: Props) {
                   <div className="w-full overflow-x-auto overflow-y-visible pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     <div className="flex w-max flex-nowrap items-center justify-start gap-2.5">
                       {GUEST_CHIPS.map((g) => (
-                        <button
+                        <Button
                           key={g}
                           type="button"
+                          variant="outline"
+                          className={cn(
+                            chipOutline,
+                            'size-11 shrink-0 p-0 text-[15px] tabular-nums',
+                          )}
                           onClick={() => pickGuest(g)}
-                          className={chipGuest}
                         >
                           {g}
-                        </button>
+                        </Button>
                       ))}
-                      <button
+                      <Button
                         type="button"
+                        variant="outline"
+                        className={cn(chipOutline, 'h-10 shrink-0 whitespace-nowrap px-4 text-[13px]')}
                         onClick={startGuestNumberInput}
-                        className={`${chipPill} shrink-0 whitespace-nowrap px-4`}
                       >
                         Enter Number
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -705,22 +711,24 @@ export function BookingChatView({ onBack }: Props) {
                   <div className="w-full overflow-x-auto overflow-y-visible pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     <div className="flex w-max flex-nowrap items-center justify-start gap-2.5">
                       {days.map((d) => (
-                        <button
+                        <Button
                           key={d.toISOString()}
                           type="button"
+                          variant="outline"
+                          className={cn(chipOutline, 'h-10 px-3.5 text-[13px]')}
                           onClick={() => pickDate(d)}
-                          className={chipPill}
                         >
                           {formatDay(d)}
-                        </button>
+                        </Button>
                       ))}
-                      <button
+                      <Button
                         type="button"
+                        variant="outline"
+                        className={cn(chipOutline, 'h-10 shrink-0 whitespace-nowrap px-4 text-[13px]')}
                         onClick={startCustomDatePicker}
-                        className={`${chipPill} shrink-0 whitespace-nowrap px-4`}
                       >
                         Pick Date
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -735,14 +743,18 @@ export function BookingChatView({ onBack }: Props) {
                         {timeSlotsFirstRow.map((t24) => {
                           const label = formatTimeSlot12h(t24)
                           return (
-                            <button
+                            <Button
                               key={t24}
                               type="button"
+                              variant="outline"
+                              className={cn(
+                                chipOutline,
+                                'h-10 min-w-[4.5rem] shrink-0 px-3.5 text-[13px] tabular-nums',
+                              )}
                               onClick={() => pickTime(label)}
-                              className={`${chipPill} min-w-[4.5rem] shrink-0 px-3.5 tabular-nums`}
                             >
                               {label}
-                            </button>
+                            </Button>
                           )
                         })}
                       </div>
@@ -750,14 +762,18 @@ export function BookingChatView({ onBack }: Props) {
                         {timeSlotsSecondRow.map((t24) => {
                           const label = formatTimeSlot12h(t24)
                           return (
-                            <button
+                            <Button
                               key={t24}
                               type="button"
+                              variant="outline"
+                              className={cn(
+                                chipOutline,
+                                'h-10 min-w-[4.5rem] shrink-0 px-3.5 text-[13px] tabular-nums',
+                              )}
                               onClick={() => pickTime(label)}
-                              className={`${chipPill} min-w-[4.5rem] shrink-0 px-3.5 tabular-nums`}
                             >
                               {label}
-                            </button>
+                            </Button>
                           )
                         })}
                       </div>
@@ -787,7 +803,7 @@ export function BookingChatView({ onBack }: Props) {
                 )}
 
                 {step === 'success' && (
-                  <div className="mt-3 space-y-4 border-t border-neutral-200 bg-white -mx-3 px-3 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:-mx-4 sm:px-4">
+                  <div className="mt-3 space-y-4 border-t border-border bg-card -mx-3 px-3 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:-mx-4 sm:px-4">
                     {lastConfirmedReservation ? (
                       <BookingConfirmationCta
                         manageToken={lastConfirmedReservation.manageToken}
@@ -800,33 +816,34 @@ export function BookingChatView({ onBack }: Props) {
                         onSkip={resetChat}
                       />
                     ) : (
-                      <div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+                      <div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 dark:border-emerald-900/40 dark:bg-emerald-950/30">
                         <span
-                          className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-emerald-700 text-sm font-bold text-white"
+                          className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-emerald-700 text-sm font-bold text-white dark:bg-emerald-600"
                           aria-hidden
                         >
                           ✓
                         </span>
-                        <p className="text-left text-[15px] font-medium leading-snug text-emerald-950">
+                        <p className="text-left text-[15px] font-medium leading-snug text-emerald-950 dark:text-emerald-50">
                           You&apos;re all set. Ready for another reservation?
                         </p>
                       </div>
                     )}
                     <div className="flex justify-center">
-                      <button
+                      <Button
                         type="button"
+                        size="lg"
+                        className="h-12 w-full max-w-[220px] rounded-full text-[15px] font-semibold"
                         onClick={resetChat}
-                        className={`${btnPrimary} w-full max-w-[220px]`}
                       >
                         Book again
-                      </button>
+                      </Button>
                     </div>
                     {lastConfirmedReservation ? (
-                      <p className="text-center text-[12px] leading-snug text-neutral-500">
+                      <p className="text-center text-[12px] leading-snug text-muted-foreground">
                         Manage dining preferences anytime:{' '}
                         <button
                           type="button"
-                          className="font-semibold text-neutral-800 underline-offset-2 press:underline"
+                          className="font-semibold text-foreground underline-offset-2 hover:underline"
                           onClick={async () => {
                             const url = reservationManageAbsoluteUrl(
                               lastConfirmedReservation.manageToken,
@@ -846,9 +863,10 @@ export function BookingChatView({ onBack }: Props) {
                       </p>
                     ) : null}
                     <div className="flex justify-center pt-1">
-                      <button
+                      <Button
                         type="button"
-                        className="text-[13px] font-semibold text-neutral-700 underline-offset-2 press:text-neutral-950 press:underline"
+                        variant="link"
+                        className="h-auto p-0 text-[13px] font-semibold"
                         onClick={() => {
                           setImportMsg(null)
                           void refreshSaved()
@@ -856,7 +874,7 @@ export function BookingChatView({ onBack }: Props) {
                         }}
                       >
                         Saved bookings
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -867,15 +885,12 @@ export function BookingChatView({ onBack }: Props) {
           {showFooter && (
             <>
               {step === 'guests' && guestsInputMode && (
-                <div className="shrink-0 border-t border-neutral-200 bg-white px-3 py-2.5 sm:px-4">
+                <div className="shrink-0 border-t border-border bg-card px-3 py-2.5 sm:px-4">
                   <div className="flex items-center gap-2">
-                    <label
-                      htmlFor="guest-count-input"
-                      className="sr-only"
-                    >
+                    <Label htmlFor="guest-count-input" className="sr-only">
                       Number of guests
-                    </label>
-                    <input
+                    </Label>
+                    <Input
                       id="guest-count-input"
                       ref={guestInputRef}
                       type="text"
@@ -895,36 +910,33 @@ export function BookingChatView({ onBack }: Props) {
                           submitGuestNumber()
                         }
                       }}
-                      className="min-h-11 min-w-0 flex-1 rounded-full border-2 border-neutral-200 bg-white px-4 text-[16px] text-neutral-950 placeholder:text-neutral-400 focus:border-neutral-950 focus:outline-none focus:ring-4 focus:ring-neutral-950/10"
+                      className="min-h-11 flex-1 rounded-full border-2 px-4 text-[16px]"
                     />
-                    <button
-                      type="button"
-                      onClick={submitGuestNumber}
-                      className="shrink-0 rounded-full bg-neutral-950 px-4 py-2.5 text-[15px] font-semibold text-white shadow-sm transition-[colors,box-shadow] duration-200 ease-out press:bg-neutral-700 press:shadow-md active:bg-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2"
-                    >
+                    <Button type="button" className="shrink-0 rounded-full px-4 py-2.5 text-[15px]" onClick={submitGuestNumber}>
                       Send
-                    </button>
+                    </Button>
                   </div>
                   {guestInputError ? (
-                    <p className="mt-2 text-[13px] font-medium text-red-600" role="alert">
+                    <p className="mt-2 text-[13px] font-medium text-destructive" role="alert">
                       {guestInputError}
                     </p>
                   ) : null}
-                  <button
+                  <Button
                     type="button"
+                    variant="link"
+                    className="mt-2 h-auto p-0 text-[13px] font-medium"
                     onClick={() => {
                       setGuestsInputMode(false)
                       setGuestInputDraft('')
                       setGuestInputError(null)
                     }}
-                    className="mt-2 text-[13px] font-medium text-neutral-500 underline-offset-2 press:text-neutral-800 press:underline"
                   >
                     Back to quick picks
-                  </button>
+                  </Button>
                 </div>
               )}
               {step === 'date' && datesCustomMode && (
-                <div className="w-full min-w-0 shrink-0 border-t border-neutral-200 bg-white px-3 py-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4 sm:py-2.5 sm:pb-3">
+                <div className="w-full min-w-0 shrink-0 border-t border-border bg-card px-3 py-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4 sm:py-2.5 sm:pb-3">
                   <NotionStyleDatePicker
                     className="min-w-0"
                     onSelectDate={(d) => pickDate(d)}
@@ -932,26 +944,27 @@ export function BookingChatView({ onBack }: Props) {
                 </div>
               )}
               {!(step === 'date' && datesCustomMode) && step !== 'success' && (
-                <div className="flex shrink-0 items-center justify-between gap-2 border-t border-neutral-200 bg-white px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3">
-                  <p className="min-w-0 truncate text-[12px] font-medium text-neutral-500 sm:text-[13px] sm:text-neutral-600">
+                <div className="flex shrink-0 items-center justify-between gap-2 border-t border-border bg-card px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3">
+                  <p className="min-w-0 truncate text-[12px] font-medium text-muted-foreground sm:text-[13px]">
                     Gilgamesh · booking assistant
                   </p>
-                  <button
+                  <Button
                     type="button"
+                    variant="outline"
+                    className="relative h-auto shrink-0 rounded-full px-3.5 py-1.5 text-[13px] font-semibold shadow-sm"
                     onClick={() => {
                       setLogOpen(true)
                       setImportMsg(null)
                       void refreshSaved()
                     }}
-                    className="relative shrink-0 rounded-full border border-neutral-200 bg-white px-3.5 py-1.5 text-[13px] font-semibold text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-[colors,box-shadow,border-color,transform] duration-200 ease-out press:border-neutral-400 press:bg-neutral-200 press:shadow-[0_3px_10px_rgba(0,0,0,0.08)] active:scale-[0.98] active:bg-neutral-300/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
                   >
                     Bookings
-                    {savedBookings.length > 0 && (
-                      <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-neutral-950 px-1 text-[11px] font-bold text-white">
+                    {savedBookings.length > 0 ? (
+                      <Badge className="absolute -right-1 -top-1 flex h-5 min-w-5 justify-center px-1 text-[11px] font-bold">
                         {savedBookings.length > 99 ? '99+' : savedBookings.length}
-                      </span>
-                    )}
-                  </button>
+                      </Badge>
+                    ) : null}
+                  </Button>
                 </div>
               )}
             </>
@@ -1048,71 +1061,76 @@ function DetailsForm({
   onChange: (patch: Partial<{ name: string; email: string; phone: string }>) => void
   onSubmit: () => void
 }) {
-  const input =
-    'w-full min-h-[48px] rounded-xl border-2 border-neutral-200 bg-white px-3.5 text-[16px] text-neutral-950 placeholder:text-neutral-400 focus:border-neutral-950 focus:outline-none focus:ring-4 focus:ring-neutral-950/10'
+  const fieldClass = 'min-h-[48px] rounded-xl border-2 px-3.5 text-[16px] md:text-base'
 
   return (
-    <div className="space-y-4 rounded-xl border-2 border-neutral-200 bg-white p-4 shadow-sm">
-      <div>
-        <h3 className="text-[16px] font-bold text-neutral-950">Your details</h3>
-        <p className="mt-1 text-[14px] leading-snug text-neutral-600">
+    <Card className="gap-4 rounded-xl border-2 py-4 shadow-sm">
+      <CardHeader className="gap-1 pb-0">
+        <CardTitle className="text-base font-bold tracking-tight">Your details</CardTitle>
+        <CardDescription className="text-[14px] leading-snug">
           We&apos;ll use these to confirm your reservation.
-        </p>
-      </div>
-      <div className="space-y-3">
-        <div>
-          <label className="mb-1.5 block text-[13px] font-semibold text-neutral-800">
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3 pt-2">
+        <div className="space-y-1.5">
+          <Label htmlFor="details-name" className="text-[13px] font-semibold">
             Full name
-          </label>
-          <input
+          </Label>
+          <Input
+            id="details-name"
             type="text"
             autoComplete="name"
             value={details.name}
             onChange={(e) => onChange({ name: e.target.value })}
             placeholder="Alex Rivera"
-            className={input}
+            className={cn(fieldClass, errors.name && 'border-destructive')}
+            aria-invalid={Boolean(errors.name)}
           />
-          {errors.name && (
-            <p className="mt-1.5 text-[13px] font-medium text-red-700">{errors.name}</p>
-          )}
+          {errors.name ? (
+            <p className="text-[13px] font-medium text-destructive">{errors.name}</p>
+          ) : null}
         </div>
-        <div>
-          <label className="mb-1.5 block text-[13px] font-semibold text-neutral-800">
+        <div className="space-y-1.5">
+          <Label htmlFor="details-email" className="text-[13px] font-semibold">
             Email
-          </label>
-          <input
+          </Label>
+          <Input
+            id="details-email"
             type="email"
             autoComplete="email"
             value={details.email}
             onChange={(e) => onChange({ email: e.target.value })}
             placeholder="alex@example.com"
-            className={input}
+            className={cn(fieldClass, errors.email && 'border-destructive')}
+            aria-invalid={Boolean(errors.email)}
           />
-          {errors.email && (
-            <p className="mt-1.5 text-[13px] font-medium text-red-700">{errors.email}</p>
-          )}
+          {errors.email ? (
+            <p className="text-[13px] font-medium text-destructive">{errors.email}</p>
+          ) : null}
         </div>
-        <div>
-          <label className="mb-1.5 block text-[13px] font-semibold text-neutral-800">
+        <div className="space-y-1.5">
+          <Label htmlFor="details-phone" className="text-[13px] font-semibold">
             Phone
-          </label>
-          <input
+          </Label>
+          <Input
+            id="details-phone"
             type="tel"
             autoComplete="tel"
             value={details.phone}
             onChange={(e) => onChange({ phone: e.target.value })}
             placeholder="+44 20 1234 5678"
-            className={input}
+            className={cn(fieldClass, errors.phone && 'border-destructive')}
+            aria-invalid={Boolean(errors.phone)}
           />
-          {errors.phone && (
-            <p className="mt-1.5 text-[13px] font-medium text-red-700">{errors.phone}</p>
-          )}
+          {errors.phone ? (
+            <p className="text-[13px] font-medium text-destructive">{errors.phone}</p>
+          ) : null}
         </div>
-      </div>
-      <button type="button" onClick={onSubmit} className={btnPrimary}>
-        Continue
-      </button>
-    </div>
+        <Button type="button" size="lg" className="mt-1 h-12 w-full rounded-full text-[15px] font-semibold" onClick={onSubmit}>
+          Continue
+        </Button>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -1141,42 +1159,46 @@ function ConfirmPanel({
     ['Email', details.email.trim()],
     ['Phone', details.phone.trim()],
   ] as const
-  const editBtn =
-    'flex size-10 shrink-0 items-center justify-center rounded-full text-neutral-500 transition-[colors,background-color,transform] duration-200 ease-out press:bg-neutral-300 press:text-neutral-950 active:scale-95 active:bg-neutral-400/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-1 sm:size-11'
   return (
-    <div className="space-y-4 rounded-xl border-2 border-neutral-200 bg-white p-4 shadow-sm">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <h3 className="text-[16px] font-bold text-neutral-950">Confirm your booking</h3>
-          <p className="mt-1 text-[14px] text-neutral-600">
+    <Card className="gap-4 rounded-xl border-2 py-4 shadow-sm">
+      <CardHeader className="border-b border-border pb-4">
+        <div className="space-y-1">
+          <CardTitle className="text-base font-bold tracking-tight">Confirm your booking</CardTitle>
+          <CardDescription className="text-[14px]">
             Check everything looks right before you confirm.
-          </p>
+          </CardDescription>
         </div>
-        <button
-          type="button"
-          onClick={onEditDetails}
-          className={editBtn}
-          aria-label={editSectionAriaLabel('details')}
-        >
-          <PencilSimple size={20} weight="regular" aria-hidden />
-        </button>
-      </div>
-      <dl className="space-y-2.5 border-t border-neutral-100 pt-3">
-        {rows.map(([label, value]) => (
-          <div key={label} className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-2">
-            <dt className="text-[13px] font-semibold uppercase tracking-wide text-neutral-500 sm:w-24 sm:shrink-0">
-              {label}
-            </dt>
-            <dd className="text-[15px] font-semibold text-neutral-950 sm:min-w-0 sm:flex-1">
-              {value}
-            </dd>
-          </div>
-        ))}
-      </dl>
-      <button type="button" onClick={onConfirm} className={btnPrimary}>
-        Confirm booking
-      </button>
-    </div>
+        <CardAction>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-lg"
+            className="size-11 shrink-0 rounded-full text-muted-foreground"
+            onClick={onEditDetails}
+            aria-label={editSectionAriaLabel('details')}
+          >
+            <PencilSimple size={20} weight="regular" aria-hidden />
+          </Button>
+        </CardAction>
+      </CardHeader>
+      <CardContent className="space-y-4 pt-4">
+        <dl className="space-y-2.5 border-t border-border pt-3">
+          {rows.map(([label, value]) => (
+            <div key={label} className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-2">
+              <dt className="text-[13px] font-semibold uppercase tracking-wide text-muted-foreground sm:w-24 sm:shrink-0">
+                {label}
+              </dt>
+              <dd className="text-[15px] font-semibold text-foreground sm:min-w-0 sm:flex-1">
+                {value}
+              </dd>
+            </div>
+          ))}
+        </dl>
+        <Button type="button" size="lg" className="h-12 w-full rounded-full text-[15px] font-semibold" onClick={onConfirm}>
+          Confirm booking
+        </Button>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -1199,17 +1221,19 @@ function FigmaMessage({
       <div className="flex justify-end">
         <div className="flex max-w-full items-center justify-end gap-1.5 sm:gap-2">
           {showEdit && onEdit && section ? (
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon-lg"
+              className="size-11 shrink-0 rounded-full text-muted-foreground"
               onClick={onEdit}
-              className="flex size-11 shrink-0 items-center justify-center rounded-full text-[#919191] transition-[colors,background-color,transform] duration-200 ease-out press:bg-neutral-300 press:text-neutral-800 active:scale-95 active:bg-neutral-400/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#919191]/40 focus-visible:ring-offset-1"
               aria-label={editSectionAriaLabel(section)}
             >
               <PencilSimple size={20} weight="regular" aria-hidden />
-            </button>
+            </Button>
           ) : null}
           <div className="min-w-0 max-w-[min(90%,20rem)]">
-            <div className="rounded-2xl rounded-br-md bg-neutral-950 px-4 py-3 text-[15px] leading-relaxed text-white shadow-sm">
+            <div className="rounded-2xl rounded-br-md bg-primary px-4 py-3 text-[15px] leading-relaxed text-primary-foreground shadow-sm">
               <RichText text={text} isUser />
             </div>
           </div>
@@ -1218,8 +1242,8 @@ function FigmaMessage({
     )
   }
   return (
-    <div className="flex justify-start border-l-4 border-neutral-300 pl-3">
-      <div className="max-w-[min(100%,24rem)] text-[15px] leading-relaxed text-neutral-950">
+    <div className="flex justify-start border-l-4 border-muted-foreground/25 pl-3">
+      <div className="max-w-[min(100%,24rem)] text-[15px] leading-relaxed text-foreground">
         <RichText text={text} isUser={false} />
       </div>
     </div>
@@ -1237,7 +1261,7 @@ function RichText({ text, isUser }: { text: string; isUser: boolean }) {
             <strong
               key={i}
               className={
-                isUser ? 'font-bold text-white' : 'font-bold text-neutral-950'
+                isUser ? 'font-bold text-primary-foreground' : 'font-bold text-foreground'
               }
             >
               {inner}
