@@ -1,4 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
+import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import type { GuestSeat, MenuItem } from '../../types/bookingCustomization'
 
 type Props = {
@@ -6,18 +10,9 @@ type Props = {
   activeSeat: GuestSeat
   maxSelectablePerSeat: number
   onToggleItem: (seatIndex: number, menuItemId: string, selected: boolean) => void
-  /** Items per pagination page. Defaults to 4 (4×1 grid). */
+  /** Items per pagination page. Defaults to 4 (4×1 grid on desktop). */
   pageSize?: number
 }
-
-const pill =
-  'rounded-xl border-2 px-3 py-2.5 text-left text-[14px] font-semibold transition-[colors,box-shadow,border-color,transform] duration-200 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1'
-
-const badgeCls =
-  'rounded-full border border-neutral-400/80 bg-neutral-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-neutral-700'
-
-const arrowBtn =
-  'inline-flex h-8 w-8 items-center justify-center rounded-full border border-neutral-300 bg-white text-[14px] font-semibold text-neutral-800 shadow-[0_1px_3px_rgba(0,0,0,0.06)] transition-[colors,border-color] duration-200 ease-out press:border-neutral-400 press:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1'
 
 const gbp = new Intl.NumberFormat('en-GB', {
   style: 'currency',
@@ -55,13 +50,11 @@ export function SeatMenuPicker({
   )
 
   const showPagination = pageCount > 1
-  const canPrev = safePage > 1
-  const canNext = safePage < pageCount
 
   const seatLabel = (
     <>
       Tap to add or remove for{' '}
-      <span className="font-semibold text-neutral-900">
+      <span className="font-semibold text-foreground">
         Seat {activeSeat.seatIndex}
         {activeSeat.displayName.trim() &&
         activeSeat.displayName.trim() !== `Guest ${activeSeat.seatIndex}`
@@ -69,54 +62,58 @@ export function SeatMenuPicker({
           : ''}
       </span>
       .{' '}
-      <span className="tabular-nums text-neutral-500">
+      <span className="tabular-nums text-muted-foreground">
         {count}/{maxSelectablePerSeat} dishes
       </span>
     </>
   )
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <p className="min-w-0 text-[13px] text-neutral-600">{seatLabel}</p>
+        <p className="min-w-0 text-[13px] text-muted-foreground">{seatLabel}</p>
         {showPagination ? (
           <div
             className="flex shrink-0 items-center gap-2"
             role="navigation"
             aria-label="Menu pagination"
           >
-            <button
+            <Button
               type="button"
-              className={arrowBtn}
+              variant="outline"
+              size="icon-sm"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={!canPrev}
+              disabled={safePage <= 1}
               aria-label="Previous page"
             >
-              <span aria-hidden>←</span>
-            </button>
+              <ChevronLeftIcon />
+            </Button>
             <span
-              className="tabular-nums text-[12px] font-semibold text-neutral-700"
+              className="min-w-[3.5rem] text-center text-xs font-semibold tabular-nums text-foreground"
               aria-live="polite"
             >
               {safePage} / {pageCount}
             </span>
-            <button
+            <Button
               type="button"
-              className={arrowBtn}
+              variant="outline"
+              size="icon-sm"
               onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
-              disabled={!canNext}
+              disabled={safePage >= pageCount}
               aria-label="Next page"
             >
-              <span aria-hidden>→</span>
-            </button>
+              <ChevronRightIcon />
+            </Button>
           </div>
         ) : null}
       </div>
+
       {atCap ? (
-        <p className="text-[12px] font-medium text-amber-900">
+        <p className="text-xs font-medium text-amber-700 dark:text-amber-400">
           Maximum dishes reached for this seat — remove one to add another.
         </p>
       ) : null}
+
       <ul className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
         {visibleItems.map((item) => {
           const selected = activeSeat.selectedMenuItemIds.includes(item.id)
@@ -129,15 +126,14 @@ export function SeatMenuPicker({
                 aria-pressed={selected}
                 aria-disabled={blocked}
                 disabled={blocked}
-                className={
-                  pill +
-                  ' flex h-full w-full flex-col items-stretch justify-start ' +
-                  (selected
-                    ? ' border-neutral-950 bg-neutral-950 text-white shadow-md press:bg-neutral-800 active:scale-[0.99]'
+                className={cn(
+                  'flex h-full w-full flex-col items-stretch justify-start rounded-xl border-2 px-3 py-3 text-left text-sm font-semibold transition-[colors,box-shadow,border-color,transform] outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',
+                  selected
+                    ? 'border-foreground bg-foreground text-background shadow-md press:bg-foreground/90'
                     : blocked
-                      ? ' cursor-not-allowed border-neutral-200 bg-neutral-100 text-neutral-400'
-                      : ' border-neutral-200 bg-white text-neutral-950 shadow-[0_1px_3px_rgba(0,0,0,0.06)] press:border-neutral-400 press:bg-neutral-200 active:scale-[0.99]')
-                }
+                      ? 'cursor-not-allowed border-border bg-muted text-muted-foreground'
+                      : 'border-border bg-card text-foreground shadow-xs press:border-foreground/50 press:bg-muted active:scale-[0.99]',
+                )}
                 onClick={() => {
                   if (blocked) return
                   onToggleItem(activeSeat.seatIndex, item.id, !selected)
@@ -147,10 +143,10 @@ export function SeatMenuPicker({
                   <span className="block">{item.name}</span>
                   {price ? (
                     <span
-                      className={
-                        'shrink-0 tabular-nums text-[13px] font-bold ' +
-                        (selected ? 'text-white' : 'text-neutral-900')
-                      }
+                      className={cn(
+                        'shrink-0 text-[13px] font-bold tabular-nums',
+                        selected ? 'text-background' : 'text-foreground',
+                      )}
                     >
                       {price}
                     </span>
@@ -158,10 +154,10 @@ export function SeatMenuPicker({
                 </span>
                 {item.description ? (
                   <span
-                    className={
-                      'mt-1 block text-[12px] font-normal ' +
-                      (selected ? 'text-white/85' : 'text-neutral-600')
-                    }
+                    className={cn(
+                      'mt-1 block text-xs font-normal',
+                      selected ? 'text-background/80' : 'text-muted-foreground',
+                    )}
                   >
                     {item.description}
                   </span>
@@ -169,9 +165,13 @@ export function SeatMenuPicker({
                 {item.dietaryTags && item.dietaryTags.length > 0 ? (
                   <span className="mt-2 flex flex-wrap gap-1">
                     {item.dietaryTags.map((tag) => (
-                      <span key={tag} className={badgeCls}>
+                      <Badge
+                        key={tag}
+                        variant={selected ? 'secondary' : 'outline'}
+                        className="text-[10px] uppercase tracking-wide"
+                      >
                         {tag}
-                      </span>
+                      </Badge>
                     ))}
                   </span>
                 ) : null}
@@ -180,8 +180,9 @@ export function SeatMenuPicker({
           )
         })}
       </ul>
+
       {items.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-4 py-6 text-center text-[14px] text-neutral-600">
+        <p className="rounded-xl border border-dashed border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
           No dishes in this category yet.
         </p>
       ) : null}

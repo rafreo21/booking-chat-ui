@@ -1,4 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Loader2Icon, RotateCcwIcon } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Textarea } from '@/components/ui/textarea'
 import type { SavedBooking } from '../../storage'
 import { saveCustomization } from '../../storage'
 import { notifyDiningPreferenceSaved } from '../../lib/diningPreferenceIngest'
@@ -34,15 +39,6 @@ function reconcileSeats(booking: SavedBooking, saved: DiningCustomization | null
     selectedMenuItemIds: [...s.selectedMenuItemIds],
   }))
 }
-
-const btnPrimary =
-  'w-full min-h-[48px] rounded-full bg-neutral-950 px-4 text-[15px] font-semibold text-white shadow-sm transition-[colors,box-shadow,transform] duration-200 ease-out press:bg-neutral-700 press:shadow-md active:bg-neutral-900 active:scale-[0.99] focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2'
-
-const btnGhost =
-  'w-full min-h-[44px] rounded-full border border-neutral-300 bg-white px-4 text-[15px] font-semibold text-neutral-800 shadow-sm transition-colors duration-200 ease-out press:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2'
-
-const notesCls =
-  'mt-3 w-full rounded-xl border-2 border-neutral-200 bg-white px-3 py-2.5 text-[15px] text-neutral-950 placeholder:text-neutral-400 focus:border-neutral-950 focus:outline-none focus:ring-4 focus:ring-neutral-950/10'
 
 type Props = {
   reservation: SavedBooking
@@ -228,39 +224,63 @@ export function DiningCustomizationFlow({
   const saveFooter = (
     <div className="space-y-2">
       {saveState === 'error' && errorMsg ? (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-[14px] font-medium text-red-800" role="alert">
+        <p
+          className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive"
+          role="alert"
+        >
           {errorMsg}
         </p>
       ) : null}
       {saveState === 'saved' ? (
-        <p className="rounded-lg bg-emerald-50 px-3 py-2 text-[14px] font-medium text-emerald-900" role="status">
+        <p
+          className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-900 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-200"
+          role="status"
+        >
           Preferences saved. You can update them again anytime from this link.
         </p>
       ) : null}
       {undoVisible && undoSnapshot ? (
-        <button type="button" className={btnGhost} onClick={handleUndo}>
+        <Button type="button" variant="outline" size="lg" className="h-11 w-full" onClick={handleUndo}>
+          <RotateCcwIcon />
           Undo last save
-        </button>
+        </Button>
       ) : null}
-      <button
+      <Button
         type="button"
-        className={btnPrimary}
+        size="lg"
+        className="h-12 w-full text-[15px] font-semibold"
         onClick={handleSave}
         disabled={saveState === 'saving'}
       >
-        {saveState === 'saving' ? 'Saving…' : 'Save dining preferences'}
-      </button>
+        {saveState === 'saving' ? (
+          <>
+            <Loader2Icon className="animate-spin" />
+            Saving…
+          </>
+        ) : (
+          'Save dining preferences'
+        )}
+      </Button>
     </div>
   )
 
   if (menuLoading) {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 py-16">
-        <div
-          className="size-10 animate-spin rounded-full border-[3px] border-neutral-200 border-t-neutral-950"
-          aria-hidden
-        />
-        <p className="text-[15px] font-medium text-neutral-700">Loading menu…</p>
+      <div className="space-y-6 py-2">
+        <div className="space-y-3">
+          <Skeleton className="h-5 w-24" />
+          <Skeleton className="h-10 w-full max-w-xs" />
+          <div className="flex gap-2">
+            {[0, 1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-9 w-24" />
+            ))}
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {[0, 1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-32 rounded-xl" />
+          ))}
+        </div>
       </div>
     )
   }
@@ -279,20 +299,22 @@ export function DiningCustomizationFlow({
         </p>
 
         {showBackLink && onBack ? (
-          <button
+          <Button
             type="button"
+            variant="link"
+            size="sm"
+            className="h-auto self-start p-0 text-sm font-semibold"
             onClick={onBack}
-            className="text-[14px] font-semibold text-neutral-700 underline-offset-2 press:text-neutral-950 press:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2"
           >
             ← Back
-          </button>
+          </Button>
         ) : null}
 
-        <header className="space-y-1">
-          <h1 className="text-[1.35rem] font-bold leading-tight text-neutral-950 sm:text-[1.5rem]">
+        <header className="space-y-1.5">
+          <h1 className="text-2xl font-bold tracking-tight sm:text-[1.5rem]">
             Customize your dining experience
           </h1>
-          <p className="text-[15px] leading-relaxed text-neutral-600">
+          <p className="text-[15px] leading-relaxed text-muted-foreground">
             Pre-select dishes by seat — optional, editable anytime from your reservation link.
           </p>
         </header>
@@ -322,12 +344,12 @@ export function DiningCustomizationFlow({
           />
         ) : null}
 
-        <div>
-          <label htmlFor="dining-notes" className="text-[13px] font-semibold text-neutral-700">
+        <div className="grid gap-1.5">
+          <Label htmlFor="dining-notes" className="text-[13px] font-semibold">
             Notes for the restaurant{' '}
-            <span className="font-normal text-neutral-500">(optional)</span>
-          </label>
-          <textarea
+            <span className="font-normal text-muted-foreground">(optional)</span>
+          </Label>
+          <Textarea
             id="dining-notes"
             rows={3}
             placeholder="Allergies, celebrations, pacing preferences…"
@@ -336,8 +358,8 @@ export function DiningCustomizationFlow({
               setNotes(e.target.value)
               setSaveState('idle')
             }}
-            className={notesCls}
             maxLength={2000}
+            className="min-h-24 resize-y"
           />
         </div>
 

@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { ArrowLeftIcon } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import type { SavedBooking } from '../storage'
 import { loadCustomization, resolveReservationPublicRef } from '../storage'
 import type { DiningCustomization } from '../types/bookingCustomization'
@@ -14,7 +18,7 @@ import { DiningCustomizationFlow } from '../components/customization/DiningCusto
  */
 
 const PAGE_BG_CLASS =
-  'min-h-dvh bg-[var(--color-chat-bg)] pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))]'
+  'min-h-dvh bg-muted/40 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))]'
 
 const PAGE_SHELL_CLASS =
   'mx-auto w-full max-w-[1400px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16'
@@ -46,18 +50,19 @@ function StatusCard({
   return (
     <div className={PAGE_BG_CLASS}>
       <div className={PAGE_SHELL_CLASS}>
-        <div className="mx-auto mt-12 w-full max-w-2xl rounded-2xl border border-neutral-300 bg-white p-6 shadow-md sm:p-8">
-          <h1 className="text-[1.25rem] font-bold text-neutral-950 sm:text-[1.5rem]">{title}</h1>
-          <p className="mt-2 text-[15px] leading-relaxed text-neutral-600">{body}</p>
+        <Card className="mx-auto mt-12 w-full max-w-2xl">
+          <CardHeader>
+            <CardTitle className="text-xl tracking-tight sm:text-2xl">{title}</CardTitle>
+            <CardDescription className="text-[15px] leading-relaxed">{body}</CardDescription>
+          </CardHeader>
           {cta ? (
-            <Link
-              to={cta.to}
-              className="mt-5 inline-block rounded-full bg-neutral-950 px-5 py-2.5 text-[15px] font-semibold text-white press:bg-neutral-800"
-            >
-              {cta.label}
-            </Link>
+            <CardContent>
+              <Button asChild size="lg" className="h-11 px-5">
+                <Link to={cta.to}>{cta.label}</Link>
+              </Button>
+            </CardContent>
           ) : null}
-        </div>
+        </Card>
       </div>
     </div>
   )
@@ -77,12 +82,10 @@ function LoadingState() {
   return (
     <div className={PAGE_BG_CLASS}>
       <div className={PAGE_SHELL_CLASS}>
-        <div className="flex min-h-[60dvh] flex-col items-center justify-center gap-3">
-          <div
-            className="size-10 animate-spin rounded-full border-[3px] border-neutral-200 border-t-neutral-950"
-            aria-hidden
-          />
-          <p className="text-[15px] font-medium text-neutral-700">Loading reservation…</p>
+        <div className="mx-auto mt-6 flex w-full max-w-3xl flex-col gap-4">
+          <Skeleton className="h-9 w-24" />
+          <Skeleton className="h-32 w-full rounded-xl" />
+          <Skeleton className="h-[60dvh] w-full rounded-xl" />
         </div>
       </div>
     </div>
@@ -142,40 +145,44 @@ function ManageReservationLoaded({ reservationId }: { reservationId: string }) {
     <div className={PAGE_BG_CLASS}>
       <div className={PAGE_SHELL_CLASS}>
         <div className="flex flex-col gap-4 md:gap-6">
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="default"
+            className="-ml-2 h-9 w-fit self-start gap-1.5 rounded-full px-3 text-sm font-semibold text-muted-foreground hover:text-foreground"
             onClick={() => navigate('/')}
-            className="-ml-2 inline-flex w-fit items-center gap-1 self-start rounded-full px-3 py-1.5 text-[14px] font-semibold text-neutral-700 transition-colors press:bg-neutral-200/70 press:text-neutral-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2"
           >
-            <span aria-hidden>←</span>
-            <span>Back</span>
-          </button>
+            <ArrowLeftIcon />
+            Back
+          </Button>
 
-          <div className="rounded-2xl border border-neutral-300 bg-white px-4 py-5 shadow-md sm:px-6 sm:py-6 md:px-8 md:py-7">
-            <p className="text-[12px] font-semibold uppercase tracking-wide text-neutral-500">
-              Manage reservation
-            </p>
-            <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              <p className="text-[18px] font-bold text-neutral-950 sm:text-[20px]">
-                {reservation.name}
+          <Card>
+            <CardHeader className="gap-1">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Manage reservation
               </p>
-              <p className="text-[14px] text-neutral-600">
-                {reservation.guests} guest{reservation.guests === 1 ? '' : 's'} ·{' '}
-                {formatBookingDate(reservation.dateIso)} · {reservation.time || '—'}
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <CardTitle className="text-lg sm:text-xl">{reservation.name}</CardTitle>
+                <CardDescription className="text-sm">
+                  {reservation.guests} guest{reservation.guests === 1 ? '' : 's'} ·{' '}
+                  {formatBookingDate(reservation.dateIso)} · {reservation.time || '—'}
+                </CardDescription>
+              </div>
+              <p className="font-mono text-xs text-muted-foreground">
+                Manage code · {reservation.manageToken.slice(0, 10)}…
               </p>
-            </div>
-            <p className="mt-2 font-mono text-[12px] text-neutral-500">
-              Manage code · {reservation.manageToken.slice(0, 10)}…
-            </p>
-          </div>
+            </CardHeader>
+          </Card>
 
-          <div className="rounded-2xl border border-neutral-300 bg-[var(--color-chat-surface)] px-4 py-5 shadow-md sm:px-6 sm:py-8 md:px-8 md:py-10 lg:px-10">
-            <DiningCustomizationFlow
-              key={`${reservation.id}:${customization?.updatedAt ?? 'none'}`}
-              reservation={reservation}
-              initialCustomization={customization}
-            />
-          </div>
+          <Card>
+            <CardContent className="px-4 py-5 sm:px-6 sm:py-8 md:px-8 md:py-10 lg:px-10">
+              <DiningCustomizationFlow
+                key={`${reservation.id}:${customization?.updatedAt ?? 'none'}`}
+                reservation={reservation}
+                initialCustomization={customization}
+              />
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
