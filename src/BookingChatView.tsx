@@ -1,11 +1,16 @@
 import { PencilSimple } from '@phosphor-icons/react'
-import { Loader2Icon, ArrowLeftIcon } from 'lucide-react'
+import { AlertCircleIcon, Loader2Icon, ArrowLeftIcon } from 'lucide-react'
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  type BookingFailureReason,
+  getBookingFailureReason,
+} from '@/lib/bookingSubmission'
 import { cn } from '@/lib/utils'
 import {
   addBooking,
@@ -102,6 +107,15 @@ const MAX_GUESTS_TYPED = 100_000
 
 const RESTAURANT_SERVICE = 'Restaurant'
 
+/**
+ * Holding fee = `guestCount ×` this amount (GBP). Set to `null` to hide the badge.
+ * For a single flat fee regardless of party size, set mode to fixed later or use `1` guest in pricing logic only — today we vary by guests.
+ */
+const BOOKING_HOLDING_FEE_PER_GUEST_GBP: number | null = 10
+
+/** Venue name in the holding-fee badge (e.g. “Gilgamesh charges £30 …”). */
+const BOOKING_HOLDING_FEE_VENUE = 'Gilgamesh'
+
 /** How many days appear as quick-pick chips — one full week (7-day window from today). */
 const QUICK_PICK_DAYS = 7
 
@@ -135,6 +149,29 @@ function formatDayFromIso(dateIso: string): string {
   }
 }
 
+function formatGbpWhole(pounds: number): string {
+  return new Intl.NumberFormat('en-GB', {
+    style: 'currency',
+    currency: 'GBP',
+    minimumFractionDigits: Number.isInteger(pounds) ? 0 : 2,
+    maximumFractionDigits: 2,
+  }).format(pounds)
+}
+
+/** Total holding fee shown at confirm: per-guest × party size. */
+function computeHoldingFeeSummary(
+  perGuestGbp: number | null,
+  guestCount: number,
+): { totalFormatted: string; perGuestFormatted: string; guests: number } | null {
+  if (perGuestGbp == null || perGuestGbp <= 0 || guestCount < 1) return null
+  const total = perGuestGbp * guestCount
+  return {
+    totalFormatted: formatGbpWhole(total),
+    perGuestFormatted: formatGbpWhole(perGuestGbp),
+    guests: guestCount,
+  }
+}
+
 /** Same rules as validateDetails, without mutating error state. */
 function detailsFormIsComplete(d: { name: string; email: string; phone: string }): boolean {
   const name = d.name.trim()
@@ -157,6 +194,7 @@ type Step =
   | 'time'
   | 'details'
   | 'confirm'
+  | 'booking_error'
   | 'submitting'
   | 'success'
 
@@ -246,12 +284,18 @@ function canShowEditForSection(section: BookingSection, step: Step): boolean {
         step === 'time' ||
         step === 'details' ||
         step === 'confirm' ||
+        step === 'booking_error' ||
         step === 'success'
       )
     case 'time':
-      return step === 'details' || step === 'confirm' || step === 'success'
+      return (
+        step === 'details' ||
+        step === 'confirm' ||
+        step === 'booking_error' ||
+        step === 'success'
+      )
     case 'details':
-      return step === 'confirm' || step === 'success'
+      return step === 'confirm' || step === 'booking_error' || step === 'success'
     default:
       return false
   }
@@ -326,6 +370,8 @@ export function BookingChatView({ onBack }: Props) {
   const [lastConfirmedReservation, setLastConfirmedReservation] =
     useState<SavedBooking | null>(null)
   const [linkCopied, setLinkCopied] = useState(false)
+  const [bookingFailureReason, setBookingFailureReason] =
+    useState<BookingFailureReason | null>(null)
 
   useEffect(() => {
     void (async () => {
@@ -489,6 +535,7 @@ export function BookingChatView({ onBack }: Props) {
 
   const confirmBooking = () => {
     if (step !== 'confirm') return
+    setBookingFailureReason(null)
     setStep('submitting')
     window.setTimeout(() => {
       void (async () => {
@@ -511,17 +558,22 @@ export function BookingChatView({ onBack }: Props) {
             '**Booking confirmed!** Your table is reserved. We look forward to welcoming you.',
           )
           setStep('success')
-        } catch {
+        } catch (e) {
+          const reason = getBookingFailureReason(e)
+          setBookingFailureReason(reason)
           pushAssistant(
-            "**We couldn't save your booking.** Check your connection and tap **Confirm booking** again.",
+            reason === 'payment'
+              ? "**Payment didn't go through.** You weren't charged. Tap **Try again** below to retry."
+              : "**We couldn't complete your booking.** Check your connection and tap **Try again** below.",
           )
-          setStep('confirm')
+          setStep('booking_error')
         }
       })()
     }, 1600)
   }
 
   const handleEditSection = useCallback((section: BookingSection) => {
+    setBookingFailureReason(null)
     setMessages((msgs) => {
       const idx = msgs.findIndex((m) => m.role === 'user' && m.section === section)
       if (idx === -1) return msgs
@@ -557,6 +609,7 @@ export function BookingChatView({ onBack }: Props) {
 
   const resetChat = () => {
     setLinkCopied(false)
+    setBookingFailureReason(null)
     setLastConfirmedReservation(null)
     setBooking({ guestCount: 0, date: null, time: '' })
     setGuestsInputMode(false)
@@ -645,7 +698,7 @@ export function BookingChatView({ onBack }: Props) {
                 ref={listRef}
                 className={
                   'min-h-0 max-h-[min(360px,calc(100dvh-13rem))] touch-pan-y space-y-3 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] bg-muted/50 px-3 py-3 sm:space-y-3 sm:px-4 sm:py-4 ' +
-                  (step === 'success'
+                  ((step === 'success' || step === 'booking_error')
                     ? 'scroll-pb-[max(7rem,calc(env(safe-area-inset-bottom)+5rem))]'
                     : '')
                 }
@@ -767,17 +820,29 @@ export function BookingChatView({ onBack }: Props) {
                   />
                 )}
 
-                {step === 'confirm' && booking.date && (
+                {(step === 'confirm' || step === 'booking_error') && booking.date && (
                   <ConfirmPanel
                     booking={booking}
                     details={details}
+                    holdingFeeVenue={BOOKING_HOLDING_FEE_VENUE}
+                    holdingFee={computeHoldingFeeSummary(
+                      BOOKING_HOLDING_FEE_PER_GUEST_GBP,
+                      booking.guestCount,
+                    )}
+                    submissionError={
+                      step === 'booking_error' ? bookingFailureReason ?? 'network' : null
+                    }
                     onConfirm={confirmBooking}
                     onEditDetails={() => handleEditSection('details')}
+                    onRetryAfterFailure={() => {
+                      setBookingFailureReason(null)
+                      setStep('confirm')
+                    }}
                   />
                 )}
 
                 {step === 'success' && (
-                  <div className="mt-3 space-y-4 border-t border-border bg-card -mx-3 px-3 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:-mx-4 sm:px-4">
+                  <div className="mt-3 space-y-4 border-t border-border pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
                     {lastConfirmedReservation ? (
                       <BookingConfirmationCta
                         manageToken={lastConfirmedReservation.manageToken}
@@ -1078,8 +1143,12 @@ function DetailsForm({
 function ConfirmPanel({
   booking,
   details,
+  holdingFeeVenue,
+  holdingFee,
+  submissionError,
   onConfirm,
   onEditDetails,
+  onRetryAfterFailure,
 }: {
   booking: {
     guestCount: number
@@ -1087,8 +1156,14 @@ function ConfirmPanel({
     time: string
   }
   details: { name: string; email: string; phone: string }
+  holdingFeeVenue: string
+  /** Per-guest × guests total; null hides fee UI. */
+  holdingFee: { totalFormatted: string; perGuestFormatted: string; guests: number } | null
+  /** When set, confirm actions are replaced by error state + retry. */
+  submissionError: BookingFailureReason | null
   onConfirm: () => void
   onEditDetails: () => void
+  onRetryAfterFailure: () => void
 }) {
   const d = booking.date
   const guestLabel = String(booking.guestCount)
@@ -1100,6 +1175,10 @@ function ConfirmPanel({
     ['Email', details.email.trim()],
     ['Phone', details.phone.trim()],
   ] as const
+
+  const paymentMethodsLine =
+    'When you continue, you can pay by card, Apple Pay, or Google Pay where available.'
+
   return (
     <Card className="gap-4 py-4 shadow-sm ring-1 ring-border">
       <CardHeader className="border-b border-border pb-4">
@@ -1135,14 +1214,64 @@ function ConfirmPanel({
             </div>
           ))}
         </dl>
-        <Button
-          type="button"
-          size="lg"
-          className="h-12 w-full text-[15px] font-semibold"
-          onClick={onConfirm}
-        >
-          Confirm booking
-        </Button>
+
+        {submissionError ? (
+          <div
+            className="rounded-xl border border-destructive/35 bg-destructive/5 px-4 py-3 dark:bg-destructive/10"
+            role="alert"
+          >
+            <div className="flex gap-3">
+              <AlertCircleIcon
+                className="size-5 shrink-0 text-destructive"
+                aria-hidden
+              />
+              <div className="min-w-0 space-y-1">
+                <p className="text-[15px] font-semibold text-foreground">Booking unsuccessful</p>
+                <p className="text-[13px] leading-snug text-muted-foreground">
+                  {submissionError === 'payment'
+                    ? 'Your payment did not complete and you have not been charged. Try again, or use another card or wallet.'
+                    : 'We could not reach our servers. Check your connection and try again.'}
+                </p>
+              </div>
+            </div>
+            <Button
+              type="button"
+              size="lg"
+              className="mt-4 h-12 w-full text-[15px] font-semibold"
+              onClick={onRetryAfterFailure}
+            >
+              Try again
+            </Button>
+          </div>
+        ) : (
+          <>
+            <p className="text-[13px] leading-snug text-muted-foreground">{paymentMethodsLine}</p>
+            <div className="flex flex-col gap-2">
+              {holdingFee ? (
+                <div className="flex flex-col items-center gap-1 px-0.5">
+                  <Badge
+                    variant="outline"
+                    className="h-auto max-w-full whitespace-normal rounded-lg px-2.5 py-1.5 text-center text-[11px] font-semibold leading-snug"
+                  >
+                    {holdingFeeVenue} charges {holdingFee.totalFormatted} · Non-refundable holding fee
+                  </Badge>
+                  <p className="text-center text-[11px] leading-snug text-muted-foreground">
+                    {holdingFee.perGuestFormatted} × {holdingFee.guests}{' '}
+                    {holdingFee.guests === 1 ? 'guest' : 'guests'}
+                  </p>
+                </div>
+              ) : null}
+              <Button
+                type="button"
+                size="lg"
+                className="h-12 w-full text-[15px] font-semibold"
+                onClick={onConfirm}
+              >
+                Confirm booking
+              </Button>
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
   )

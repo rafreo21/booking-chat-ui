@@ -16,6 +16,7 @@ function isAppleTouchDevice(): boolean {
   return false
 }
 
+/** Default: 24×24px; `sm:` 28×28px. Pass `sizePx` for a fixed diameter (e.g. manage reservation). */
 const responsiveBoxClass =
   'h-6 w-6 min-h-6 min-w-6 max-h-6 max-w-6 sm:h-7 sm:w-7 sm:min-h-7 sm:min-w-7 sm:max-h-7 sm:max-w-7'
 
@@ -26,6 +27,7 @@ export function AiChatbotLogo({
   sizePx,
   className = '',
 }: {
+  /** Fixed pixel diameter; omit for default responsive size (24 / 28px). */
   sizePx?: number
   className?: string
 }) {
@@ -82,10 +84,10 @@ export function AiChatbotLogo({
       role="img"
       aria-label="Booking assistant"
     >
-      <span className="relative block size-full min-h-0 min-w-0 overflow-hidden rounded-full bg-transparent">
+      <span className="ai-chatbot-logo-inner relative block size-full min-h-0 min-w-0 overflow-hidden rounded-full bg-transparent">
         <video
           ref={ref}
-          className="ai-chatbot-logo-video size-full min-h-0 min-w-0 object-cover object-center"
+          className="ai-chatbot-logo-video size-full min-h-0 min-w-0"
           autoPlay
           muted
           loop

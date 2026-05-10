@@ -176,7 +176,7 @@ function ManageReservationLoaded({ reservationId }: { reservationId: string }) {
                   </p>
                 </div>
                 <div className="shrink-0 pt-0.5">
-                  <AiChatbotLogo sizePx={48} />
+                  <AiChatbotLogo />
                 </div>
               </div>
             </CardHeader>
