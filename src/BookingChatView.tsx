@@ -22,7 +22,6 @@ import { sendBookingConfirmationEmail } from './lib/sendBookingEmail'
 import { useMenuCatalog } from './menu/useMenuCatalog'
 import { syncBookingToSheets } from './syncBookingToSheets'
 import { AiChatbotLogo } from './components/AiChatbotLogo'
-import { GetDirectionsFab } from './components/GetDirectionsFab'
 import { BookingsLog } from './components/BookingsLog'
 import { NotionStyleDatePicker } from './components/NotionStyleDatePicker'
 import { VenueHeaderRating } from './components/VenueHeaderRating'
@@ -624,6 +623,7 @@ export function BookingChatView({ onBack }: Props) {
               </div>
               <VenueHeaderRating
                 theme="dark"
+                showDirections
                 className="mt-2 w-full border-t border-primary-foreground/15 pt-2.5 sm:mt-3 sm:pt-3"
               />
             </div>
@@ -917,8 +917,6 @@ export function BookingChatView({ onBack }: Props) {
         </div>
         </div>
       </div>
-
-      <GetDirectionsFab />
 
       {logOpen && (
         <BookingsLog
