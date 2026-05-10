@@ -5,8 +5,14 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { MOCK_MENU_CATEGORIES, MOCK_MENU_ITEMS } from '../data/mockMenu'
-import type { MenuCategory, MenuCategoryId, MenuItem } from '../types/bookingCustomization'
+import { MOCK_MENU_CATEGORIES, MOCK_MENU_ITEMS, MOCK_MENUS } from '../data/mockMenu'
+import type {
+  Menu,
+  MenuCategory,
+  MenuCategoryId,
+  MenuId,
+  MenuItem,
+} from '../types/bookingCustomization'
 import {
   MenuCatalogContext,
   type MenuCatalogContextValue,
@@ -14,12 +20,14 @@ import {
 
 type CatalogJson = {
   availabilityVersion?: string
+  menus?: Menu[]
   categories?: MenuCategory[]
   items?: MenuItem[]
 }
 
 type Snapshot = {
   availabilityVersion: string
+  menus: Menu[]
   categories: MenuCategory[]
   items: MenuItem[]
 }
@@ -28,14 +36,24 @@ function normalizeCatalog(raw: CatalogJson | null): Snapshot {
   const cats = raw?.categories
   const items = raw?.items
   if (cats?.length && items?.length) {
+    const menus =
+      raw?.menus && raw.menus.length > 0
+        ? [...raw.menus].sort((a, b) => a.order - b.order)
+        : // No menus declared in JSON — synthesize a default one.
+          [{ id: 'default', label: 'Menu', order: 0 } as Menu]
+    const fallbackMenuId = menus[0]?.id ?? 'default'
     return {
       availabilityVersion: raw?.availabilityVersion?.trim() || 'catalog',
-      categories: [...cats].sort((a, b) => a.order - b.order),
+      menus,
+      categories: [...cats]
+        .map((c) => ({ ...c, menuId: c.menuId ?? fallbackMenuId }))
+        .sort((a, b) => a.order - b.order),
       items,
     }
   }
   return {
     availabilityVersion: 'mock',
+    menus: [...MOCK_MENUS].sort((a, b) => a.order - b.order),
     categories: [...MOCK_MENU_CATEGORIES].sort((a, b) => a.order - b.order),
     items: MOCK_MENU_ITEMS,
   }
@@ -74,11 +92,14 @@ export function MenuCatalogProvider({ children }: { children: ReactNode }) {
       loading,
       error,
       availabilityVersion: snapshot.availabilityVersion,
+      menus: snapshot.menus,
       categories: snapshot.categories,
       items: snapshot.items,
       getMenuItemById: (id: string) => byId.get(id),
       menuItemsInCategory: (categoryId: MenuCategoryId) =>
         snapshot.items.filter((m) => m.categoryId === categoryId),
+      categoriesInMenu: (menuId: MenuId) =>
+        snapshot.categories.filter((c) => (c.menuId ?? snapshot.menus[0]?.id) === menuId),
       refetch: load,
     }
   }, [loading, error, snapshot, load])

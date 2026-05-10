@@ -9,8 +9,20 @@ export type ReservationMeta = ReservationBookingMeta
 /** Category ids are JSON-driven (see `public/menu.json`). Keep stable across deploys. */
 export type MenuCategoryId = string
 
+/** Menu ids group categories (e.g. `a-la-carte`, `brunch`, `drinks`). */
+export type MenuId = string
+
+export interface Menu {
+  id: MenuId
+  label: string
+  /** Sort order in dropdown */
+  order: number
+}
+
 export interface MenuCategory {
   id: MenuCategoryId
+  /** Parent menu — categories without a menuId fall back to the first menu. */
+  menuId?: MenuId
   label: string
   /** Sort order in UI */
   order: number

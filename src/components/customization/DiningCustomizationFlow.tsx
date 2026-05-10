@@ -3,7 +3,7 @@ import type { SavedBooking } from '../../storage'
 import { saveCustomization } from '../../storage'
 import { notifyDiningPreferenceSaved } from '../../lib/diningPreferenceIngest'
 import { useMenuCatalog } from '../../menu/useMenuCatalog'
-import type { DiningCustomization, GuestSeat, MenuCategoryId } from '../../types/bookingCustomization'
+import type { DiningCustomization, GuestSeat, MenuCategoryId, MenuId } from '../../types/bookingCustomization'
 import { buildDefaultSeats } from '../../types/bookingCustomization'
 import { CustomizationSummary } from './CustomizationSummary'
 import { MenuCategoryTabs } from './MenuCategoryTabs'
@@ -60,7 +60,8 @@ export function DiningCustomizationFlow({
   const {
     loading: menuLoading,
     error: menuError,
-    categories,
+    menus,
+    categoriesInMenu,
     menuItemsInCategory,
     availabilityVersion,
   } = useMenuCatalog()
@@ -70,16 +71,29 @@ export function DiningCustomizationFlow({
     return Number.isFinite(n) && n > 0 ? Math.floor(n) : 8
   }, [])
 
+  const sortedMenus = useMemo(() => [...menus].sort((a, b) => a.order - b.order), [menus])
+
+  const [activeMenuId, setActiveMenuId] = useState<MenuId>('')
+  const displayMenuId = useMemo((): MenuId => {
+    if (sortedMenus.some((m) => m.id === activeMenuId)) return activeMenuId
+    return sortedMenus[0]?.id ?? ''
+  }, [sortedMenus, activeMenuId])
+
   const sortedCategories = useMemo(
-    () => [...categories].sort((a, b) => a.order - b.order),
-    [categories],
+    () => (displayMenuId ? categoriesInMenu(displayMenuId) : []),
+    [categoriesInMenu, displayMenuId],
   )
 
-  const [activeCategory, setActiveCategory] = useState<MenuCategoryId>('starters')
+  const [activeCategory, setActiveCategory] = useState<MenuCategoryId>('')
   const displayCategory = useMemo((): MenuCategoryId => {
     if (sortedCategories.some((c) => c.id === activeCategory)) return activeCategory
-    return sortedCategories[0]?.id ?? 'starters'
+    return sortedCategories[0]?.id ?? ''
   }, [sortedCategories, activeCategory])
+
+  const onMenuChange = useCallback((id: MenuId) => {
+    setActiveMenuId(id)
+    setActiveCategory('')
+  }, [])
 
   const [activeSeatIndex, setActiveSeatIndex] = useState(1)
   const [seats, setSeats] = useState<GuestSeat[]>(() =>
@@ -291,6 +305,9 @@ export function DiningCustomizationFlow({
         />
 
         <MenuCategoryTabs
+          menus={sortedMenus}
+          activeMenuId={displayMenuId}
+          onMenuChange={onMenuChange}
           categories={sortedCategories.map(({ id, label }) => ({ id, label }))}
           activeId={displayCategory}
           onChange={setActiveCategory}
