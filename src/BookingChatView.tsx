@@ -2,7 +2,6 @@ import { PencilSimple } from '@phosphor-icons/react'
 import { Loader2Icon } from 'lucide-react'
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -941,30 +940,6 @@ export function BookingChatView({ onBack }: Props) {
                     className="min-w-0"
                     onSelectDate={(d) => pickDate(d)}
                   />
-                </div>
-              )}
-              {!(step === 'date' && datesCustomMode) && step !== 'success' && (
-                <div className="flex shrink-0 items-center justify-between gap-2 border-t border-border bg-card px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3">
-                  <p className="min-w-0 truncate text-[12px] font-medium text-muted-foreground sm:text-[13px]">
-                    Gilgamesh · booking assistant
-                  </p>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="relative h-auto shrink-0 rounded-full px-3.5 py-1.5 text-[13px] font-semibold shadow-sm"
-                    onClick={() => {
-                      setLogOpen(true)
-                      setImportMsg(null)
-                      void refreshSaved()
-                    }}
-                  >
-                    Bookings
-                    {savedBookings.length > 0 ? (
-                      <Badge className="absolute -right-1 -top-1 flex h-5 min-w-5 justify-center px-1 text-[11px] font-bold">
-                        {savedBookings.length > 99 ? '99+' : savedBookings.length}
-                      </Badge>
-                    ) : null}
-                  </Button>
                 </div>
               )}
             </>
