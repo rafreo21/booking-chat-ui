@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
 import { AiChatbotLogo } from './components/AiChatbotLogo'
 import { OnboardingHeroCarousel } from './components/OnboardingHeroCarousel'
 import { ONBOARDING_HERO_SLIDES } from './figma/assets'
@@ -37,8 +38,8 @@ export function OnboardingScreen({ onBookNow }: Props) {
               </div>
             </div>
 
-            <CardContent className="shrink-0 space-y-2.5 px-3 py-3 sm:space-y-3 sm:px-4 sm:py-3.5">
-              <header className="space-y-1 text-center sm:space-y-1.5">
+            <CardContent className="shrink-0 space-y-4 px-4 py-4 sm:px-5 sm:py-5">
+              <header className="space-y-1.5 text-center sm:space-y-2">
                 <h1 className="text-[1.25rem] font-bold leading-tight tracking-tight text-foreground sm:text-[1.375rem]">
                   Gilgamesh London
                 </h1>
@@ -47,14 +48,20 @@ export function OnboardingScreen({ onBookNow }: Props) {
                   Events. The ultimate destination dining.
                 </p>
               </header>
-              <VenueHeaderRating className="pt-0" />
-              <div className="grid w-full grid-cols-[1fr_auto] items-stretch gap-2">
-                <Button
-                  type="button"
-                  size="lg"
-                  className="h-11 w-full min-w-0 rounded-full text-[15px] font-bold shadow-sm"
-                  onClick={onBookNow}
-                >
+
+              <Separator />
+
+              <div className="rounded-lg border border-border bg-muted/40 px-3 py-3 sm:px-4">
+                <p className="mb-2 text-center text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  Venue
+                </p>
+                <VenueHeaderRating className="justify-center gap-x-4 gap-y-2" />
+              </div>
+
+              <Separator />
+
+              <div className="flex w-full items-center gap-2">
+                <Button type="button" size="lg" className="h-11 min-w-0 flex-1 px-5 text-[15px] font-semibold" onClick={onBookNow}>
                   Book Now
                 </Button>
                 <GetDirectionsIconLink />
