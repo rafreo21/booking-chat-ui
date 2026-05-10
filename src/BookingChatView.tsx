@@ -803,12 +803,7 @@ export function BookingChatView({ onBack }: Props) {
                       </div>
                     )}
                     <div className="flex justify-center">
-                      <Button
-                        type="button"
-                        size="lg"
-                        className="h-12 w-full max-w-[220px] text-[15px] font-semibold"
-                        onClick={resetChat}
-                      >
+                      <Button type="button" size="lg" className="w-full max-w-[220px]" onClick={resetChat}>
                         Book again
                       </Button>
                     </div>

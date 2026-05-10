@@ -63,18 +63,13 @@ export function BookingConfirmationCta({
           <span className="font-mono font-medium text-foreground">{manageToken.slice(0, 12)}…</span>
         </p>
         <div className="mt-5 flex flex-col gap-2.5">
-          <Button
-            type="button"
-            size="lg"
-            className="h-12 w-full rounded-full text-[15px] font-semibold"
-            onClick={onCustomize}
-          >
+          <Button type="button" size="lg" className="w-full whitespace-normal py-2 text-center leading-snug" onClick={onCustomize}>
             Customize your dining experience
           </Button>
           <p className="text-center text-[13px] font-medium leading-snug text-muted-foreground">
             Pre-select dishes for your table · Help us prepare for your arrival
           </p>
-          <Button type="button" variant="ghost" size="lg" className="h-11 w-full rounded-full text-[15px] font-semibold" onClick={onSkip}>
+          <Button type="button" variant="ghost" size="lg" className="w-full whitespace-normal py-2 text-center leading-snug" onClick={onSkip}>
             Maybe later — I&apos;m done
           </Button>
         </div>
