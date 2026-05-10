@@ -8,6 +8,7 @@ import type { SavedBooking } from '../storage'
 import { loadCustomization, resolveReservationPublicRef } from '../storage'
 import type { DiningCustomization } from '../types/bookingCustomization'
 import { DiningCustomizationFlow } from '../components/customization/DiningCustomizationFlow'
+import { AiChatbotLogo } from '../components/AiChatbotLogo'
 
 /**
  * Manage / customize reservation page.
@@ -157,20 +158,27 @@ function ManageReservationLoaded({ reservationId }: { reservationId: string }) {
           </Button>
 
           <Card>
-            <CardHeader className="gap-1">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Manage reservation
-              </p>
-              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                <CardTitle className="text-lg sm:text-xl">{reservation.name}</CardTitle>
-                <CardDescription className="text-sm">
-                  {reservation.guests} guest{reservation.guests === 1 ? '' : 's'} ·{' '}
-                  {formatBookingDate(reservation.dateIso)} · {reservation.time || '—'}
-                </CardDescription>
+            <CardHeader className="gap-0 space-y-0">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0 flex-1 space-y-1">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Manage reservation
+                  </p>
+                  <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <CardTitle className="text-lg sm:text-xl">{reservation.name}</CardTitle>
+                    <CardDescription className="text-sm">
+                      {reservation.guests} guest{reservation.guests === 1 ? '' : 's'} ·{' '}
+                      {formatBookingDate(reservation.dateIso)} · {reservation.time || '—'}
+                    </CardDescription>
+                  </div>
+                  <p className="font-mono text-xs text-muted-foreground">
+                    Manage code · {reservation.manageToken.slice(0, 10)}…
+                  </p>
+                </div>
+                <div className="shrink-0 pt-0.5">
+                  <AiChatbotLogo sizePx={48} />
+                </div>
               </div>
-              <p className="font-mono text-xs text-muted-foreground">
-                Manage code · {reservation.manageToken.slice(0, 10)}…
-              </p>
             </CardHeader>
           </Card>
 
