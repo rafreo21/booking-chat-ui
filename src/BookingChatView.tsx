@@ -710,24 +710,47 @@ export function BookingChatView({ onBack }: Props) {
                 )}
 
                 {step === 'time' && (
-                  <div className="w-full min-w-0 pb-0.5" dir="ltr">
-                    <div className={cn(PILL_TABS_LIST_CLASS, 'flex flex-wrap items-center')}>
-                      {TIME_SLOTS_24.map((t24) => {
-                        const label = formatTimeSlot12h(t24)
-                        return (
-                          <button
-                            key={t24}
-                            type="button"
-                            className={cn(
-                              PILL_CHOICE_BUTTON_CLASS,
-                              'min-w-[4.5rem] justify-center tabular-nums',
-                            )}
-                            onClick={() => pickTime(label)}
-                          >
-                            {label}
-                          </button>
-                        )
-                      })}
+                  <div
+                    className="w-full min-w-0 overflow-x-auto overflow-y-visible pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                    dir="ltr"
+                  >
+                    <div className="inline-flex min-w-min flex-col items-start gap-2">
+                      <div className="flex w-max flex-nowrap items-center gap-2">
+                        {TIME_SLOTS_24.slice(0, 10).map((t24) => {
+                          const label = formatTimeSlot12h(t24)
+                          return (
+                            <button
+                              key={t24}
+                              type="button"
+                              className={cn(
+                                PILL_CHOICE_BUTTON_CLASS,
+                                'min-w-[4.5rem] justify-center tabular-nums',
+                              )}
+                              onClick={() => pickTime(label)}
+                            >
+                              {label}
+                            </button>
+                          )
+                        })}
+                      </div>
+                      <div className="flex w-max flex-nowrap items-center gap-2">
+                        {TIME_SLOTS_24.slice(10, 20).map((t24) => {
+                          const label = formatTimeSlot12h(t24)
+                          return (
+                            <button
+                              key={t24}
+                              type="button"
+                              className={cn(
+                                PILL_CHOICE_BUTTON_CLASS,
+                                'min-w-[4.5rem] justify-center tabular-nums',
+                              )}
+                              onClick={() => pickTime(label)}
+                            >
+                              {label}
+                            </button>
+                          )
+                        })}
+                      </div>
                     </div>
                   </div>
                 )}
