@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/select'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import type { Menu, MenuCategoryId, MenuId } from '../../types/bookingCustomization'
+import { PILL_TAB_TRIGGER_CLASS, PILL_TABS_LIST_CLASS } from './pillTabStyles'
 
 type Props = {
   menus: Menu[]
@@ -53,16 +54,9 @@ export function MenuCategoryTabs({
 
       {categories.length > 0 ? (
         <Tabs value={activeId} onValueChange={onChange} className="w-full min-w-0">
-          <TabsList
-            className="h-auto w-full min-w-0 flex-nowrap justify-start gap-2 overflow-x-auto border-0 bg-transparent p-0 shadow-none ring-0 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-            aria-label="Course category"
-          >
+          <TabsList className={PILL_TABS_LIST_CLASS} aria-label="Course category">
             {categories.map((c) => (
-              <TabsTrigger
-                key={c.id}
-                value={c.id}
-                className="flex-none rounded-full border border-border bg-card px-3.5 py-2 text-[13px] font-semibold whitespace-nowrap text-foreground shadow-xs ring-0 transition-colors after:hidden hover:bg-muted/60 hover:text-foreground data-[state=active]:border-primary data-[state=active]:!bg-primary data-[state=active]:!text-primary-foreground data-[state=active]:shadow-sm data-[state=inactive]:text-muted-foreground"
-              >
+              <TabsTrigger key={c.id} value={c.id} className={PILL_TAB_TRIGGER_CLASS}>
                 {c.label}
               </TabsTrigger>
             ))}

@@ -1,8 +1,8 @@
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { cn } from '@/lib/utils'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import type { GuestSeat } from '../../types/bookingCustomization'
+import { PILL_TAB_TRIGGER_CLASS, PILL_TABS_LIST_CLASS } from './pillTabStyles'
 
 type Props = {
   seats: GuestSeat[]
@@ -28,35 +28,27 @@ export function SeatAssignmentList({
         </p>
       </div>
 
-      <div role="radiogroup" aria-label="Active seat" className="flex flex-wrap gap-2">
-        {seats.map((s) => {
-          const on = s.seatIndex === activeSeatIndex
-          return (
-            <Button
+      <Tabs
+        value={String(activeSeatIndex)}
+        onValueChange={(v) => onSelectSeat(Number.parseInt(v, 10))}
+        className="w-full min-w-0"
+      >
+        <TabsList className={PILL_TABS_LIST_CLASS} aria-label="Active seat">
+          {seats.map((s) => (
+            <TabsTrigger
               key={s.seatIndex}
-              type="button"
-              role="radio"
-              aria-checked={on}
-              variant={on ? 'default' : 'outline'}
-              size="lg"
-              className={cn(
-                'h-10 min-w-[4.5rem] rounded-full px-4 text-[13px] font-semibold',
-                on && 'shadow-md',
-              )}
-              onClick={() => onSelectSeat(s.seatIndex)}
+              value={String(s.seatIndex)}
+              className={PILL_TAB_TRIGGER_CLASS}
             >
               Seat {s.seatIndex}
-            </Button>
-          )
-        })}
-      </div>
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
 
       {active ? (
         <div className="grid gap-1.5">
-          <Label
-            htmlFor={`seat-name-${active.seatIndex}`}
-            className="text-[13px] font-semibold"
-          >
+          <Label htmlFor={`seat-name-${active.seatIndex}`} className="text-[13px] font-semibold">
             Name for Seat {active.seatIndex}{' '}
             <span className="font-normal text-muted-foreground">(optional)</span>
           </Label>
