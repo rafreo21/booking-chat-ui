@@ -52,16 +52,17 @@ export function MenuCategoryTabs({
       </div>
 
       {categories.length > 0 ? (
-        <Tabs value={activeId} onValueChange={onChange} className="w-full">
+        <Tabs value={activeId} onValueChange={onChange} className="w-full min-w-0">
           <TabsList
-            className="h-auto w-full justify-start gap-1 overflow-x-auto bg-transparent p-0 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            variant="line"
+            className="h-auto w-full min-w-0 flex-nowrap justify-start gap-2 overflow-x-auto bg-transparent p-0 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             aria-label="Course category"
           >
             {categories.map((c) => (
               <TabsTrigger
                 key={c.id}
                 value={c.id}
-                className="shrink-0 rounded-full border border-border bg-card px-3.5 py-2 text-[13px] font-semibold text-foreground shadow-xs data-[state=active]:border-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-sm"
+                className="flex-none rounded-full border border-border bg-card px-3.5 py-2 text-[13px] font-semibold whitespace-nowrap text-foreground shadow-xs after:hidden data-[state=active]:border-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-sm"
               >
                 {c.label}
               </TabsTrigger>
