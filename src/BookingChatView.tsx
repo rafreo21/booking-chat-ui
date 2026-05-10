@@ -27,11 +27,9 @@ import { GetDirectionsFab } from './components/GetDirectionsFab'
 import { BookingsLog } from './components/BookingsLog'
 import { NotionStyleDatePicker } from './components/NotionStyleDatePicker'
 import { VenueHeaderRating } from './components/VenueHeaderRating'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { BookingConfirmationCta } from './components/customization/BookingConfirmationCta'
 import {
   PILL_CHOICE_BUTTON_CLASS,
-  PILL_TAB_TRIGGER_CLASS,
   PILL_TABS_LIST_CLASS,
 } from './components/customization/pillTabStyles'
 import {
@@ -679,21 +677,13 @@ export function BookingChatView({ onBack }: Props) {
 
                 {step === 'guests' && !guestsInputMode && (
                   <div className="w-full min-w-0 overflow-x-auto overflow-y-visible pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                    <div className="flex w-max max-w-full flex-nowrap items-center gap-2">
-                      <Tabs className="min-w-0" onValueChange={(v) => pickGuest(v)}>
-                        <TabsList className={PILL_TABS_LIST_CLASS}>
-                          {GUEST_CHIPS.map((g) => (
-                            <TabsTrigger key={g} value={g} className={PILL_TAB_TRIGGER_CLASS}>
-                              {g}
-                            </TabsTrigger>
-                          ))}
-                        </TabsList>
-                      </Tabs>
-                      <button
-                        type="button"
-                        className={PILL_CHOICE_BUTTON_CLASS}
-                        onClick={startGuestNumberInput}
-                      >
+                    <div className={cn('flex w-max max-w-full flex-nowrap items-center', PILL_TABS_LIST_CLASS)}>
+                      {GUEST_CHIPS.map((g) => (
+                        <button key={g} type="button" className={PILL_CHOICE_BUTTON_CLASS} onClick={() => pickGuest(g)}>
+                          {g}
+                        </button>
+                      ))}
+                      <button type="button" className={PILL_CHOICE_BUTTON_CLASS} onClick={startGuestNumberInput}>
                         Enter Number
                       </button>
                     </div>
@@ -702,26 +692,17 @@ export function BookingChatView({ onBack }: Props) {
 
                 {step === 'date' && !datesCustomMode && (
                   <div className="w-full min-w-0 overflow-x-auto overflow-y-visible pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                    <div className="flex w-max max-w-full flex-nowrap items-center gap-2">
-                      <Tabs
-                        className="min-w-0"
-                        onValueChange={(iso) => {
-                          const d = new Date(iso)
-                          if (!Number.isNaN(d.getTime())) pickDate(d)
-                        }}
-                      >
-                        <TabsList className={PILL_TABS_LIST_CLASS}>
-                          {days.map((d) => (
-                            <TabsTrigger
-                              key={d.toISOString()}
-                              value={d.toISOString()}
-                              className={PILL_TAB_TRIGGER_CLASS}
-                            >
-                              {formatDay(d)}
-                            </TabsTrigger>
-                          ))}
-                        </TabsList>
-                      </Tabs>
+                    <div className={cn('flex w-max max-w-full flex-nowrap items-center', PILL_TABS_LIST_CLASS)}>
+                      {days.map((d) => (
+                        <button
+                          key={d.toISOString()}
+                          type="button"
+                          className={PILL_CHOICE_BUTTON_CLASS}
+                          onClick={() => pickDate(d)}
+                        >
+                          {formatDay(d)}
+                        </button>
+                      ))}
                       <button type="button" className={PILL_CHOICE_BUTTON_CLASS} onClick={startCustomDatePicker}>
                         Pick Date
                       </button>
@@ -731,25 +712,24 @@ export function BookingChatView({ onBack }: Props) {
 
                 {step === 'time' && (
                   <div className="w-full min-w-0 pb-0.5" dir="ltr">
-                    <Tabs
-                      className="w-full min-w-0"
-                      onValueChange={(t24) => pickTime(formatTimeSlot12h(t24))}
-                    >
-                      <TabsList className={cn(PILL_TABS_LIST_CLASS, 'flex-wrap')}>
-                        {TIME_SLOTS_24.map((t24) => (
-                          <TabsTrigger
+                    <div className={cn(PILL_TABS_LIST_CLASS, 'flex flex-wrap items-center')}>
+                      {TIME_SLOTS_24.map((t24) => {
+                        const label = formatTimeSlot12h(t24)
+                        return (
+                          <button
                             key={t24}
-                            value={t24}
+                            type="button"
                             className={cn(
-                              PILL_TAB_TRIGGER_CLASS,
+                              PILL_CHOICE_BUTTON_CLASS,
                               'min-w-[4.5rem] justify-center tabular-nums',
                             )}
+                            onClick={() => pickTime(label)}
                           >
-                            {formatTimeSlot12h(t24)}
-                          </TabsTrigger>
-                        ))}
-                      </TabsList>
-                    </Tabs>
+                            {label}
+                          </button>
+                        )
+                      })}
+                    </div>
                   </div>
                 )}
 
