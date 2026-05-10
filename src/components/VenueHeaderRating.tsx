@@ -34,7 +34,7 @@ type Props = {
 }
 
 /**
- * Star + linked 4.5 · (CheckFat + dine in only) · Globe (website) · optional Directions (maps).
+ * Star + linked 4.5 · (CheckFat + dine in only) · Globe (website) · optional maps pin (directions).
  */
 export function VenueHeaderRating({
   className = '',
@@ -55,13 +55,10 @@ export function VenueHeaderRating({
     ? 'font-medium text-[#f3f2f2]'
     : 'font-medium text-foreground'
 
-  const globeFocus = isDark
-    ? 'focus-visible:ring-[#1A73E8]/50 focus-visible:ring-offset-neutral-950'
-    : 'focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background'
-
-  const directionsLink = isDark
-    ? 'inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-1 text-[13px] font-semibold text-primary-foreground/95 no-underline transition-colors hover:bg-white/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/35'
-    : 'inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-1 text-[13px] font-semibold text-muted-foreground no-underline transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+  /** Shared 32×32 circular hit target for website globe + maps pin (size aligns with 20px Phosphor icons). */
+  const mapGlobeHit = isDark
+    ? 'inline-flex size-8 shrink-0 items-center justify-center rounded-full transition-[background-color,opacity] duration-150 hover:bg-white/15 active:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-primary'
+    : 'inline-flex size-8 shrink-0 items-center justify-center rounded-full transition-[background-color,opacity] duration-150 hover:bg-muted active:bg-muted/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background'
 
   return (
     <div
@@ -93,12 +90,12 @@ export function VenueHeaderRating({
         <span className={dineLabel}>Dine in only</span>
       </span>
 
-      <span className="inline-flex shrink-0 flex-wrap items-center gap-x-2 gap-y-1">
+      <span className="inline-flex shrink-0 items-center gap-2">
         <a
           href={GILGAMESH_WEB}
           target="_blank"
           rel="noopener noreferrer"
-          className={`inline-flex shrink-0 items-center justify-center rounded-full p-0.5 transition-[opacity,background-color] duration-200 ease-out hover:bg-muted active:bg-muted/80 focus:outline-none focus-visible:ring-2 ${globeFocus}`}
+          className={mapGlobeHit}
           aria-label="Gilgamesh website"
         >
           <GlobeHemisphereEast {...venueIconProps} color={iconGlobe} aria-hidden />
@@ -108,11 +105,10 @@ export function VenueHeaderRating({
             href={MAPS_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className={directionsLink}
+            className={mapGlobeHit}
             aria-label="Get directions to Gilgamesh in Google Maps"
           >
-            <GoogleMapsPin className="scale-110" />
-            <span>Directions</span>
+            <GoogleMapsPin sizePx={20} />
           </a>
         ) : null}
       </span>

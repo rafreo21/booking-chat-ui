@@ -1,12 +1,20 @@
 import { useId } from 'react'
 
-/** 12×18 Google Maps-style pin; inlined so it never stretches or MIME-breaks. */
-export function GoogleMapsPin({ className = '' }: { className?: string }) {
+type Props = {
+  className?: string
+  /** Pin height in CSS px; width follows the 12∶18 marker proportion. Omit for legacy 12×18 asset pixels. */
+  sizePx?: number
+}
+
+/** Google Maps–style pin; width scales with height to preserve proportion. */
+export function GoogleMapsPin({ className = '', sizePx }: Props) {
   const cid = `gmaps-${useId().replace(/:/g, '')}`
+  const height = sizePx ?? 18
+  const width = sizePx == null ? 12 : (12 / 18) * height
   return (
     <svg
-      width={12}
-      height={18}
+      width={width}
+      height={height}
       viewBox="0 0 12 18"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
