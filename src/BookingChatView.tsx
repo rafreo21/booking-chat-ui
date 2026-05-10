@@ -27,7 +27,13 @@ import { GetDirectionsFab } from './components/GetDirectionsFab'
 import { BookingsLog } from './components/BookingsLog'
 import { NotionStyleDatePicker } from './components/NotionStyleDatePicker'
 import { VenueHeaderRating } from './components/VenueHeaderRating'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { BookingConfirmationCta } from './components/customization/BookingConfirmationCta'
+import {
+  PILL_CHOICE_BUTTON_CLASS,
+  PILL_TAB_TRIGGER_CLASS,
+  PILL_TABS_LIST_CLASS,
+} from './components/customization/pillTabStyles'
 import {
   WIDGET_CHAT_CARD_FRAME_CLASS,
   WIDGET_CHAT_HEADER_PAD_CLASS,
@@ -99,9 +105,6 @@ const GUEST_CHIPS = ['1', '2', '3', '4', '5'] as const
 const MAX_GUESTS_TYPED = 100_000
 
 const RESTAURANT_SERVICE = 'Restaurant'
-
-const chipOutline =
-  'rounded-full shadow-sm active:scale-[0.97] h-auto min-h-0 px-0 py-0 font-semibold'
 
 /** How many days appear as quick-pick chips — one full week (7-day window from today). */
 const QUICK_PICK_DAYS = 7
@@ -556,9 +559,6 @@ export function BookingChatView({ onBack }: Props) {
 
   const days = quickPickDatesInWeekWindow()
 
-  const timeSlotsFirstRow = TIME_SLOTS_24.slice(0, 10)
-  const timeSlotsSecondRow = TIME_SLOTS_24.slice(10, 20)
-
   const resetChat = () => {
     setLinkCopied(false)
     setLastConfirmedReservation(null)
@@ -678,105 +678,78 @@ export function BookingChatView({ onBack }: Props) {
                 ))}
 
                 {step === 'guests' && !guestsInputMode && (
-                  <div className="w-full overflow-x-auto overflow-y-visible pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                    <div className="flex w-max flex-nowrap items-center justify-start gap-2.5">
-                      {GUEST_CHIPS.map((g) => (
-                        <Button
-                          key={g}
-                          type="button"
-                          variant="outline"
-                          className={cn(
-                            chipOutline,
-                            'size-11 shrink-0 p-0 text-[15px] tabular-nums',
-                          )}
-                          onClick={() => pickGuest(g)}
-                        >
-                          {g}
-                        </Button>
-                      ))}
-                      <Button
+                  <div className="w-full min-w-0 overflow-x-auto overflow-y-visible pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    <div className="flex w-max max-w-full flex-nowrap items-center gap-2">
+                      <Tabs className="min-w-0" onValueChange={(v) => pickGuest(v)}>
+                        <TabsList className={PILL_TABS_LIST_CLASS}>
+                          {GUEST_CHIPS.map((g) => (
+                            <TabsTrigger key={g} value={g} className={PILL_TAB_TRIGGER_CLASS}>
+                              {g}
+                            </TabsTrigger>
+                          ))}
+                        </TabsList>
+                      </Tabs>
+                      <button
                         type="button"
-                        variant="outline"
-                        className={cn(chipOutline, 'h-10 shrink-0 whitespace-nowrap px-4 text-[13px]')}
+                        className={PILL_CHOICE_BUTTON_CLASS}
                         onClick={startGuestNumberInput}
                       >
                         Enter Number
-                      </Button>
+                      </button>
                     </div>
                   </div>
                 )}
 
                 {step === 'date' && !datesCustomMode && (
-                  <div className="w-full overflow-x-auto overflow-y-visible pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                    <div className="flex w-max flex-nowrap items-center justify-start gap-2.5">
-                      {days.map((d) => (
-                        <Button
-                          key={d.toISOString()}
-                          type="button"
-                          variant="outline"
-                          className={cn(chipOutline, 'h-10 px-3.5 text-[13px]')}
-                          onClick={() => pickDate(d)}
-                        >
-                          {formatDay(d)}
-                        </Button>
-                      ))}
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className={cn(chipOutline, 'h-10 shrink-0 whitespace-nowrap px-4 text-[13px]')}
-                        onClick={startCustomDatePicker}
+                  <div className="w-full min-w-0 overflow-x-auto overflow-y-visible pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    <div className="flex w-max max-w-full flex-nowrap items-center gap-2">
+                      <Tabs
+                        className="min-w-0"
+                        onValueChange={(iso) => {
+                          const d = new Date(iso)
+                          if (!Number.isNaN(d.getTime())) pickDate(d)
+                        }}
                       >
+                        <TabsList className={PILL_TABS_LIST_CLASS}>
+                          {days.map((d) => (
+                            <TabsTrigger
+                              key={d.toISOString()}
+                              value={d.toISOString()}
+                              className={PILL_TAB_TRIGGER_CLASS}
+                            >
+                              {formatDay(d)}
+                            </TabsTrigger>
+                          ))}
+                        </TabsList>
+                      </Tabs>
+                      <button type="button" className={PILL_CHOICE_BUTTON_CLASS} onClick={startCustomDatePicker}>
                         Pick Date
-                      </Button>
+                      </button>
                     </div>
                   </div>
                 )}
 
                 {step === 'time' && (
-                  <div
-                    className="w-full overflow-x-auto overflow-y-visible pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-                    dir="ltr"
-                  >
-                    <div className="inline-flex min-w-min flex-col items-start gap-2">
-                      <div className="flex w-max flex-nowrap items-center justify-start gap-2.5">
-                        {timeSlotsFirstRow.map((t24) => {
-                          const label = formatTimeSlot12h(t24)
-                          return (
-                            <Button
-                              key={t24}
-                              type="button"
-                              variant="outline"
-                              className={cn(
-                                chipOutline,
-                                'h-10 min-w-[4.5rem] shrink-0 px-3.5 text-[13px] tabular-nums',
-                              )}
-                              onClick={() => pickTime(label)}
-                            >
-                              {label}
-                            </Button>
-                          )
-                        })}
-                      </div>
-                      <div className="flex w-max flex-nowrap items-center justify-start gap-2.5">
-                        {timeSlotsSecondRow.map((t24) => {
-                          const label = formatTimeSlot12h(t24)
-                          return (
-                            <Button
-                              key={t24}
-                              type="button"
-                              variant="outline"
-                              className={cn(
-                                chipOutline,
-                                'h-10 min-w-[4.5rem] shrink-0 px-3.5 text-[13px] tabular-nums',
-                              )}
-                              onClick={() => pickTime(label)}
-                            >
-                              {label}
-                            </Button>
-                          )
-                        })}
-                      </div>
-                    </div>
+                  <div className="w-full min-w-0 pb-0.5" dir="ltr">
+                    <Tabs
+                      className="w-full min-w-0"
+                      onValueChange={(t24) => pickTime(formatTimeSlot12h(t24))}
+                    >
+                      <TabsList className={cn(PILL_TABS_LIST_CLASS, 'flex-wrap')}>
+                        {TIME_SLOTS_24.map((t24) => (
+                          <TabsTrigger
+                            key={t24}
+                            value={t24}
+                            className={cn(
+                              PILL_TAB_TRIGGER_CLASS,
+                              'min-w-[4.5rem] justify-center tabular-nums',
+                            )}
+                          >
+                            {formatTimeSlot12h(t24)}
+                          </TabsTrigger>
+                        ))}
+                      </TabsList>
+                    </Tabs>
                   </div>
                 )}
 
@@ -831,7 +804,7 @@ export function BookingChatView({ onBack }: Props) {
                       <Button
                         type="button"
                         size="lg"
-                        className="h-12 w-full max-w-[220px] rounded-full text-[15px] font-semibold"
+                        className="h-12 w-full max-w-[220px] text-[15px] font-semibold"
                         onClick={resetChat}
                       >
                         Book again
@@ -909,9 +882,9 @@ export function BookingChatView({ onBack }: Props) {
                           submitGuestNumber()
                         }
                       }}
-                      className="min-h-11 flex-1 rounded-full border-2 px-4 text-[16px]"
+                      className="h-10 flex-1"
                     />
-                    <Button type="button" className="shrink-0 rounded-full px-4 py-2.5 text-[15px]" onClick={submitGuestNumber}>
+                    <Button type="button" size="lg" className="h-10 shrink-0 px-4 text-[15px] font-semibold" onClick={submitGuestNumber}>
                       Send
                     </Button>
                   </div>
@@ -1036,12 +1009,10 @@ function DetailsForm({
   onChange: (patch: Partial<{ name: string; email: string; phone: string }>) => void
   onSubmit: () => void
 }) {
-  const fieldClass = 'min-h-[48px] rounded-xl border-2 px-3.5 text-[16px] md:text-base'
-
   return (
-    <Card className="gap-4 rounded-xl border-2 py-4 shadow-sm">
+    <Card className="gap-4 py-4 shadow-sm ring-1 ring-border">
       <CardHeader className="gap-1 pb-0">
-        <CardTitle className="text-base font-bold tracking-tight">Your details</CardTitle>
+        <CardTitle className="text-base font-semibold tracking-tight">Your details</CardTitle>
         <CardDescription className="text-[14px] leading-snug">
           We&apos;ll use these to confirm your reservation.
         </CardDescription>
@@ -1058,7 +1029,7 @@ function DetailsForm({
             value={details.name}
             onChange={(e) => onChange({ name: e.target.value })}
             placeholder="Alex Rivera"
-            className={cn(fieldClass, errors.name && 'border-destructive')}
+            className={cn('h-10', errors.name && 'border-destructive')}
             aria-invalid={Boolean(errors.name)}
           />
           {errors.name ? (
@@ -1076,7 +1047,7 @@ function DetailsForm({
             value={details.email}
             onChange={(e) => onChange({ email: e.target.value })}
             placeholder="alex@example.com"
-            className={cn(fieldClass, errors.email && 'border-destructive')}
+            className={cn('h-10', errors.email && 'border-destructive')}
             aria-invalid={Boolean(errors.email)}
           />
           {errors.email ? (
@@ -1094,14 +1065,19 @@ function DetailsForm({
             value={details.phone}
             onChange={(e) => onChange({ phone: e.target.value })}
             placeholder="+44 20 1234 5678"
-            className={cn(fieldClass, errors.phone && 'border-destructive')}
+            className={cn('h-10', errors.phone && 'border-destructive')}
             aria-invalid={Boolean(errors.phone)}
           />
           {errors.phone ? (
             <p className="text-[13px] font-medium text-destructive">{errors.phone}</p>
           ) : null}
         </div>
-        <Button type="button" size="lg" className="mt-1 h-12 w-full rounded-full text-[15px] font-semibold" onClick={onSubmit}>
+        <Button
+          type="button"
+          size="lg"
+          className="mt-1 h-12 w-full text-[15px] font-semibold"
+          onClick={onSubmit}
+        >
           Continue
         </Button>
       </CardContent>
@@ -1135,10 +1111,10 @@ function ConfirmPanel({
     ['Phone', details.phone.trim()],
   ] as const
   return (
-    <Card className="gap-4 rounded-xl border-2 py-4 shadow-sm">
+    <Card className="gap-4 py-4 shadow-sm ring-1 ring-border">
       <CardHeader className="border-b border-border pb-4">
         <div className="space-y-1">
-          <CardTitle className="text-base font-bold tracking-tight">Confirm your booking</CardTitle>
+          <CardTitle className="text-base font-semibold tracking-tight">Confirm your booking</CardTitle>
           <CardDescription className="text-[14px]">
             Check everything looks right before you confirm.
           </CardDescription>
@@ -1157,7 +1133,7 @@ function ConfirmPanel({
         </CardAction>
       </CardHeader>
       <CardContent className="space-y-4 pt-4">
-        <dl className="space-y-2.5 border-t border-border pt-3">
+        <dl className="space-y-2.5">
           {rows.map(([label, value]) => (
             <div key={label} className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-2">
               <dt className="text-[13px] font-semibold uppercase tracking-wide text-muted-foreground sm:w-24 sm:shrink-0">
@@ -1169,7 +1145,12 @@ function ConfirmPanel({
             </div>
           ))}
         </dl>
-        <Button type="button" size="lg" className="h-12 w-full rounded-full text-[15px] font-semibold" onClick={onConfirm}>
+        <Button
+          type="button"
+          size="lg"
+          className="h-12 w-full text-[15px] font-semibold"
+          onClick={onConfirm}
+        >
           Confirm booking
         </Button>
       </CardContent>
