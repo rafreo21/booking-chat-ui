@@ -11,10 +11,10 @@ type Props = {
 }
 
 const shell =
-  'relative z-[1] flex h-[min(400px,52svh)] min-h-0 flex-col overflow-hidden rounded-2xl border border-border bg-gradient-to-b from-card to-muted/30 shadow-sm ring-1 ring-border sm:h-[min(460px,56svh)]'
+  'relative z-[1] flex max-h-[min(400px,52svh)] w-full min-h-0 flex-col overflow-hidden rounded-2xl border border-border bg-gradient-to-b from-card to-muted/30 shadow-sm ring-1 ring-border sm:max-h-[min(460px,56svh)]'
 
 const scrollBody =
-  'min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 [-webkit-overflow-scrolling:touch] touch-pan-y sm:px-5 sm:pb-6 sm:pt-5'
+  'min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-4 pt-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] [-webkit-overflow-scrolling:touch] touch-pan-y sm:px-5 sm:pt-5 sm:pb-[max(1rem,env(safe-area-inset-bottom))]'
 
 /**
  * Post-booking optional CTA — reassuring copy, non-blocking.
