@@ -1,5 +1,5 @@
 import { PencilSimple } from '@phosphor-icons/react'
-import { Loader2Icon } from 'lucide-react'
+import { Loader2Icon, ArrowLeftIcon } from 'lucide-react'
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
@@ -22,7 +22,6 @@ import { sendBookingConfirmationEmail } from './lib/sendBookingEmail'
 import { useMenuCatalog } from './menu/useMenuCatalog'
 import { syncBookingToSheets } from './syncBookingToSheets'
 import { AiChatbotLogo } from './components/AiChatbotLogo'
-import { BackChevronIcon } from './components/BackChevronIcon'
 import { GetDirectionsFab } from './components/GetDirectionsFab'
 import { BookingsLog } from './components/BookingsLog'
 import { NotionStyleDatePicker } from './components/NotionStyleDatePicker'
@@ -586,13 +585,13 @@ export function BookingChatView({ onBack }: Props) {
           <div className="sticky top-[max(0.5rem,env(safe-area-inset-top))] z-50 flex w-full justify-start py-2">
             <Button
               type="button"
-              variant="outline"
-              size="icon-lg"
-              className="size-11 shrink-0 rounded-full shadow-sm"
+              variant="ghost"
+              size="default"
+              className="-ml-1 h-9 w-fit gap-1.5 rounded-full px-3 text-sm font-semibold text-muted-foreground hover:text-foreground"
               onClick={onBack}
-              aria-label="Back to restaurant"
             >
-              <BackChevronIcon size={20} />
+              <ArrowLeftIcon className="size-4 shrink-0" aria-hidden />
+              Back
             </Button>
           </div>
 
