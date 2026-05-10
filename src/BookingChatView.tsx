@@ -22,7 +22,10 @@ import {
   loadBookings,
   type SavedBooking,
 } from './storage'
-import { reservationManageAbsoluteUrl, reservationManagePath } from './lib/reservationUrls'
+import {
+  reservationCustomizePath,
+  reservationManageAbsoluteUrl,
+} from './lib/reservationUrls'
 import { sendBookingConfirmationEmail } from './lib/sendBookingEmail'
 import { useMenuCatalog } from './menu/useMenuCatalog'
 import { syncBookingToSheets } from './syncBookingToSheets'
@@ -36,10 +39,11 @@ import {
   PILL_TABS_LIST_CLASS,
 } from './components/customization/pillTabStyles'
 import {
-  WIDGET_CHAT_CARD_FRAME_CLASS,
+  WIDGET_FRAME_HEIGHT_CLASS,
   WIDGET_CHAT_HEADER_PAD_CLASS,
   WIDGET_CHAT_PAGE_SHELL_CLASS,
-  WIDGET_CHAT_STACK_COLUMN_CLASS,
+  WIDGET_STACK_COLUMN_CLASS,
+  WIDGET_TOP_ROW_SPACER_CLASS,
 } from './widgetLayout'
 
 type Role = 'assistant' | 'user'
@@ -633,8 +637,8 @@ export function BookingChatView({ onBack }: Props) {
   return (
     <div className="relative flex h-dvh max-h-dvh flex-col overflow-hidden bg-muted/40">
       <div className={WIDGET_CHAT_PAGE_SHELL_CLASS}>
-        <div className={`${WIDGET_CHAT_STACK_COLUMN_CLASS} mx-auto`}>
-          <div className="sticky top-[max(0.5rem,env(safe-area-inset-top))] z-50 flex w-full justify-start py-2">
+        <div className={`${WIDGET_STACK_COLUMN_CLASS} mx-auto`}>
+          <div className={`${WIDGET_TOP_ROW_SPACER_CLASS} z-10`}>
             <Button
               type="button"
               variant="ghost"
@@ -650,7 +654,7 @@ export function BookingChatView({ onBack }: Props) {
           <div
             className={cn(
               'flex min-h-0 w-full flex-col overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-md ring-1 ring-border',
-              WIDGET_CHAT_CARD_FRAME_CLASS,
+              WIDGET_FRAME_HEIGHT_CLASS,
             )}
             role="region"
             aria-labelledby={titleId}
@@ -666,7 +670,7 @@ export function BookingChatView({ onBack }: Props) {
               <div className="min-w-0">
                 <p
                   id={titleId}
-                  className="text-[16px] font-bold leading-tight tracking-tight text-primary-foreground sm:text-[17px]"
+                  className="w-fit max-w-full text-[16px] font-semibold leading-tight tracking-normal text-primary-foreground [font-stretch:100%] [font-synthesis:none] sm:text-[17px]"
                 >
                   Hey!
                 </p>
@@ -697,7 +701,7 @@ export function BookingChatView({ onBack }: Props) {
               <div
                 ref={listRef}
                 className={
-                  'min-h-0 max-h-[min(360px,calc(100dvh-13rem))] touch-pan-y space-y-3 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] bg-muted/50 px-3 py-3 sm:space-y-3 sm:px-4 sm:py-4 ' +
+                  'flex-1 min-h-0 touch-pan-y space-y-3 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] bg-muted/50 px-3 py-3 sm:space-y-3 sm:px-4 sm:py-4 ' +
                   ((step === 'success' || step === 'booking_error')
                     ? 'scroll-pb-[max(7rem,calc(env(safe-area-inset-bottom)+5rem))]'
                     : '')
@@ -850,7 +854,7 @@ export function BookingChatView({ onBack }: Props) {
                         dateLabel={formatDayFromIso(lastConfirmedReservation.dateIso)}
                         timeLabel={lastConfirmedReservation.time || '—'}
                         onCustomize={() =>
-                          navigate(reservationManagePath(lastConfirmedReservation.manageToken))
+                          navigate(reservationCustomizePath(lastConfirmedReservation.manageToken))
                         }
                         onSkip={resetChat}
                       />
@@ -1248,18 +1252,20 @@ function ConfirmPanel({
             <p className="text-[13px] leading-snug text-muted-foreground">{paymentMethodsLine}</p>
             <div className="flex flex-col gap-2">
               {holdingFee ? (
-                <div className="flex flex-col items-center gap-1 px-0.5">
-                  <Badge
-                    variant="outline"
-                    className="h-auto max-w-full whitespace-normal rounded-lg px-2.5 py-1.5 text-center text-[11px] font-semibold leading-snug"
-                  >
-                    {holdingFeeVenue} charges {holdingFee.totalFormatted} · Non-refundable holding fee
-                  </Badge>
-                  <p className="text-center text-[11px] leading-snug text-muted-foreground">
+                <>
+                  <p className="text-center text-[13px] font-semibold tabular-nums text-muted-foreground">
                     {holdingFee.perGuestFormatted} × {holdingFee.guests}{' '}
                     {holdingFee.guests === 1 ? 'guest' : 'guests'}
                   </p>
-                </div>
+                  <div className="flex justify-center px-0.5">
+                    <Badge
+                      variant="outline"
+                      className="h-auto max-w-full whitespace-normal rounded-lg px-2.5 py-1.5 text-center text-[11px] font-semibold leading-snug"
+                    >
+                      {holdingFeeVenue} charges {holdingFee.totalFormatted} · Non-refundable holding fee
+                    </Badge>
+                  </div>
+                </>
               ) : null}
               <Button
                 type="button"

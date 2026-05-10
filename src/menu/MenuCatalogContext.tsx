@@ -34,8 +34,8 @@ type Snapshot = {
 
 function normalizeCatalog(raw: CatalogJson | null): Snapshot {
   const cats = raw?.categories
-  const items = raw?.items
-  if (cats?.length && items?.length) {
+  const items = raw?.items ?? []
+  if (cats?.length && raw?.menus?.length) {
     const menus =
       raw?.menus && raw.menus.length > 0
         ? [...raw.menus].sort((a, b) => a.order - b.order)

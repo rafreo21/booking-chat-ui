@@ -73,14 +73,26 @@ export function BookingConfirmationCta({
 
       <Separator className="my-4" />
 
-      <div className="flex flex-col gap-2.5">
-        <Button type="button" size="lg" className="w-full whitespace-normal py-2 text-center leading-snug" onClick={onCustomize}>
-          Customize your dining experience
-        </Button>
+      <div className="flex flex-col gap-3">
         <p className="text-center text-[13px] font-medium leading-snug text-muted-foreground">
           Pre-select dishes for your table · Help us prepare for your arrival
         </p>
-        <Button type="button" variant="ghost" size="lg" className="w-full whitespace-normal py-2 text-center leading-snug" onClick={onSkip}>
+        <Button
+          type="button"
+          variant="default"
+          size="lg"
+          className="min-h-12 h-auto w-full whitespace-normal px-5 py-3 text-center text-[15px] font-semibold leading-snug"
+          onClick={onCustomize}
+        >
+          Customize your dining experience
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          className="min-h-12 h-auto w-full whitespace-normal px-5 py-3 text-center text-[15px] font-semibold leading-snug"
+          onClick={onSkip}
+        >
           Maybe later — I&apos;m done
         </Button>
       </div>

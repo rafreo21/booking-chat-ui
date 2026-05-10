@@ -1,137 +1,36 @@
-import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeftIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
-import type { SavedBooking } from '../storage'
-import { loadCustomization, resolveReservationPublicRef } from '../storage'
-import type { DiningCustomization } from '../types/bookingCustomization'
 import { DiningCustomizationFlow } from '../components/customization/DiningCustomizationFlow'
 import { AiChatbotLogo } from '../components/AiChatbotLogo'
+import { useReservationRouteLoad } from '../hooks/useReservationRouteLoad'
+import {
+  MissingReservationRef,
+  PAGE_BG_CLASS,
+  PAGE_SHELL_CLASS,
+  ReservationLoadingSkeleton,
+  ReservationMessageCard,
+  formatBookingDate,
+} from './reservationShell'
 
 /**
- * Manage / customize reservation page.
- *
- * Independent of the booking AI chat (which lives at "/" and is intentionally
- * widget-sized at max-w-sm). This page is a real desktop layout: wide shell,
- * two-column grid (form + sticky Summary) on tablet+, stacks on phones.
+ * Full dining customization editor — `/reservation/:token/customize`.
+ * Landing / email links use `/reservation/:token` (preview) first.
  */
-
-const PAGE_BG_CLASS =
-  'min-h-dvh bg-muted/40 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))]'
-
-const PAGE_SHELL_CLASS =
-  'mx-auto w-full max-w-[1400px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16'
-
-function formatBookingDate(dateIso: string): string {
-  if (!dateIso) return '—'
-  try {
-    const d = new Date(dateIso)
-    return d.toLocaleDateString(undefined, {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    })
-  } catch {
-    return '—'
-  }
-}
-
-function StatusCard({
-  title,
-  body,
-  cta,
-}: {
-  title: string
-  body: string
-  cta?: { to: string; label: string }
-}) {
-  return (
-    <div className={PAGE_BG_CLASS}>
-      <div className={PAGE_SHELL_CLASS}>
-        <Card className="mx-auto mt-12 w-full max-w-2xl">
-          <CardHeader>
-            <CardTitle className="text-xl tracking-tight sm:text-2xl">{title}</CardTitle>
-            <CardDescription className="text-[15px] leading-relaxed">{body}</CardDescription>
-          </CardHeader>
-          {cta ? (
-            <CardContent>
-              <Button asChild size="lg" className="h-11 px-5">
-                <Link to={cta.to}>{cta.label}</Link>
-              </Button>
-            </CardContent>
-          ) : null}
-        </Card>
-      </div>
-    </div>
-  )
-}
-
-function MissingReservation() {
-  return (
-    <StatusCard
-      title="Missing reservation"
-      body="This link is missing a reservation reference. Open it from your saved bookings or the email confirmation."
-      cta={{ to: '/', label: 'Go home' }}
-    />
-  )
-}
-
-function LoadingState() {
-  return (
-    <div className={PAGE_BG_CLASS}>
-      <div className={PAGE_SHELL_CLASS}>
-        <div className="mx-auto mt-6 flex w-full max-w-3xl flex-col gap-4">
-          <Skeleton className="h-9 w-24" />
-          <Skeleton className="h-32 w-full rounded-xl" />
-          <Skeleton className="h-[60dvh] w-full rounded-xl" />
-        </div>
-      </div>
-    </div>
-  )
-}
 
 function ManageReservationLoaded({ reservationId }: { reservationId: string }) {
   const navigate = useNavigate()
 
-  const [loadStatus, setLoadStatus] = useState<'loading' | 'ready' | 'error'>('loading')
-  const [reservation, setReservation] = useState<SavedBooking | null>(null)
-  const [customization, setCustomization] = useState<DiningCustomization | null>(null)
-  const [loadError, setLoadError] = useState<string | null>(null)
-
-  useEffect(() => {
-    let cancelled = false
-    void (async () => {
-      try {
-        const r = await resolveReservationPublicRef(reservationId)
-        const c = r ? await loadCustomization(r.id) : null
-        if (cancelled) return
-        setReservation(r)
-        setCustomization(c)
-        setLoadStatus(r ? 'ready' : 'error')
-        setLoadError(r ? null : 'Reservation not found.')
-      } catch (e) {
-        if (cancelled) return
-        setReservation(null)
-        setCustomization(null)
-        setLoadStatus('error')
-        setLoadError(e instanceof Error ? e.message : 'Failed to load reservation.')
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [reservationId])
+  const { loadStatus, reservation, customization, loadError } = useReservationRouteLoad(reservationId)
 
   if (loadStatus === 'loading') {
-    return <LoadingState />
+    return <ReservationLoadingSkeleton />
   }
 
   if (loadStatus === 'error' || !reservation) {
     return (
-      <StatusCard
+      <ReservationMessageCard
         title="Reservation not found"
         body={
           loadError ??
@@ -151,7 +50,7 @@ function ManageReservationLoaded({ reservationId }: { reservationId: string }) {
             variant="ghost"
             size="default"
             className="-ml-2 h-9 w-fit self-start gap-1.5 rounded-full px-3 text-sm font-semibold text-muted-foreground hover:text-foreground"
-            onClick={() => navigate('/')}
+            onClick={() => navigate(-1)}
           >
             <ArrowLeftIcon />
             Back
@@ -199,12 +98,10 @@ function ManageReservationLoaded({ reservationId }: { reservationId: string }) {
 
 export function ManageReservationPage() {
   const { reservationId: reservationIdParam } = useParams<{ reservationId: string }>()
-  const reservationId = reservationIdParam
-    ? decodeURIComponent(reservationIdParam)
-    : null
+  const reservationId = reservationIdParam ? decodeURIComponent(reservationIdParam) : null
 
   if (!reservationId) {
-    return <MissingReservation />
+    return <MissingReservationRef />
   }
 
   return <ManageReservationLoaded reservationId={reservationId} />

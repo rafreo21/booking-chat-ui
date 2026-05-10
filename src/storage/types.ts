@@ -8,7 +8,7 @@ export type ReservationBookingMeta = {
 
 export type SavedBooking = {
   id: string
-  /** Opaque token for public `/reservation/:token` links (not the internal id). */
+  /** Opaque token for `/reservation/:token` preview links; editor at `/reservation/:token/customize`. */
   manageToken: string
   createdAt: string
   guests: number

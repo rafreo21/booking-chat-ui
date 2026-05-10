@@ -3,11 +3,13 @@ import { BookingChatView } from '../BookingChatView'
 import { OnboardingScreen } from '../OnboardingScreen'
 
 /**
- * Apple-style full-screen crossfade: chat under a fading onboarding layer
- * (overlapping opacity, not mount-then-enter). ~640ms + smooth ease.
+ * Full-screen crossfade: chat sits under an onboarding curtain (~640ms ease).
+ * The curtain must stay **opaque** (`bg-muted`). `bg-muted/40` (or any alpha) lets the
+ * mounted chat’s gray surfaces show through—often visible under the venue card’s
+ * rounded bottom corners after Back from chat.
  */
 const curtainLayer =
-  'absolute inset-0 z-[2] min-h-dvh transform-gpu transition-opacity duration-[640ms] ease-[cubic-bezier(0.25,0.1,0.25,1)] motion-reduce:duration-[180ms] motion-reduce:ease-linear'
+  'absolute inset-0 z-[2] min-h-dvh overflow-hidden bg-muted transform-gpu transition-opacity duration-[640ms] ease-[cubic-bezier(0.25,0.1,0.25,1)] motion-reduce:duration-[180ms] motion-reduce:ease-linear'
 
 export function HomePage() {
   const [chatPrimed, setChatPrimed] = useState(false)
@@ -28,7 +30,10 @@ export function HomePage() {
   return (
     <div className="relative min-h-dvh overflow-hidden bg-muted/40">
       {chatPrimed ? (
-        <div className="absolute inset-0 z-[1] min-h-dvh">
+        <div
+          className={`absolute inset-0 z-[1] min-h-dvh${onboardingCoverOn ? ' pointer-events-none select-none' : ''}`}
+          aria-hidden={onboardingCoverOn}
+        >
           <BookingChatView onBack={goToOnboarding} />
         </div>
       ) : null}

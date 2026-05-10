@@ -17,6 +17,8 @@ export interface Menu {
   label: string
   /** Sort order in dropdown */
   order: number
+  /** Printable menu served from `public/` (e.g. `/menus/Drink-List_PRINT_MAY.pdf`). */
+  pdfUrl?: string
 }
 
 export interface MenuCategory {

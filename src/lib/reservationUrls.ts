@@ -1,6 +1,11 @@
-/** Same-origin manage URL for routing / copy-link */
+/** Same-origin landing URL from emails — reservation preview (pay / edit). */
 export function reservationManagePath(manageToken: string): string {
   return `/reservation/${encodeURIComponent(manageToken)}`
+}
+
+/** Full dining customization editor. */
+export function reservationCustomizePath(manageToken: string): string {
+  return `/reservation/${encodeURIComponent(manageToken)}/customize`
 }
 
 /** Absolute URL for emails / CRM / webhooks (needs VITE_PUBLIC_APP_ORIGIN on server builds). */

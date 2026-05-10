@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Loader2Icon, RotateCcwIcon } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { ChevronDownIcon, CheckCircle2Icon, EyeIcon, ExternalLinkIcon, Loader2Icon } from 'lucide-react'
+import { Collapsible } from 'radix-ui'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -7,9 +9,10 @@ import { Textarea } from '@/components/ui/textarea'
 import type { SavedBooking } from '../../storage'
 import { saveCustomization } from '../../storage'
 import { notifyDiningPreferenceSaved } from '../../lib/diningPreferenceIngest'
+import { reservationManagePath } from '../../lib/reservationUrls'
+import { reconcileGuestSeats } from '../../lib/reconcileGuestSeats'
 import { useMenuCatalog } from '../../menu/useMenuCatalog'
 import type { DiningCustomization, GuestSeat, MenuCategoryId, MenuId } from '../../types/bookingCustomization'
-import { buildDefaultSeats } from '../../types/bookingCustomization'
 import { CustomizationSummary } from './CustomizationSummary'
 import { MenuCategoryTabs } from './MenuCategoryTabs'
 import { SeatAssignmentList } from './SeatAssignmentList'
@@ -17,24 +20,6 @@ import { SeatMenuPicker } from './SeatMenuPicker'
 
 function cloneGuestSeats(seats: GuestSeat[]): GuestSeat[] {
   return seats.map((s) => ({
-    ...s,
-    selectedMenuItemIds: [...s.selectedMenuItemIds],
-  }))
-}
-
-function reconcileSeats(booking: SavedBooking, saved: DiningCustomization | null): GuestSeat[] {
-  const n = Math.max(1, booking.guests)
-  if (!saved || saved.seats.length !== n) {
-    if (saved && saved.seats.length > 0) {
-      return buildDefaultSeats(n).map((s, i) => ({
-        ...s,
-        displayName: saved.seats[i]?.displayName ?? s.displayName,
-        selectedMenuItemIds: [...(saved.seats[i]?.selectedMenuItemIds ?? [])],
-      }))
-    }
-    return buildDefaultSeats(n)
-  }
-  return saved.seats.map((s) => ({
     ...s,
     selectedMenuItemIds: [...s.selectedMenuItemIds],
   }))
@@ -53,10 +38,12 @@ export function DiningCustomizationFlow({
   showBackLink,
   onBack,
 }: Props) {
+  const navigate = useNavigate()
   const {
     loading: menuLoading,
     error: menuError,
     menus,
+    items: catalogItems,
     categoriesInMenu,
     menuItemsInCategory,
     availabilityVersion,
@@ -75,12 +62,18 @@ export function DiningCustomizationFlow({
     return sortedMenus[0]?.id ?? ''
   }, [sortedMenus, activeMenuId])
 
+  const activeMenuMeta = useMemo(
+    () => sortedMenus.find((m) => m.id === displayMenuId),
+    [sortedMenus, displayMenuId],
+  )
+
   const sortedCategories = useMemo(
     () => (displayMenuId ? categoriesInMenu(displayMenuId) : []),
     [categoriesInMenu, displayMenuId],
   )
 
   const [activeCategory, setActiveCategory] = useState<MenuCategoryId>('')
+  const [menuSearchQuery, setMenuSearchQuery] = useState('')
   const displayCategory = useMemo((): MenuCategoryId => {
     if (sortedCategories.some((c) => c.id === activeCategory)) return activeCategory
     return sortedCategories[0]?.id ?? ''
@@ -89,39 +82,34 @@ export function DiningCustomizationFlow({
   const onMenuChange = useCallback((id: MenuId) => {
     setActiveMenuId(id)
     setActiveCategory('')
+    setMenuSearchQuery('')
   }, [])
 
   const [activeSeatIndex, setActiveSeatIndex] = useState(1)
   const [seats, setSeats] = useState<GuestSeat[]>(() =>
-    reconcileSeats(reservation, initialCustomization),
+    reconcileGuestSeats(reservation, initialCustomization),
   )
   const [notes, setNotes] = useState(initialCustomization?.notes ?? '')
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
-  const [lastSaved, setLastSaved] = useState(() => ({
-    seats: reconcileSeats(reservation, initialCustomization),
-    notes: initialCustomization?.notes ?? '',
-  }))
-  const lastSavedRef = useRef(lastSaved)
+  const previewAfterSaveRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
-    lastSavedRef.current = lastSaved
-  }, [lastSaved])
+    if (saveState !== 'saved') return
+    queueMicrotask(() => previewAfterSaveRef.current?.focus())
+  }, [saveState])
 
-  const [undoSnapshot, setUndoSnapshot] = useState<{ seats: GuestSeat[]; notes: string } | null>(
-    null,
-  )
-  const [undoVisible, setUndoVisible] = useState(false)
+  const saveFlowOverlayOpen = saveState === 'saving' || saveState === 'saved'
 
   useEffect(() => {
-    if (!undoVisible) return
-    const t = window.setTimeout(() => {
-      setUndoVisible(false)
-      setUndoSnapshot(null)
-    }, 12000)
-    return () => window.clearTimeout(t)
-  }, [undoVisible])
+    if (!saveFlowOverlayOpen) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = prev
+    }
+  }, [saveFlowOverlayOpen])
 
   const activeSeat = seats.find((s) => s.seatIndex === activeSeatIndex) ?? seats[0]
 
@@ -129,6 +117,23 @@ export function DiningCustomizationFlow({
     () => menuItemsInCategory(displayCategory),
     [menuItemsInCategory, displayCategory],
   )
+
+  const categoryIdsInActiveMenu = useMemo(
+    () => new Set(sortedCategories.map((c) => c.id)),
+    [sortedCategories],
+  )
+
+  const pickerItems = useMemo(() => {
+    const q = menuSearchQuery.trim().toLowerCase()
+    if (!q) return categoryItems
+    return catalogItems.filter((item) => {
+      if (!categoryIdsInActiveMenu.has(item.categoryId)) return false
+      const blob = [item.name, item.description ?? '', ...(item.dietaryTags ?? [])]
+        .join(' ')
+        .toLowerCase()
+      return blob.includes(q)
+    })
+  }, [menuSearchQuery, categoryItems, catalogItems, categoryIdsInActiveMenu])
 
   const onSeatNameChange = useCallback((seatIndex: number, displayName: string) => {
     setSeats((prev) =>
@@ -171,52 +176,15 @@ export function DiningCustomizationFlow({
   const handleSave = () => {
     setSaveState('saving')
     setErrorMsg(null)
-    const revertTarget = {
-      seats: cloneGuestSeats(lastSavedRef.current.seats),
-      notes: lastSavedRef.current.notes,
-    }
     void (async () => {
       try {
         const payload = buildPayload()
         await saveCustomization(payload)
         void notifyDiningPreferenceSaved(reservation, payload)
-        setLastSaved({ seats: cloneGuestSeats(seats), notes })
-        setUndoSnapshot(revertTarget)
-        setUndoVisible(true)
         setSaveState('saved')
       } catch {
         setSaveState('error')
         setErrorMsg('Could not save preferences. Please try again.')
-      }
-    })()
-  }
-
-  const handleUndo = () => {
-    if (!undoSnapshot) return
-    setUndoVisible(false)
-    void (async () => {
-      try {
-        setSaveState('saving')
-        const restored: DiningCustomization = {
-          reservationId: reservation.id,
-          updatedAt: new Date().toISOString(),
-          guestCount: reservation.guests,
-          seats: cloneGuestSeats(undoSnapshot.seats),
-          notes: undoSnapshot.notes.trim() || undefined,
-        }
-        await saveCustomization(restored)
-        void notifyDiningPreferenceSaved(reservation, restored)
-        setSeats(reconcileSeats(reservation, restored))
-        setNotes(undoSnapshot.notes)
-        setLastSaved({
-          seats: cloneGuestSeats(undoSnapshot.seats),
-          notes: undoSnapshot.notes,
-        })
-        setUndoSnapshot(null)
-        setSaveState('saved')
-      } catch {
-        setSaveState('error')
-        setErrorMsg('Could not undo. Please try again.')
       }
     })()
   }
@@ -230,20 +198,6 @@ export function DiningCustomizationFlow({
         >
           {errorMsg}
         </p>
-      ) : null}
-      {saveState === 'saved' ? (
-        <p
-          className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-900 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-200"
-          role="status"
-        >
-          Preferences saved. You can update them again anytime from this link.
-        </p>
-      ) : null}
-      {undoVisible && undoSnapshot ? (
-        <Button type="button" variant="outline" size="lg" className="h-11 w-full" onClick={handleUndo}>
-          <RotateCcwIcon />
-          Undo last save
-        </Button>
       ) : null}
       <Button
         type="button"
@@ -287,6 +241,88 @@ export function DiningCustomizationFlow({
 
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,1fr)_280px] md:items-start md:gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-10 xl:grid-cols-[minmax(0,1fr)_360px] xl:gap-12">
+      {saveFlowOverlayOpen ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/85 p-4 backdrop-blur-[2px] motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-200"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={saveState === 'saving' ? 'dining-save-loading-title' : 'dining-save-success-title'}
+          aria-busy={saveState === 'saving'}
+        >
+          <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-lg ring-1 ring-foreground/5 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:zoom-in-95 motion-safe:duration-200">
+            {saveState === 'saving' ? (
+              <div className="flex flex-col items-center text-center">
+                <div className="flex size-16 items-center justify-center rounded-full bg-primary/10">
+                  <Loader2Icon className="size-9 animate-spin text-primary" aria-hidden />
+                </div>
+                <h2 id="dining-save-loading-title" className="mt-6 text-xl font-bold tracking-tight text-foreground">
+                  Saving your preferences
+                </h2>
+                <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
+                  Please wait — we’re securely storing your dining choices for this reservation.
+                </p>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center text-center">
+                <div className="flex size-16 items-center justify-center rounded-full bg-emerald-500/15 dark:bg-emerald-400/15">
+                  <CheckCircle2Icon
+                    className="size-10 text-emerald-600 dark:text-emerald-400"
+                    aria-hidden
+                  />
+                </div>
+                <h2 id="dining-save-success-title" className="mt-6 text-xl font-bold tracking-tight text-foreground">
+                  Saved successfully
+                </h2>
+                <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
+                  Your dining experience preferences are saved for this booking.
+                </p>
+                <p className="mt-4 text-[14px] leading-relaxed text-muted-foreground">
+                  {reservation.email.trim() ? (
+                    <>
+                      Your confirmation email to{' '}
+                      <span className="break-all font-semibold text-foreground">
+                        {reservation.email.trim()}
+                      </span>{' '}
+                      includes a link to open this page again and update your choices.
+                    </>
+                  ) : (
+                    <>
+                      Your confirmation email includes a link to open this page again and update your choices.
+                    </>
+                  )}
+                </p>
+                <p className="mt-3 text-[14px] leading-relaxed text-muted-foreground">
+                  Review everything on one screen, or keep editing your picks below.
+                </p>
+                <div className="mt-8 flex w-full flex-col gap-3">
+                  <Button
+                    ref={previewAfterSaveRef}
+                    type="button"
+                    size="lg"
+                    className="h-12 w-full gap-2 text-[15px] font-semibold"
+                    onClick={() => {
+                      navigate(reservationManagePath(reservation.manageToken))
+                    }}
+                  >
+                    <EyeIcon className="size-4" aria-hidden />
+                    Preview experience
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="lg"
+                    className="h-12 w-full text-[15px] font-semibold"
+                    onClick={() => setSaveState('idle')}
+                  >
+                    Edit dining experience
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : null}
+
       <div className="flex min-w-0 flex-col gap-6">
         {menuError ? (
           <p className="rounded-lg bg-amber-50 px-3 py-2 text-[13px] font-medium text-amber-950">
@@ -333,15 +369,51 @@ export function DiningCustomizationFlow({
           categories={sortedCategories.map(({ id, label }) => ({ id, label }))}
           activeId={displayCategory}
           onChange={setActiveCategory}
+          searchQuery={menuSearchQuery}
+          onSearchQueryChange={setMenuSearchQuery}
         />
 
         {activeSeat ? (
           <SeatMenuPicker
-            items={categoryItems}
+            items={pickerItems}
             activeSeat={activeSeat}
             maxSelectablePerSeat={maxPerSeat}
             onToggleItem={onToggleItem}
+            menuPdfUrl={activeMenuMeta?.pdfUrl}
+            menuTitle={activeMenuMeta?.label}
+            searchActive={Boolean(menuSearchQuery.trim())}
           />
+        ) : null}
+
+        {activeMenuMeta?.pdfUrl ? (
+          <Collapsible.Root
+            key={`official-pdf-${displayMenuId}`}
+            defaultOpen={false}
+            className="group rounded-xl border border-border bg-muted/35 dark:bg-muted/25"
+          >
+            <Collapsible.Trigger className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-xl">
+              <span className="min-w-0 text-[13px] font-semibold text-foreground">
+                Official menu (PDF)
+              </span>
+              <ChevronDownIcon
+                className="size-4 shrink-0 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180"
+                aria-hidden
+              />
+            </Collapsible.Trigger>
+            <Collapsible.Content className="border-t border-border/60 px-4 pb-3 pt-3 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0">
+              <p className="text-[12px] leading-snug text-muted-foreground">
+                {displayMenuId === 'a-la-carte'
+                  ? 'Full pricing and options in the PDF — interactive picks above match à la carte sections.'
+                  : 'Browse this menu in the PDF, then describe choices in Notes or pick from À la carte if applicable.'}
+              </p>
+              <Button variant="secondary" size="sm" className="mt-3 gap-2" asChild>
+                <a href={activeMenuMeta.pdfUrl} target="_blank" rel="noopener noreferrer">
+                  Open {activeMenuMeta.label}
+                  <ExternalLinkIcon className="size-4 opacity-80" aria-hidden />
+                </a>
+              </Button>
+            </Collapsible.Content>
+          </Collapsible.Root>
         ) : null}
 
         <div className="grid gap-1.5">

@@ -19,11 +19,11 @@ type Props = {
 
 export function OnboardingScreen({ onBookNow }: Props) {
   return (
-    <div className="relative min-h-dvh bg-muted/40">
+    <div className="relative min-h-dvh bg-transparent">
       <div className={WIDGET_PAGE_SHELL_CLASS}>
         <div className={WIDGET_STACK_COLUMN_CLASS}>
           <div className={WIDGET_TOP_ROW_SPACER_CLASS} aria-hidden="true">
-            <span className="inline-block size-11 shrink-0" />
+            <span className="inline-block h-9 min-w-[3rem] shrink-0 opacity-0" aria-hidden />
           </div>
           <Card
             className={`flex w-full flex-col gap-0 overflow-hidden rounded-2xl border py-0 text-card-foreground shadow-md ring-1 ring-border ${WIDGET_FRAME_HEIGHT_CLASS}`}
