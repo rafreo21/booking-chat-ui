@@ -802,11 +802,6 @@ export function BookingChatView({ onBack }: Props) {
                         </p>
                       </div>
                     )}
-                    <div className="flex justify-center">
-                      <Button type="button" size="lg" className="w-full max-w-[220px]" onClick={resetChat}>
-                        Book again
-                      </Button>
-                    </div>
                     {lastConfirmedReservation ? (
                       <p className="text-center text-[12px] leading-snug text-muted-foreground">
                         Manage dining preferences anytime:{' '}
