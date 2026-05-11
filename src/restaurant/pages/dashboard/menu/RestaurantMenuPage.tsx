@@ -1,20 +1,54 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useCallback, useState } from 'react'
 
-/** Placeholder — venue menu management & catalog sync will live here. */
+import { MenuSyncingLoading } from '@/restaurant/pages/dashboard/menu/MenuSyncingLoading'
+import { RestaurantMenuHub, type MenuHubChoice } from '@/restaurant/pages/dashboard/menu/RestaurantMenuHub'
+import { RestaurantMenusIndex } from '@/restaurant/pages/dashboard/menu/RestaurantMenusIndex'
+import { RestaurantMenuUploadWizard } from '@/restaurant/pages/dashboard/menu/RestaurantMenuUploadWizard'
+
+type ScreenState =
+  | { kind: 'hub' }
+  | { kind: 'wizard'; intent?: MenuHubChoice }
+  | { kind: 'syncing' }
+  | { kind: 'menus' }
+
 export function RestaurantMenuPage() {
-  return (
-    <Card className="shadow-sm ring-1 ring-border">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-lg tracking-tight">Menu</CardTitle>
-        <CardDescription className="text-[15px] leading-relaxed">
-          Sections, pricing, availability, and links to the guest-facing catalog will be configured here.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="pb-8 pt-2">
-        <p className="text-[14px] leading-relaxed text-muted-foreground">
-          This screen is structured for upcoming venue tools — nothing to configure yet.
-        </p>
-      </CardContent>
-    </Card>
-  )
+  const [screen, setScreen] = useState<ScreenState>({ kind: 'hub' })
+  const [wizardKey, setWizardKey] = useState(0)
+
+  const launchWizard = useCallback((intent: MenuHubChoice) => {
+    setWizardKey((n) => n + 1)
+    setScreen({ kind: 'wizard', intent })
+  }, [])
+
+  const goHub = useCallback(() => setScreen({ kind: 'hub' }), [])
+  const goMenus = useCallback(() => setScreen({ kind: 'menus' }), [])
+  const goSyncing = useCallback(() => setScreen({ kind: 'syncing' }), [])
+
+  if (screen.kind === 'wizard') {
+    return (
+      <RestaurantMenuUploadWizard
+        key={wizardKey}
+        entryIntent={screen.intent}
+        onExit={goHub}
+        onFinish={goSyncing}
+      />
+    )
+  }
+
+  if (screen.kind === 'syncing') {
+    return <MenuSyncingLoading onComplete={goMenus} />
+  }
+
+  if (screen.kind === 'menus') {
+    return (
+      <RestaurantMenusIndex
+        onCreateMenu={() => {
+          setWizardKey((n) => n + 1)
+          setScreen({ kind: 'wizard' })
+        }}
+      />
+    )
+  }
+
+  return <RestaurantMenuHub onChoose={launchWizard} />
 }

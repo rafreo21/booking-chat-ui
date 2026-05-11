@@ -100,6 +100,12 @@ const comparisonTriggerClass = cn(
   '[&_svg]:size-3.5 [&_svg]:shrink-0 [&_svg]:opacity-70',
 )
 
+/** Matches Menus “Channels” filter — muted label + value + chevron in a rounded control. */
+const billsFilterTriggerClass = cn(
+  'h-10 min-h-10 w-fit max-w-[min(100%,12rem)] shrink-0 items-center justify-start gap-1 rounded-xl border-border bg-background ps-3 pe-2 py-0 text-[13px] font-semibold text-foreground shadow-none',
+  '[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-muted-foreground',
+)
+
 function useTwoCalendarMonths(): boolean {
   const [two, setTwo] = React.useState(false)
   React.useEffect(() => {
@@ -317,24 +323,29 @@ export function PerformanceOverviewFilters({
         </SelectContent>
       </Select>
 
-      <NativeSelect
-        size="sm"
-        aria-label="Bill status filter"
-        className={intrinsicNativePillClass}
+      <Select
         value={filters.billsFilter}
-        onChange={(e) =>
+        onValueChange={(v) =>
           onFiltersChange((s) => ({
             ...s,
-            billsFilter: e.target.value as BillsFilter,
+            billsFilter: v as BillsFilter,
           }))
         }
       >
-        {(['all', 'open', 'closed'] as const).map((key) => (
-          <NativeSelectOption key={key} value={key}>
-            Bills · {billsLabels[key]}
-          </NativeSelectOption>
-        ))}
-      </NativeSelect>
+        <SelectTrigger size="sm" aria-label="Bill status filter" className={billsFilterTriggerClass}>
+          <span className="flex min-w-0 items-center gap-1.5">
+            <span className="shrink-0 font-medium text-muted-foreground">Bills</span>
+            <SelectValue />
+          </span>
+        </SelectTrigger>
+        <SelectContent align="start" position="popper">
+          {(['all', 'open', 'closed'] as const).map((key) => (
+            <SelectItem key={key} value={key} textValue={`Bills ${billsLabels[key]}`}>
+              {billsLabels[key]}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   )
 }

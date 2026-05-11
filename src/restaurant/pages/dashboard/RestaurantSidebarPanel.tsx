@@ -34,7 +34,7 @@ type NavItem = {
 
 const navMain: NavItem[] = [
   { title: 'Home', url: '/restaurant/dashboard', end: true, icon: LayoutDashboardIcon },
-  { title: 'Items & services', url: '/restaurant/dashboard/menu', icon: UtensilsCrossedIcon },
+  { title: 'Menu & Services', url: '/restaurant/dashboard/menu', icon: UtensilsCrossedIcon },
 ]
 
 type NavSoonItem = {
@@ -53,10 +53,10 @@ const navSoon: NavSoonItem[] = [
 ]
 
 const navLinkClassExpanded =
-  'flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-semibold transition-colors'
+  'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-semibold transition-colors'
 
 const navLinkClassCompact =
-  'flex size-10 items-center justify-center rounded-xl text-[13px] font-semibold transition-colors'
+  'flex size-10 items-center justify-center rounded-lg text-[13px] font-semibold transition-colors'
 
 export type RestaurantSidebarPanelProps = {
   initials: string
@@ -124,7 +124,7 @@ export function RestaurantSidebarPanel({
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="size-9 shrink-0 rounded-lg text-muted-foreground"
+                className="size-9 shrink-0 rounded-full border border-transparent text-muted-foreground hover:border-border hover:bg-muted/60"
                 aria-label="Collapse sidebar"
                 onClick={onToggleCompact}
               >
@@ -161,8 +161,8 @@ export function RestaurantSidebarPanel({
                     cn(
                       compact ? navLinkClassCompact : navLinkClassExpanded,
                       isActive
-                        ? 'bg-muted text-foreground shadow-sm ring-1 ring-border'
-                        : 'text-muted-foreground hover:bg-muted/80 hover:text-foreground',
+                        ? 'border border-border bg-muted text-foreground shadow-none ring-0'
+                        : 'border border-transparent text-muted-foreground hover:bg-muted/80 hover:text-foreground',
                     )
                   }
                 >
@@ -234,7 +234,7 @@ export function RestaurantSidebarPanel({
             type="button"
             variant="secondary"
             size="icon"
-            className="size-10 shrink-0 rounded-xl shadow-sm"
+            className="size-10 shrink-0 rounded-lg shadow-none"
             disabled
             aria-label="Take payment"
             title="Take payment"
@@ -242,7 +242,7 @@ export function RestaurantSidebarPanel({
             <CreditCardIcon className="size-[18px]" aria-hidden />
           </Button>
         ) : (
-          <Button type="button" className="h-11 w-full rounded-xl text-[14px] font-semibold shadow-sm" disabled>
+          <Button type="button" className="h-11 w-full rounded-lg text-[14px] font-semibold shadow-none" disabled>
             Take payment
           </Button>
         )}

@@ -391,11 +391,11 @@ export function DiningCustomizationFlow({
           </Button>
         ) : null}
 
-        <header className="space-y-1.5">
-          <h1 className="text-2xl font-bold tracking-tight sm:text-[1.5rem]">
+        <header className="flex flex-col gap-2">
+          <h1 className="font-heading text-2xl font-semibold tracking-tight text-foreground md:text-[26px]">
             Customize your dining experience
           </h1>
-          <p className="text-[15px] leading-relaxed text-muted-foreground">
+          <p className="max-w-2xl text-[15px] leading-relaxed text-muted-foreground md:text-base">
             Pre-select dishes by seat — optional, editable anytime from your reservation link.
           </p>
         </header>

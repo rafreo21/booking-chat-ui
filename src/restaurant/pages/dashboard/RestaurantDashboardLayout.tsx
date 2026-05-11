@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom'
-import { Loader2Icon, PanelLeftIcon } from 'lucide-react'
+import { Loader2Icon, PanelLeftIcon, XIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Sheet, SheetContent } from '@/components/ui/sheet'
+import { Sheet, SheetClose, SheetContent } from '@/components/ui/sheet'
 import { RestaurantSidebarPanel } from '@/restaurant/pages/dashboard/RestaurantSidebarPanel'
 import { useRestaurantAuth } from '@/hooks/useRestaurantAuth'
 import { isRestaurantBypassUser } from '@/lib/restaurantBypassAuth'
@@ -69,6 +70,9 @@ export function RestaurantDashboardLayout() {
 
   const guestHome = guestBookingHomeHref()
   const pathname = location.pathname
+  /** Balance + quick actions rail — overview home only for now */
+  const showDashboardHomeRail =
+    pathname.replace(/\/$/, '') === '/restaurant/dashboard'
 
   const sidebarProps = {
     initials,
@@ -100,19 +104,35 @@ export function RestaurantDashboardLayout() {
         {/* Floating menu — mobile / tablet only */}
         <Button
           type="button"
-          variant="secondary"
-          size="icon"
+          variant="outline"
+          size="icon-lg"
           aria-label="Open navigation"
-          className="fixed left-4 top-4 z-50 size-11 rounded-full border border-border bg-background shadow-md md:hidden"
+          className="fixed left-4 top-4 z-50 rounded-full shadow-md md:hidden"
           onClick={() => setMobileMenuOpen(true)}
         >
-          <PanelLeftIcon className="size-5" aria-hidden />
+          <PanelLeftIcon aria-hidden />
         </Button>
 
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+          {mobileMenuOpen && typeof document !== 'undefined'
+            ? createPortal(
+                <SheetClose asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon-lg"
+                    aria-label="Close navigation"
+                    className="fixed top-4 right-4 z-[100] rounded-full shadow-md md:hidden"
+                  >
+                    <XIcon aria-hidden />
+                  </Button>
+                </SheetClose>,
+                document.body,
+              )
+            : null}
           <SheetContent
             side="left"
-            showCloseButton
+            showCloseButton={false}
             className="flex h-full max-h-dvh min-h-0 w-[min(100vw-1rem,17.5rem)] flex-col overflow-hidden gap-0 border-sidebar-border bg-sidebar p-0 text-sidebar-foreground sm:max-w-none data-[side=left]:w-[min(100vw-1rem,17.5rem)]"
           >
             <RestaurantSidebarPanel {...sidebarProps} />
@@ -124,45 +144,49 @@ export function RestaurantDashboardLayout() {
             <Outlet />
           </div>
 
-          <aside className="hidden w-[300px] shrink-0 border-l border-border bg-muted/20 xl:flex xl:flex-col xl:gap-4 xl:px-5 xl:py-8">
-            <div className="rounded-2xl border border-border bg-card p-4 shadow-sm ring-1 ring-border">
-              <p className="text-[12px] font-semibold uppercase tracking-wide text-muted-foreground">Balance</p>
-              <p className="mt-2 text-2xl font-bold tabular-nums tracking-tight text-foreground">£0.00</p>
-              <p className="mt-1 text-[12px] text-muted-foreground">Payouts & ledger sync coming soon.</p>
-            </div>
-            <div className="rounded-2xl border border-border bg-card shadow-sm ring-1 ring-border">
-              <p className="border-b border-border px-4 py-3 text-[13px] font-semibold text-foreground">Quick actions</p>
-              <ul className="divide-y divide-border">
-                <li>
-                  <a
-                    href={guestHome}
-                    className="block px-4 py-3 text-[14px] font-semibold text-foreground transition-colors hover:bg-muted/60"
-                  >
-                    Open guest booking
-                  </a>
-                </li>
-                <li>
-                  <NavLink
-                    to="/restaurant/dashboard/menu"
-                    className={cn(
-                      'block px-4 py-3 text-[14px] font-semibold transition-colors hover:bg-muted/60',
-                      pathname.startsWith('/restaurant/dashboard/menu') ? 'bg-muted/80 text-foreground' : 'text-foreground',
-                    )}
-                  >
-                    Edit menu
-                  </NavLink>
-                </li>
-                <li>
-                  <NavLink
-                    to="/staff/prep"
-                    className="block px-4 py-3 text-[14px] font-semibold text-foreground transition-colors hover:bg-muted/60"
-                  >
-                    Staff prep board
-                  </NavLink>
-                </li>
-              </ul>
-            </div>
-          </aside>
+          {showDashboardHomeRail ? (
+            <aside className="hidden w-[300px] shrink-0 border-l border-border bg-muted/20 xl:flex xl:flex-col xl:gap-4 xl:px-5 xl:py-8">
+              <div className="rounded-2xl border border-border bg-card p-4 shadow-sm ring-1 ring-border">
+                <p className="text-[12px] font-semibold uppercase tracking-wide text-muted-foreground">Balance</p>
+                <p className="mt-2 text-2xl font-bold tabular-nums tracking-tight text-foreground">£0.00</p>
+                <p className="mt-1 text-[12px] text-muted-foreground">Payouts & ledger sync coming soon.</p>
+              </div>
+              <div className="rounded-2xl border border-border bg-card shadow-sm ring-1 ring-border">
+                <p className="border-b border-border px-4 py-3 text-[13px] font-semibold text-foreground">Quick actions</p>
+                <ul className="divide-y divide-border">
+                  <li>
+                    <a
+                      href={guestHome}
+                      className="block px-4 py-3 text-[14px] font-semibold text-foreground transition-colors hover:bg-muted/60"
+                    >
+                      Open guest booking
+                    </a>
+                  </li>
+                  <li>
+                    <NavLink
+                      to="/restaurant/dashboard/menu"
+                      className={cn(
+                        'block px-4 py-3 text-[14px] font-semibold transition-colors hover:bg-muted/60',
+                        pathname.startsWith('/restaurant/dashboard/menu')
+                          ? 'bg-muted/80 text-foreground'
+                          : 'text-foreground',
+                      )}
+                    >
+                      Edit menu
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink
+                      to="/staff/prep"
+                      className="block px-4 py-3 text-[14px] font-semibold text-foreground transition-colors hover:bg-muted/60"
+                    >
+                      Staff prep board
+                    </NavLink>
+                  </li>
+                </ul>
+              </div>
+            </aside>
+          ) : null}
         </div>
       </div>
     </div>

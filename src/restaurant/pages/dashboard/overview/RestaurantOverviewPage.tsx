@@ -130,7 +130,7 @@ export function RestaurantOverviewPage() {
               readOnly
               aria-readonly
               placeholder="Ask a question or run a quick action…"
-              className="relative z-0 h-12 rounded-xl border-border bg-background pl-12 pr-12 text-[15px] shadow-sm placeholder:text-muted-foreground"
+              className="relative z-0 h-12 rounded-xl border-border bg-background pl-12 pr-12 text-[15px] shadow-none placeholder:text-muted-foreground"
             />
             <Button
               type="button"
