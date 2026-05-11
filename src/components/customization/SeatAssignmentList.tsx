@@ -1,7 +1,9 @@
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import type { AllergenFilterId } from '../../menu/allergenFilters'
 import type { GuestSeat } from '../../types/bookingCustomization'
+import { MenuAllergenAccordion } from './MenuAllergenAccordion'
 import { PILL_TAB_TRIGGER_CLASS, PILL_TABS_LIST_CLASS } from './pillTabStyles'
 
 type Props = {
@@ -9,6 +11,9 @@ type Props = {
   activeSeatIndex: number
   onSelectSeat: (seatIndex: number) => void
   onSeatNameChange: (seatIndex: number, displayName: string) => void
+  activeSeatAllergenIds: AllergenFilterId[]
+  onAllergenToggle: (allergenId: AllergenFilterId) => void
+  onAllergenClearAll: () => void
 }
 
 export function SeatAssignmentList({
@@ -16,8 +21,19 @@ export function SeatAssignmentList({
   activeSeatIndex,
   onSelectSeat,
   onSeatNameChange,
+  activeSeatAllergenIds,
+  onAllergenToggle,
+  onAllergenClearAll,
 }: Props) {
   const active = seats.find((s) => s.seatIndex === activeSeatIndex) ?? seats[0]
+
+  const seatContextLine = active
+    ? `${
+        active.displayName.trim() && active.displayName.trim() !== `Guest ${active.seatIndex}`
+          ? `${active.displayName.trim()} · `
+          : ''
+      }Seat ${active.seatIndex}`
+    : ''
 
   return (
     <div className="space-y-3">
@@ -62,6 +78,14 @@ export function SeatAssignmentList({
             maxLength={80}
             className="h-10"
           />
+          <div className="mt-3">
+            <MenuAllergenAccordion
+              seatContextLine={seatContextLine}
+              selectedIds={activeSeatAllergenIds}
+              onToggle={onAllergenToggle}
+              onClearAll={onAllergenClearAll}
+            />
+          </div>
         </div>
       ) : null}
     </div>

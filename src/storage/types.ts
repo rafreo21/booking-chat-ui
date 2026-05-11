@@ -3,6 +3,10 @@ export type ReservationBookingMeta = {
   menuAvailabilityVersion?: string
   kitchenPrepNotes?: string
   depositStatus?: 'none' | 'pending' | 'paid'
+  /** From optional occasion chips after time selection (`bookingOccasion` presets). */
+  occasionType?: string
+  /** Free-text notes when celebrating / specifying “Other”. */
+  occasionNotes?: string
   [key: string]: unknown
 }
 

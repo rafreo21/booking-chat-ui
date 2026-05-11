@@ -1,6 +1,6 @@
 import { PencilSimple } from '@phosphor-icons/react'
 import { AlertCircleIcon, Loader2Icon, ArrowLeftIcon } from 'lucide-react'
-import { useCallback, useEffect, useId, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useId, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -11,6 +11,11 @@ import {
   type BookingFailureReason,
   getBookingFailureReason,
 } from '@/lib/bookingSubmission'
+import {
+  OCCASION_CHAT_CHIPS,
+  type OccasionTypeId,
+  occasionSummaryLine,
+} from '@/lib/bookingOccasion'
 import { cn } from '@/lib/utils'
 import {
   addBooking,
@@ -20,36 +25,38 @@ import {
   hydrateFromPublicFile,
   importBookingsFromJson,
   loadBookings,
+  type ReservationBookingMeta,
   type SavedBooking,
-} from './storage'
+} from '@/storage'
 import {
   reservationCustomizePath,
   reservationManageAbsoluteUrl,
-} from './lib/reservationUrls'
-import { sendBookingConfirmationEmail } from './lib/sendBookingEmail'
-import { useMenuCatalog } from './menu/useMenuCatalog'
-import { syncBookingToSheets } from './syncBookingToSheets'
-import { AiChatbotLogo } from './components/AiChatbotLogo'
-import { BookingsLog } from './components/BookingsLog'
-import { NotionStyleDatePicker } from './components/NotionStyleDatePicker'
-import { VenueHeaderRating } from './components/VenueHeaderRating'
-import { BookingConfirmationCta } from './components/customization/BookingConfirmationCta'
+  reservationManagePath,
+} from '@/lib/reservationUrls'
+import { sendBookingConfirmationEmail } from '@/lib/sendBookingEmail'
+import { useMenuCatalog } from '@/menu/useMenuCatalog'
+import { syncBookingToSheets } from '@/syncBookingToSheets'
+import { AiChatbotLogo } from '@/components/AiChatbotLogo'
+import { BookingsLog } from '@/components/BookingsLog'
+import { NotionStyleDatePicker } from '@/components/NotionStyleDatePicker'
+import { VenueHeaderRating } from '@/components/VenueHeaderRating'
+import { BookingConfirmationCta } from '@/components/customization/BookingConfirmationCta'
 import {
   PILL_CHOICE_BUTTON_CLASS,
   PILL_TABS_LIST_CLASS,
-} from './components/customization/pillTabStyles'
+} from '@/components/customization/pillTabStyles'
 import {
   WIDGET_FRAME_HEIGHT_CLASS,
   WIDGET_CHAT_HEADER_PAD_CLASS,
   WIDGET_CHAT_PAGE_SHELL_CLASS,
   WIDGET_STACK_COLUMN_CLASS,
   WIDGET_TOP_ROW_SPACER_CLASS,
-} from './widgetLayout'
+} from '@/widgetLayout'
 
 type Role = 'assistant' | 'user'
 
 /** User answers that can be revised via the chat edit control. */
-type BookingSection = 'guests' | 'date' | 'time' | 'details'
+type BookingSection = 'guests' | 'date' | 'time' | 'occasion' | 'details'
 
 type ChatMessage = {
   id: string
@@ -176,6 +183,29 @@ function computeHoldingFeeSummary(
   }
 }
 
+/** Contact + optional occasion — persisted on `SavedBooking.meta`. */
+type ContactDetailsState = {
+  name: string
+  email: string
+  phone: string
+  occasionType: OccasionTypeId
+  occasionNotes: string
+}
+
+function buildReservationMeta(
+  availabilityVersion: string | undefined,
+  details: ContactDetailsState,
+): ReservationBookingMeta {
+  const meta: ReservationBookingMeta = {}
+  if (availabilityVersion != null && availabilityVersion !== '') {
+    meta.menuAvailabilityVersion = availabilityVersion
+  }
+  if (details.occasionType) meta.occasionType = details.occasionType
+  const notes = details.occasionNotes.trim()
+  if (notes) meta.occasionNotes = notes
+  return meta
+}
+
 /** Same rules as validateDetails, without mutating error state. */
 function detailsFormIsComplete(d: { name: string; email: string; phone: string }): boolean {
   const name = d.name.trim()
@@ -196,6 +226,7 @@ type Step =
   | 'guests'
   | 'date'
   | 'time'
+  | 'occasion'
   | 'details'
   | 'confirm'
   | 'booking_error'
@@ -209,7 +240,7 @@ type BookingSnapshot = {
   time: string
 }
 
-type DetailsSnapshot = { name: string; email: string; phone: string }
+type DetailsSnapshot = ContactDetailsState
 
 type ResumeChatActions = {
   pushUser: (text: string, section?: BookingSection) => void
@@ -217,16 +248,23 @@ type ResumeChatActions = {
   setStep: (s: Step) => void
 }
 
-const ASSISTANT_DETAILS_PROMPT =
-  'Almost there. Enter your **full name**, **email**, and **phone number** below, then continue.'
+const ASSISTANT_OCCASION_PROMPT =
+  '**What is the visit about?** Pick one option below — it helps the team prepare (optional).'
 
-/** After time is chosen (or restored), jump to details or confirm from saved contact fields. */
-function resumeAfterTimeChosen(
+const ASSISTANT_DETAILS_PROMPT =
+  'Almost there. Enter your **full name**, **email**, and **phone number** below, then tap **Continue**.'
+
+/** After time is chosen (or restored), ask occasion via chat chips. */
+function resumeAfterTimeChosen({ pushAssistant, setStep }: ResumeChatActions) {
+  pushAssistant(ASSISTANT_OCCASION_PROMPT)
+  setStep('occasion')
+}
+
+/** After occasion is chosen, continue to contact step or skip ahead to confirm. */
+function resumeAfterOccasionChosen(
   details: DetailsSnapshot,
   { pushUser, pushAssistant, setStep }: ResumeChatActions,
 ) {
-  // Always show this prompt when leaving the time step so the thread stays consistent
-  // (including when contact fields are already valid and we skip ahead to confirm).
   pushAssistant(ASSISTANT_DETAILS_PROMPT)
   if (detailsFormIsComplete(details)) {
     pushUser(
@@ -244,11 +282,7 @@ function resumeAfterTimeChosen(
  * After date is set, either ask for time or replay saved time + downstream messages.
  * Caller must already have pushed the user date line when entering this from pickDate.
  */
-function resumeAfterDateSet(
-  b: BookingSnapshot,
-  details: DetailsSnapshot,
-  actions: ResumeChatActions,
-) {
+function resumeAfterDateSet(b: BookingSnapshot, actions: ResumeChatActions) {
   if (!b.time.trim()) {
     actions.pushAssistant('Here are the available times. Pick one that suits you.')
     actions.setStep('time')
@@ -256,18 +290,14 @@ function resumeAfterDateSet(
   }
   actions.pushAssistant('Here are the available times. Pick one that suits you.')
   actions.pushUser(b.time, 'time')
-  resumeAfterTimeChosen(details, actions)
+  resumeAfterTimeChosen(actions)
 }
 
 /**
  * After guest count is set, continue at the first step that still needs input,
  * re-inserting user bubbles for any values we kept in state (uniform with date/time edits).
  */
-function resumeAfterGuestCountSet(
-  b: BookingSnapshot,
-  details: DetailsSnapshot,
-  actions: ResumeChatActions,
-) {
+function resumeAfterGuestCountSet(b: BookingSnapshot, actions: ResumeChatActions) {
   if (!b.date) {
     actions.pushAssistant('Which **date** would you like to book?')
     actions.setStep('date')
@@ -275,7 +305,7 @@ function resumeAfterGuestCountSet(
   }
   actions.pushAssistant('Which **date** would you like to book?')
   actions.pushUser(formatDay(b.date), 'date')
-  resumeAfterDateSet(b, details, actions)
+  resumeAfterDateSet(b, actions)
 }
 
 function canShowEditForSection(section: BookingSection, step: Step): boolean {
@@ -286,12 +316,21 @@ function canShowEditForSection(section: BookingSection, step: Step): boolean {
     case 'date':
       return (
         step === 'time' ||
+        step === 'occasion' ||
         step === 'details' ||
         step === 'confirm' ||
         step === 'booking_error' ||
         step === 'success'
       )
     case 'time':
+      return (
+        step === 'occasion' ||
+        step === 'details' ||
+        step === 'confirm' ||
+        step === 'booking_error' ||
+        step === 'success'
+      )
+    case 'occasion':
       return (
         step === 'details' ||
         step === 'confirm' ||
@@ -313,6 +352,8 @@ function editSectionAriaLabel(section: BookingSection): string {
       return 'Edit booking date'
     case 'time':
       return 'Edit booking time'
+    case 'occasion':
+      return 'Edit occasion'
     case 'details':
       return 'Edit contact details'
     default:
@@ -321,7 +362,57 @@ function editSectionAriaLabel(section: BookingSection): string {
 }
 
 type Props = {
-  onBack: () => void
+  /** Omit on `/` home — hides top Back row so booking stays primary. */
+  onBack?: () => void
+}
+
+function BookingFlowProgress({ step }: { step: Step }) {
+  if (step === 'success') return null
+  const labels = ['Guests', 'Date', 'Time', 'Occasion', 'Details', 'Confirm'] as const
+  const activeIndex =
+    step === 'guests'
+      ? 0
+      : step === 'date'
+        ? 1
+        : step === 'time'
+          ? 2
+          : step === 'occasion'
+            ? 3
+            : step === 'details'
+              ? 4
+              : step === 'confirm' || step === 'booking_error' || step === 'submitting'
+                ? 5
+                : 0
+
+  return (
+    <div
+      className="shrink-0 border-b border-border bg-muted/40 px-3 py-2 sm:px-4"
+      aria-label="Booking progress"
+    >
+      <ol className="flex min-w-0 items-center gap-x-1.5 gap-y-1 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {labels.map((label, i) => (
+          <Fragment key={label}>
+            {i > 0 ? (
+              <span aria-hidden className="shrink-0 text-[10px] text-muted-foreground/35 sm:text-[11px]">
+                ›
+              </span>
+            ) : null}
+            <li
+              className={cn(
+                'shrink-0 list-none text-[10px] font-semibold uppercase tracking-wide sm:text-[11px]',
+                i < activeIndex && 'text-muted-foreground',
+                i === activeIndex && 'text-primary',
+                i > activeIndex && 'text-muted-foreground/45',
+              )}
+              aria-current={i === activeIndex ? 'step' : undefined}
+            >
+              {label}
+            </li>
+          </Fragment>
+        ))}
+      </ol>
+    </div>
+  )
 }
 
 export function BookingChatView({ onBack }: Props) {
@@ -351,13 +442,21 @@ export function BookingChatView({ onBack }: Props) {
   const [guestInputError, setGuestInputError] = useState<string | null>(null)
   const guestInputRef = useRef<HTMLInputElement>(null)
 
+  /** Occasion: “Specify occasion” opens free-text entry in the footer (same pattern as Enter Number for guests). */
+  const [occasionInputMode, setOccasionInputMode] = useState(false)
+  const [occasionDraft, setOccasionDraft] = useState('')
+  const [occasionError, setOccasionError] = useState<string | null>(null)
+  const occasionInputRef = useRef<HTMLInputElement>(null)
+
   /** Full calendar in footer when user taps “Pick Date”; otherwise show the date option chips. */
   const [datesCustomMode, setDatesCustomMode] = useState(false)
 
-  const [details, setDetails] = useState({
+  const [details, setDetails] = useState<ContactDetailsState>({
     name: '',
     email: '',
     phone: '',
+    occasionType: '',
+    occasionNotes: '',
   })
   const [detailErrors, setDetailErrors] = useState<{
     name?: string
@@ -387,6 +486,10 @@ export function BookingChatView({ onBack }: Props) {
   useEffect(() => {
     if (guestsInputMode) guestInputRef.current?.focus()
   }, [guestsInputMode])
+
+  useEffect(() => {
+    if (occasionInputMode) occasionInputRef.current?.focus()
+  }, [occasionInputMode])
 
   const refreshSaved = useCallback(async () => {
     try {
@@ -431,6 +534,64 @@ export function BookingChatView({ onBack }: Props) {
     setStep,
   }
 
+  const advanceAfterOccasionChoice = useCallback(
+    (
+      patch: Partial<Pick<ContactDetailsState, 'occasionType' | 'occasionNotes'>>,
+      userBubble: string,
+    ) => {
+      pushUser(userBubble, 'occasion')
+      let merged: ContactDetailsState | null = null
+      setDetails((d) => {
+        merged = { ...d, ...patch }
+        return merged
+      })
+      setOccasionInputMode(false)
+      setOccasionDraft('')
+      setOccasionError(null)
+      queueMicrotask(() => {
+        if (merged) resumeAfterOccasionChosen(merged, resumeActions)
+      })
+    },
+    [pushUser, resumeActions],
+  )
+
+  const pickOccasionChip = useCallback(
+    (value: OccasionTypeId, label: string) => {
+      if (step !== 'occasion' || occasionInputMode) return
+      advanceAfterOccasionChoice(
+        value === ''
+          ? { occasionType: '', occasionNotes: '' }
+          : { occasionType: value, occasionNotes: '' },
+        label,
+      )
+    },
+    [step, occasionInputMode, advanceAfterOccasionChoice],
+  )
+
+  const startSpecifyOccasion = useCallback(() => {
+    if (step !== 'occasion' || occasionInputMode) return
+    setOccasionInputMode(true)
+    setOccasionDraft('')
+    setOccasionError(null)
+  }, [step, occasionInputMode])
+
+  const cancelSpecifyOccasion = useCallback(() => {
+    setOccasionInputMode(false)
+    setOccasionDraft('')
+    setOccasionError(null)
+  }, [])
+
+  const submitSpecifyOccasion = useCallback(() => {
+    if (step !== 'occasion' || !occasionInputMode) return
+    const raw = occasionDraft.trim()
+    if (raw.length < 2) {
+      setOccasionError('Add a few words so we know what you are celebrating.')
+      return
+    }
+    setOccasionError(null)
+    advanceAfterOccasionChoice({ occasionType: 'other', occasionNotes: raw }, raw)
+  }, [step, occasionInputMode, occasionDraft, advanceAfterOccasionChoice])
+
   const pickGuest = (label: string) => {
     if (step !== 'guests') return
     setGuestsInputMode(false)
@@ -449,7 +610,7 @@ export function BookingChatView({ onBack }: Props) {
       return snapshot
     })
     queueMicrotask(() => {
-      if (snapshot) resumeAfterGuestCountSet(snapshot, details, resumeActions)
+      if (snapshot) resumeAfterGuestCountSet(snapshot, resumeActions)
     })
   }
 
@@ -480,7 +641,7 @@ export function BookingChatView({ onBack }: Props) {
       return snapshot
     })
     queueMicrotask(() => {
-      if (snapshot) resumeAfterGuestCountSet(snapshot, details, resumeActions)
+      if (snapshot) resumeAfterGuestCountSet(snapshot, resumeActions)
     })
   }
 
@@ -494,7 +655,7 @@ export function BookingChatView({ onBack }: Props) {
       return snapshot
     })
     queueMicrotask(() => {
-      if (snapshot) resumeAfterDateSet(snapshot, details, resumeActions)
+      if (snapshot) resumeAfterDateSet(snapshot, resumeActions)
     })
   }
 
@@ -507,7 +668,7 @@ export function BookingChatView({ onBack }: Props) {
     if (step !== 'time') return
     pushUser(t, 'time')
     setBooking((b) => ({ ...b, time: t }))
-    resumeAfterTimeChosen(details, resumeActions)
+    resumeAfterTimeChosen(resumeActions)
   }
 
   const validateDetails = (): boolean => {
@@ -552,7 +713,7 @@ export function BookingChatView({ onBack }: Props) {
             name: details.name.trim(),
             email: details.email.trim(),
             phone: details.phone.trim(),
-            meta: { menuAvailabilityVersion: availabilityVersion },
+            meta: buildReservationMeta(availabilityVersion, details),
           })
           void syncBookingToSheets(saved)
           void sendBookingConfirmationEmail(saved)
@@ -568,7 +729,7 @@ export function BookingChatView({ onBack }: Props) {
           pushAssistant(
             reason === 'payment'
               ? "**Payment didn't go through.** You weren't charged. Tap **Try again** below to retry."
-              : "**We couldn't complete your booking.** Check your connection and tap **Try again** below.",
+              : "**We couldn't save your reservation.** Your network may be fine — open the browser console for the real error (often Supabase: missing `reservations` table or RLS). Tap **Try again** below.",
           )
           setStep('booking_error')
         }
@@ -578,13 +739,27 @@ export function BookingChatView({ onBack }: Props) {
 
   const handleEditSection = useCallback((section: BookingSection) => {
     setBookingFailureReason(null)
+    const resetOccasionUi = () => {
+      setOccasionInputMode(false)
+      setOccasionDraft('')
+      setOccasionError(null)
+    }
+    const clearStoredOccasion = () => {
+      setDetails((d) => ({ ...d, occasionType: '', occasionNotes: '' }))
+      resetOccasionUi()
+    }
     setMessages((msgs) => {
       const idx = msgs.findIndex((m) => m.role === 'user' && m.section === section)
       if (idx === -1) return msgs
-      return msgs.slice(0, idx)
+      const sliced = msgs.slice(0, idx)
+      if (section === 'occasion') {
+        return [...sliced, { id: uid(), role: 'assistant', text: ASSISTANT_OCCASION_PROMPT }]
+      }
+      return sliced
     })
     setDetailErrors({})
     if (section === 'guests') {
+      clearStoredOccasion()
       setBooking((b) => ({
         ...b,
         guestCount: 0,
@@ -595,6 +770,7 @@ export function BookingChatView({ onBack }: Props) {
       setDatesCustomMode(false)
       setStep('guests')
     } else if (section === 'date') {
+      clearStoredOccasion()
       setDatesCustomMode(false)
       setBooking((b) => ({
         ...b,
@@ -602,8 +778,12 @@ export function BookingChatView({ onBack }: Props) {
       }))
       setStep('date')
     } else if (section === 'time') {
+      clearStoredOccasion()
       setBooking((b) => ({ ...b, time: '' }))
       setStep('time')
+    } else if (section === 'occasion') {
+      clearStoredOccasion()
+      setStep('occasion')
     } else {
       setStep('details')
     }
@@ -620,7 +800,10 @@ export function BookingChatView({ onBack }: Props) {
     setGuestInputDraft('')
     setGuestInputError(null)
     setDatesCustomMode(false)
-    setDetails({ name: '', email: '', phone: '' })
+    setOccasionInputMode(false)
+    setOccasionDraft('')
+    setOccasionError(null)
+    setDetails({ name: '', email: '', phone: '', occasionType: '', occasionNotes: '' })
     setDetailErrors({})
     setStep('guests')
     setMessages([
@@ -638,18 +821,20 @@ export function BookingChatView({ onBack }: Props) {
     <div className="relative flex h-dvh max-h-dvh flex-col overflow-hidden bg-muted/40">
       <div className={WIDGET_CHAT_PAGE_SHELL_CLASS}>
         <div className={`${WIDGET_STACK_COLUMN_CLASS} mx-auto`}>
-          <div className={`${WIDGET_TOP_ROW_SPACER_CLASS} z-10`}>
-            <Button
-              type="button"
-              variant="ghost"
-              size="default"
-              className="-ml-1 h-9 w-fit gap-1.5 rounded-full px-3 text-sm font-semibold text-muted-foreground hover:text-foreground"
-              onClick={onBack}
-            >
-              <ArrowLeftIcon className="size-4 shrink-0" aria-hidden />
-              Back
-            </Button>
-          </div>
+          {onBack ? (
+            <div className={`${WIDGET_TOP_ROW_SPACER_CLASS} z-10`}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="default"
+                className="-ml-1 h-9 w-fit gap-1.5 rounded-full px-3 text-sm font-semibold text-muted-foreground hover:text-foreground"
+                onClick={onBack}
+              >
+                <ArrowLeftIcon className="size-4 shrink-0" aria-hidden />
+                Back
+              </Button>
+            </div>
+          ) : null}
 
           <div
             className={cn(
@@ -685,6 +870,8 @@ export function BookingChatView({ onBack }: Props) {
               />
             </div>
           </div>
+
+          <BookingFlowProgress step={step} />
 
           {step === 'submitting' ? (
             <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-4 py-10">
@@ -812,6 +999,30 @@ export function BookingChatView({ onBack }: Props) {
                   </div>
                 )}
 
+                {step === 'occasion' && !occasionInputMode && (
+                  <div className="w-full min-w-0 overflow-x-auto overflow-y-visible pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    <div className={cn('flex w-max max-w-full flex-nowrap items-center', PILL_TABS_LIST_CLASS)}>
+                      {OCCASION_CHAT_CHIPS.map(({ value, label }) => (
+                        <button
+                          key={value === '' ? 'occasion-prefer-not' : value}
+                          type="button"
+                          className={PILL_CHOICE_BUTTON_CLASS}
+                          onClick={() => pickOccasionChip(value, label)}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                      <button
+                        type="button"
+                        className={PILL_CHOICE_BUTTON_CLASS}
+                        onClick={startSpecifyOccasion}
+                      >
+                        Specify occasion
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {step === 'details' && (
                   <DetailsForm
                     details={details}
@@ -853,6 +1064,9 @@ export function BookingChatView({ onBack }: Props) {
                         guests={lastConfirmedReservation.guests}
                         dateLabel={formatDayFromIso(lastConfirmedReservation.dateIso)}
                         timeLabel={lastConfirmedReservation.time || '—'}
+                        onPreview={() =>
+                          navigate(reservationManagePath(lastConfirmedReservation.manageToken))
+                        }
                         onCustomize={() =>
                           navigate(reservationCustomizePath(lastConfirmedReservation.manageToken))
                         }
@@ -917,6 +1131,56 @@ export function BookingChatView({ onBack }: Props) {
 
           {showFooter && (
             <>
+              {step === 'occasion' && occasionInputMode && (
+                <div className="shrink-0 border-t border-border bg-card px-3 py-2.5 sm:px-4">
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="occasion-specify-input" className="sr-only">
+                      Describe the occasion
+                    </Label>
+                    <Input
+                      id="occasion-specify-input"
+                      ref={occasionInputRef}
+                      type="text"
+                      autoComplete="off"
+                      enterKeyHint="send"
+                      placeholder="e.g. 40th birthday, anniversary dinner…"
+                      value={occasionDraft}
+                      onChange={(e) => {
+                        setOccasionDraft(e.target.value)
+                        setOccasionError(null)
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault()
+                          submitSpecifyOccasion()
+                        }
+                      }}
+                      className="h-10 flex-1"
+                    />
+                    <Button
+                      type="button"
+                      size="lg"
+                      className="h-10 shrink-0 px-4 text-[15px] font-semibold"
+                      onClick={submitSpecifyOccasion}
+                    >
+                      Send
+                    </Button>
+                  </div>
+                  {occasionError ? (
+                    <p className="mt-2 text-[13px] font-medium text-destructive" role="alert">
+                      {occasionError}
+                    </p>
+                  ) : null}
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="mt-2 h-auto p-0 text-[13px] font-medium"
+                    onClick={cancelSpecifyOccasion}
+                  >
+                    Back to occasion choices
+                  </Button>
+                </div>
+              )}
               {step === 'guests' && guestsInputMode && (
                 <div className="shrink-0 border-t border-border bg-card px-3 py-2.5 sm:px-4">
                   <div className="flex items-center gap-2">
@@ -1063,9 +1327,9 @@ function DetailsForm({
   onChange,
   onSubmit,
 }: {
-  details: { name: string; email: string; phone: string }
+  details: ContactDetailsState
   errors: { name?: string; email?: string; phone?: string }
-  onChange: (patch: Partial<{ name: string; email: string; phone: string }>) => void
+  onChange: (patch: Partial<Pick<ContactDetailsState, 'name' | 'email' | 'phone'>>) => void
   onSubmit: () => void
 }) {
   return (
@@ -1131,6 +1395,7 @@ function DetailsForm({
             <p className="text-[13px] font-medium text-destructive">{errors.phone}</p>
           ) : null}
         </div>
+
         <Button
           type="button"
           size="lg"
@@ -1159,7 +1424,7 @@ function ConfirmPanel({
     date: Date | null
     time: string
   }
-  details: { name: string; email: string; phone: string }
+  details: ContactDetailsState
   holdingFeeVenue: string
   /** Per-guest × guests total; null hides fee UI. */
   holdingFee: { totalFormatted: string; perGuestFormatted: string; guests: number } | null
@@ -1171,14 +1436,16 @@ function ConfirmPanel({
 }) {
   const d = booking.date
   const guestLabel = String(booking.guestCount)
-  const rows = [
+  const occasionLine = occasionSummaryLine(details.occasionType, details.occasionNotes)
+  const rows: [string, string][] = [
     ['Guests', guestLabel],
     ['Date', d ? formatDay(d) : '—'],
     ['Time', booking.time],
     ['Name', details.name.trim()],
     ['Email', details.email.trim()],
     ['Phone', details.phone.trim()],
-  ] as const
+  ]
+  if (occasionLine) rows.push(['Occasion', occasionLine])
 
   const paymentMethodsLine =
     'When you continue, you can pay by card, Apple Pay, or Google Pay where available.'
@@ -1234,7 +1501,7 @@ function ConfirmPanel({
                 <p className="text-[13px] leading-snug text-muted-foreground">
                   {submissionError === 'payment'
                     ? 'Your payment did not complete and you have not been charged. Try again, or use another card or wallet.'
-                    : 'We could not reach our servers. Check your connection and try again.'}
+                    : 'Saving failed — usually the reservation backend (e.g. Supabase rejecting the insert), not your Wi‑Fi. Check the developer console, fix table/permissions, then try again.'}
                 </p>
               </div>
             </div>

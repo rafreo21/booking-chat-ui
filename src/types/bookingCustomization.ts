@@ -48,6 +48,11 @@ export interface GuestSeat {
   /** Optional friendly label, e.g. "Raphael" */
   displayName: string
   selectedMenuItemIds: string[]
+  /**
+   * Allergens this guest avoids — canonical ids from `menu/allergenFilters` (same values as allergy pills).
+   * Stored as strings for stable JSON.
+   */
+  avoidAllergens?: string[]
 }
 
 /** Snapshot stored against a reservation */

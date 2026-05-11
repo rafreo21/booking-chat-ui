@@ -10,11 +10,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { AiChatbotLogo } from '../components/AiChatbotLogo'
-import { CustomizationSummary } from '../components/customization/CustomizationSummary'
-import { useReservationRouteLoad } from '../hooks/useReservationRouteLoad'
-import { reconcileGuestSeats } from '../lib/reconcileGuestSeats'
-import { reservationCustomizePath } from '../lib/reservationUrls'
+import { AiChatbotLogo } from '@/components/AiChatbotLogo'
+import { CustomizationSummary } from '@/components/customization/CustomizationSummary'
+import { useReservationRouteLoad } from '@/hooks/useReservationRouteLoad'
+import { reconcileGuestSeats } from '@/lib/reconcileGuestSeats'
+import { reservationCustomizePath } from '@/lib/reservationUrls'
 import {
   MissingReservationRef,
   PAGE_BG_CLASS,

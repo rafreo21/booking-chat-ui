@@ -11,6 +11,11 @@ import { saveCustomization } from '../../storage'
 import { notifyDiningPreferenceSaved } from '../../lib/diningPreferenceIngest'
 import { reservationManagePath } from '../../lib/reservationUrls'
 import { reconcileGuestSeats } from '../../lib/reconcileGuestSeats'
+import {
+  filterItemsByAllergens,
+  parseAllergenFilterIds,
+  type AllergenFilterId,
+} from '../../menu/allergenFilters'
 import { useMenuCatalog } from '../../menu/useMenuCatalog'
 import type { DiningCustomization, GuestSeat, MenuCategoryId, MenuId } from '../../types/bookingCustomization'
 import { CustomizationSummary } from './CustomizationSummary'
@@ -22,6 +27,8 @@ function cloneGuestSeats(seats: GuestSeat[]): GuestSeat[] {
   return seats.map((s) => ({
     ...s,
     selectedMenuItemIds: [...s.selectedMenuItemIds],
+    avoidAllergens:
+      s.avoidAllergens?.length && s.avoidAllergens.length > 0 ? [...s.avoidAllergens] : undefined,
   }))
 }
 
@@ -113,6 +120,11 @@ export function DiningCustomizationFlow({
 
   const activeSeat = seats.find((s) => s.seatIndex === activeSeatIndex) ?? seats[0]
 
+  const activeSeatAllergenIds = useMemo(
+    () => parseAllergenFilterIds(activeSeat?.avoidAllergens),
+    [activeSeat?.avoidAllergens],
+  )
+
   const categoryItems = useMemo(
     () => menuItemsInCategory(displayCategory),
     [menuItemsInCategory, displayCategory],
@@ -125,15 +137,48 @@ export function DiningCustomizationFlow({
 
   const pickerItems = useMemo(() => {
     const q = menuSearchQuery.trim().toLowerCase()
-    if (!q) return categoryItems
-    return catalogItems.filter((item) => {
-      if (!categoryIdsInActiveMenu.has(item.categoryId)) return false
-      const blob = [item.name, item.description ?? '', ...(item.dietaryTags ?? [])]
-        .join(' ')
-        .toLowerCase()
-      return blob.includes(q)
-    })
-  }, [menuSearchQuery, categoryItems, catalogItems, categoryIdsInActiveMenu])
+    const searched =
+      q.length === 0
+        ? categoryItems
+        : catalogItems.filter((item) => {
+            if (!categoryIdsInActiveMenu.has(item.categoryId)) return false
+            const blob = [item.name, item.description ?? '', ...(item.dietaryTags ?? [])]
+              .join(' ')
+              .toLowerCase()
+            return blob.includes(q)
+          })
+    return filterItemsByAllergens(searched, activeSeatAllergenIds)
+  }, [
+    menuSearchQuery,
+    categoryItems,
+    catalogItems,
+    categoryIdsInActiveMenu,
+    activeSeatAllergenIds,
+  ])
+
+  const toggleSeatAllergen = useCallback((id: AllergenFilterId) => {
+    setSeats((prev) =>
+      prev.map((s) => {
+        if (s.seatIndex !== activeSeatIndex) return s
+        const cur = parseAllergenFilterIds(s.avoidAllergens)
+        const next = cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]
+        return {
+          ...s,
+          avoidAllergens: next.length > 0 ? next : undefined,
+        }
+      }),
+    )
+    setSaveState('idle')
+  }, [activeSeatIndex])
+
+  const clearSeatAllergens = useCallback(() => {
+    setSeats((prev) =>
+      prev.map((s) =>
+        s.seatIndex === activeSeatIndex ? { ...s, avoidAllergens: undefined } : s,
+      ),
+    )
+    setSaveState('idle')
+  }, [activeSeatIndex])
 
   const onSeatNameChange = useCallback((seatIndex: number, displayName: string) => {
     setSeats((prev) =>
@@ -360,6 +405,9 @@ export function DiningCustomizationFlow({
           activeSeatIndex={activeSeatIndex}
           onSelectSeat={setActiveSeatIndex}
           onSeatNameChange={onSeatNameChange}
+          activeSeatAllergenIds={activeSeatAllergenIds}
+          onAllergenToggle={toggleSeatAllergen}
+          onAllergenClearAll={clearSeatAllergens}
         />
 
         <MenuCategoryTabs
@@ -382,6 +430,7 @@ export function DiningCustomizationFlow({
             menuPdfUrl={activeMenuMeta?.pdfUrl}
             menuTitle={activeMenuMeta?.label}
             searchActive={Boolean(menuSearchQuery.trim())}
+            allergyFilterActive={activeSeatAllergenIds.length > 0}
           />
         ) : null}
 

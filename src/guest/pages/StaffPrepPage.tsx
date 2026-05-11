@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
-import { CustomizationSummary } from '../components/customization/CustomizationSummary'
-import { loadCustomization, resolveReservationPublicRef } from '../storage'
-import type { SavedBooking } from '../storage'
-import type { DiningCustomization } from '../types/bookingCustomization'
+import { CustomizationSummary } from '@/components/customization/CustomizationSummary'
+import { loadCustomization, resolveReservationPublicRef } from '@/storage'
+import type { SavedBooking } from '@/storage'
+import type { DiningCustomization } from '@/types/bookingCustomization'
+import { occasionSummaryFromMeta } from '@/lib/bookingOccasion'
 import { useEffect, useState } from 'react'
 
 export function StaffPrepPage() {
@@ -139,6 +140,8 @@ export function StaffPrepPage() {
   const prepNotes =
     typeof booking.meta?.kitchenPrepNotes === 'string' ? booking.meta.kitchenPrepNotes.trim() : ''
 
+  const occasionSummary = occasionSummaryFromMeta(booking.meta)
+
   return (
     <div className="min-h-dvh bg-muted/40 px-4 py-8 pb-[max(1rem,env(safe-area-inset-bottom))]">
       <div className="mx-auto flex max-w-2xl flex-col gap-4">
@@ -155,6 +158,16 @@ export function StaffPrepPage() {
               Token{' '}
               <span className="font-semibold text-foreground">{booking.manageToken.slice(0, 14)}…</span>
             </p>
+            {occasionSummary ? (
+              <div className="mt-4 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 dark:border-sky-900/50 dark:bg-sky-950/40">
+                <p className="text-[11px] font-bold uppercase tracking-wide text-sky-900 dark:text-sky-200">
+                  Occasion
+                </p>
+                <p className="mt-1 whitespace-pre-wrap text-[14px] text-sky-950 dark:text-sky-50">
+                  {occasionSummary}
+                </p>
+              </div>
+            ) : null}
             {prepNotes ? (
               <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 dark:border-amber-900/40 dark:bg-amber-950/30">
                 <p className="text-[11px] font-bold uppercase tracking-wide text-amber-900 dark:text-amber-200">

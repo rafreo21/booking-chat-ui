@@ -2,9 +2,9 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeftIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { DiningCustomizationFlow } from '../components/customization/DiningCustomizationFlow'
-import { AiChatbotLogo } from '../components/AiChatbotLogo'
-import { useReservationRouteLoad } from '../hooks/useReservationRouteLoad'
+import { DiningCustomizationFlow } from '@/components/customization/DiningCustomizationFlow'
+import { AiChatbotLogo } from '@/components/AiChatbotLogo'
+import { useReservationRouteLoad } from '@/hooks/useReservationRouteLoad'
 import {
   MissingReservationRef,
   PAGE_BG_CLASS,

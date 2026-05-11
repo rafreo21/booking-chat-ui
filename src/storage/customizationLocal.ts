@@ -8,11 +8,15 @@ function isRecord(x: unknown): x is Record<string, unknown> {
 
 function isGuestSeat(x: unknown): x is DiningCustomization['seats'][number] {
   if (!isRecord(x)) return false
+  const allergensOk =
+    x.avoidAllergens === undefined ||
+    (Array.isArray(x.avoidAllergens) && x.avoidAllergens.every((id) => typeof id === 'string'))
   return (
     typeof x.seatIndex === 'number' &&
     typeof x.displayName === 'string' &&
     Array.isArray(x.selectedMenuItemIds) &&
-    x.selectedMenuItemIds.every((id) => typeof id === 'string')
+    x.selectedMenuItemIds.every((id) => typeof id === 'string') &&
+    allergensOk
   )
 }
 

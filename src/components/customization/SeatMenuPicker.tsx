@@ -17,6 +17,8 @@ type Props = {
   pageSize?: number
   /** True when the list is filtered by search — avoids showing the PDF empty state on zero matches. */
   searchActive?: boolean
+  /** Guest hid dishes via allergy accordion — tuned empty-state copy. */
+  allergyFilterActive?: boolean
 }
 
 const gbp = new Intl.NumberFormat('en-GB', {
@@ -39,6 +41,7 @@ export function SeatMenuPicker({
   menuTitle,
   pageSize = 4,
   searchActive = false,
+  allergyFilterActive = false,
 }: Props) {
   const count = activeSeat.selectedMenuItemIds.length
   const atCap = count >= maxSelectablePerSeat
@@ -197,6 +200,12 @@ export function SeatMenuPicker({
         searchActive ? (
           <p className="rounded-xl border border-dashed border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
             No dishes match your search — try different words or clear the search box.
+          </p>
+        ) : allergyFilterActive ? (
+          <p className="rounded-xl border border-dashed border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground">
+            No dishes match your allergy selections in this category — clear allergy pills, choose another
+            section, or use the official PDF and add details in{' '}
+            <span className="font-semibold text-foreground">Notes</span>. Always confirm with staff on arrival.
           </p>
         ) : menuPdfUrl ? (
           <div className="space-y-3">

@@ -9,6 +9,9 @@ type Props = {
   guests: number
   dateLabel: string
   timeLabel: string
+  /** Opens read-only summary (`/reservation/:token`). */
+  onPreview: () => void
+  /** Opens dish editor (`/reservation/:token/customize`). */
   onCustomize: () => void
   onSkip: () => void
 }
@@ -22,6 +25,7 @@ export function BookingConfirmationCta({
   guests,
   dateLabel,
   timeLabel,
+  onPreview,
   onCustomize,
   onSkip,
 }: Props) {
@@ -75,8 +79,17 @@ export function BookingConfirmationCta({
 
       <div className="flex flex-col gap-3">
         <p className="text-center text-[13px] font-medium leading-snug text-muted-foreground">
-          Pre-select dishes for your table · Help us prepare for your arrival
+          Preview your dining summary · Pre-select dishes for your table
         </p>
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          className="min-h-12 h-auto w-full whitespace-normal px-5 py-3 text-center text-[15px] font-semibold leading-snug"
+          onClick={onPreview}
+        >
+          Preview dining experience
+        </Button>
         <Button
           type="button"
           variant="default"

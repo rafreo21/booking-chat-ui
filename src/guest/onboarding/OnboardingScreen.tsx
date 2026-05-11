@@ -1,22 +1,26 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { AiChatbotLogo } from './components/AiChatbotLogo'
-import { OnboardingHeroCarousel } from './components/OnboardingHeroCarousel'
-import { ONBOARDING_HERO_SLIDES } from './figma/assets'
-import { GetDirectionsIconLink } from './components/GetDirectionsFab'
-import { VenueHeaderRating } from './components/VenueHeaderRating'
+import { AiChatbotLogo } from '@/components/AiChatbotLogo'
+import { OnboardingHeroCarousel } from '@/components/OnboardingHeroCarousel'
+import { ONBOARDING_HERO_SLIDES } from '@/figma/assets'
+import { GetDirectionsIconLink } from '@/components/GetDirectionsFab'
+import { VenueHeaderRating } from '@/components/VenueHeaderRating'
 import {
   WIDGET_FRAME_HEIGHT_CLASS,
   WIDGET_LOGO_ABSOLUTE_INSET_CLASS,
   WIDGET_PAGE_SHELL_CLASS,
   WIDGET_STACK_COLUMN_CLASS,
   WIDGET_TOP_ROW_SPACER_CLASS,
-} from './widgetLayout'
+} from '@/widgetLayout'
 
 type Props = {
   onBookNow: () => void
 }
 
+/**
+ * Guest marketing / venue intro — hero carousel + Book Now.
+ * Chat flow mounts underneath HomePage’s curtain until the guest proceeds.
+ */
 export function OnboardingScreen({ onBookNow }: Props) {
   return (
     <div className="relative min-h-dvh bg-transparent">
@@ -30,9 +34,7 @@ export function OnboardingScreen({ onBookNow }: Props) {
           >
             <div className="relative min-h-0 flex-1 border-b border-border">
               <OnboardingHeroCarousel slides={ONBOARDING_HERO_SLIDES} className="h-full min-h-[9.5rem]" />
-              <div
-                className={`pointer-events-none absolute z-20 ${WIDGET_LOGO_ABSOLUTE_INSET_CLASS}`}
-              >
+              <div className={`pointer-events-none absolute z-20 ${WIDGET_LOGO_ABSOLUTE_INSET_CLASS}`}>
                 <AiChatbotLogo />
               </div>
             </div>
@@ -43,13 +45,18 @@ export function OnboardingScreen({ onBookNow }: Props) {
                   Gilgamesh London
                 </h1>
                 <p className="w-full text-pretty text-[13px] leading-snug text-muted-foreground sm:text-[14px] sm:leading-relaxed">
-                  The finest contemporary Pan Asian cuisine. Restaurant, Bar, Late,
-                  Events. The ultimate destination dining.
+                  The finest contemporary Pan Asian cuisine. Restaurant, Bar, Late, Events. The ultimate
+                  destination dining.
                 </p>
               </header>
               <VenueHeaderRating className="pt-0" />
               <div className="flex w-full items-center gap-2">
-                <Button type="button" size="lg" className="h-11 min-w-0 flex-1 px-5 text-[15px] font-semibold" onClick={onBookNow}>
+                <Button
+                  type="button"
+                  size="lg"
+                  className="h-11 min-w-0 flex-1 px-5 text-[15px] font-semibold"
+                  onClick={onBookNow}
+                >
                   Book Now
                 </Button>
                 <GetDirectionsIconLink />

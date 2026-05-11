@@ -1,5 +1,10 @@
 import type { User } from '@supabase/supabase-js'
 import { useEffect, useState } from 'react'
+import {
+  mergeSupabaseOrBypassUser,
+  RESTAURANT_BYPASS_AUTH_EVENT,
+  isRestaurantEmailBypassEnabled,
+} from '@/lib/restaurantBypassAuth'
 import { getSupabase, isSupabaseConfigured } from '@/lib/supabaseClient'
 
 export function useRestaurantAuth() {
@@ -7,32 +12,45 @@ export function useRestaurantAuth() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const supabase = getSupabase()
-    if (!supabase) {
-      setUser(null)
-      setLoading(false)
-      return
-    }
-
     let cancelled = false
 
-    void supabase.auth.getSession().then(({ data: { session } }) => {
-      if (cancelled) return
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
+    const sync = async () => {
+      const supabase = getSupabase()
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!supabase) {
+        if (!cancelled) {
+          setUser(mergeSupabaseOrBypassUser(null))
+          setLoading(false)
+        }
+        return
+      }
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
       if (cancelled) return
-      setUser(session?.user ?? null)
+      setUser(mergeSupabaseOrBypassUser(session?.user ?? null))
       setLoading(false)
-    })
+    }
+
+    void sync()
+
+    const onBypass = () => void sync()
+    window.addEventListener(RESTAURANT_BYPASS_AUTH_EVENT, onBypass)
+
+    const supabase = getSupabase()
+    let subscription: { unsubscribe: () => void } | undefined
+    if (supabase) {
+      const {
+        data: { subscription: sub },
+      } = supabase.auth.onAuthStateChange(() => void sync())
+      subscription = sub
+    }
 
     return () => {
       cancelled = true
-      subscription.unsubscribe()
+      window.removeEventListener(RESTAURANT_BYPASS_AUTH_EVENT, onBypass)
+      subscription?.unsubscribe()
     }
   }, [])
 
@@ -40,5 +58,6 @@ export function useRestaurantAuth() {
     user,
     loading,
     configured: isSupabaseConfigured(),
+    emailBypassEnabled: isRestaurantEmailBypassEnabled(),
   }
 }

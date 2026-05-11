@@ -23,6 +23,8 @@ function metaFromDb(raw: unknown): ReservationBookingMeta | undefined {
   const out: ReservationBookingMeta = {}
   if (typeof o.menuAvailabilityVersion === 'string') out.menuAvailabilityVersion = o.menuAvailabilityVersion
   if (typeof o.kitchenPrepNotes === 'string') out.kitchenPrepNotes = o.kitchenPrepNotes
+  if (typeof o.occasionType === 'string') out.occasionType = o.occasionType
+  if (typeof o.occasionNotes === 'string') out.occasionNotes = o.occasionNotes
   if (o.depositStatus === 'none' || o.depositStatus === 'pending' || o.depositStatus === 'paid') {
     out.depositStatus = o.depositStatus
   }

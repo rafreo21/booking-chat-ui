@@ -34,7 +34,7 @@ type Props = {
 }
 
 /**
- * Star + linked 4.5 · (CheckFat + dine in only) · Globe (website) · optional maps pin (directions).
+ * (CheckFat + dine in first) · Star + linked 4.5 · Globe (website) · optional maps pin (directions).
  */
 export function VenueHeaderRating({
   className = '',
@@ -64,6 +64,16 @@ export function VenueHeaderRating({
     <div
       className={`flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-[13px] leading-snug sm:text-[14px] ${className}`}
     >
+      <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+        <CheckFat
+          {...venueIconProps}
+          color={iconCheck}
+          aria-hidden
+          className="shrink-0"
+        />
+        <span className={dineLabel}>Dine in only</span>
+      </span>
+
       <a
         href={GILGAMESH_GOOGLE_REVIEWS}
         target="_blank"
@@ -79,16 +89,6 @@ export function VenueHeaderRating({
         />
         <span className={ratingScoreClass}>4.5</span>
       </a>
-
-      <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
-        <CheckFat
-          {...venueIconProps}
-          color={iconCheck}
-          aria-hidden
-          className="shrink-0"
-        />
-        <span className={dineLabel}>Dine in only</span>
-      </span>
 
       <span className="inline-flex shrink-0 items-center gap-2">
         <a

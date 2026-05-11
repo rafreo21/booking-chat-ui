@@ -22,5 +22,6 @@ export function getBookingFailureReason(error: unknown): BookingFailureReason {
   if (/payment|card|declined|gateway|stripe|apple\s*pay|google\s*pay/i.test(msg)) {
     return 'payment'
   }
+  /** Everything else maps here — includes Supabase/HTTP/API failures (often mislabeled “network” in UI copy). */
   return 'network'
 }

@@ -29,7 +29,7 @@ export function RestaurantAuthCallbackPage() {
 
     const check = () => {
       void supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) done('/restaurant')
+        if (session) done('/restaurant/dashboard')
       })
     }
 
@@ -40,7 +40,7 @@ export function RestaurantAuthCallbackPage() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (session && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
-        done('/restaurant')
+        done('/restaurant/dashboard')
       }
     })
 
@@ -49,7 +49,7 @@ export function RestaurantAuthCallbackPage() {
     const timeout = window.setTimeout(() => {
       clearInterval(interval)
       void supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) done('/restaurant')
+        if (session) done('/restaurant/dashboard')
         else done('/restaurant/login?error=session')
       })
     }, 12000)
